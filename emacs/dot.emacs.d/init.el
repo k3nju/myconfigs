@@ -73,7 +73,9 @@
 ;; Common coloring 
 ;;
 (defun personal-set-color ()
-  (load-theme 'deeper-blue t)
+  (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+  ;;(load-theme 'solarized-dark t)
+  (load-theme 'blue-sea t)
 )
 (personal-set-color)
 
