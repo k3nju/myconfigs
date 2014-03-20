@@ -73,7 +73,9 @@
 ;; Common coloring 
 ;;
 (defun personal-set-color ()
+  (load-theme 'deeper-blue t)
 )
+(personal-set-color)
 
 ;;
 ;; C/C++ mode configuration
