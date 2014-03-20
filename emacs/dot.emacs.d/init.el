@@ -19,6 +19,7 @@
 		system-name))
   ;; Print line number
   (setq line-number-mode t)
+  (linum-mode)
   ;; Print column number
   (setq column-number-mode t)
   ;; Don't truncate lines
@@ -198,6 +199,7 @@
 ;; Go mode configuration 
 ;;
 (defun personal-go-mode-hook ()
+  (personal-global-config)
   ;;  (local-set-key (kbd "M-.") 'godef-jump)
   ;;  (local-set-key (kbd "C-c C-r") 'go-remove-unused-imports)
   ;;  (local-set-key (kbd "C-c i" ) 'go-goto-imports)
@@ -208,4 +210,4 @@
   ;; Compile when saving sources
   (add-hook 'before-save-hook 'gofmt-before-save)
   ;; Add Go mode hook function
-  (add-hook 'go-mode-hook 'my-go-mode-hook))
+  (add-hook 'go-mode-hook 'personal-go-mode-hook))

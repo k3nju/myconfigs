@@ -1,2 +1,4 @@
 Emacs.geometry:120x50
-Emacs.font: AnonymousPro-12
+Emacs.font: AnonymousPro-13
+!Emacs.font: Monaco-12
+!Emacs.font: Menlo-12
