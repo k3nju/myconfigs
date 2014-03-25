@@ -19,6 +19,7 @@
 		system-name))
   ;; Print line number
   (setq line-number-mode t)
+  (global-linum-mode t)
   (linum-mode)
   ;; Print column number
   (setq column-number-mode t)
@@ -68,7 +69,6 @@
   (global-set-key "\M-1" 'macro-f1)
 )
 (personal-global-config)
-
 
 ;;
 ;; Common coloring 
