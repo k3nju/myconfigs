@@ -1,7 +1,7 @@
 ;;
 ;; common
 ;;
-(defun personal-global-config ()
+(defun personal-preference-config ()
   ;; Add load-path
   (add-to-list 'load-path "/usr/share/emacs/site-lisp" t) ;; system local
   (add-to-list 'load-path "~/.emacs.d") ;; user local
@@ -50,11 +50,11 @@
   ;; default-tab-width configures default vale of tab-width
   (setq default-tab-width 4)
   ;; default value of tab-width(No need to be set if default-tab-width is configured?)
-  (setq-default tab-width 4)
+  (setq tab-width 4)
   ;; List of position where cursor stops at when tab entered
   (setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
   ;; Replace indents to tabs when indent depth matchs to one of tab-width
-  (setq-default indent-tabs-mode t)
+  (setq indent-tabs-mode t)
 
   ;;
   ;; global key map configuration
@@ -68,7 +68,7 @@
   ;; use "Meta + 1" to execute macro-f1
   (global-set-key "\M-1" 'macro-f1)
 )
-(personal-global-config)
+(personal-preference-config)
 
 ;;
 ;; Common coloring 
@@ -190,20 +190,21 @@
 ;; Hook function for python mode
 (defun personal-python-mode-hook ()
   (setq python-indent 4)
+  (personal-preference-config)
 )
 
 ;; Add python mode hook function
-(add-hook 'python-mode-hook 'personal-mode-hook)
+(add-hook 'python-mode-hook 'personal-python-mode-hook)
 
 ;;
 ;; Go mode configuration 
 ;;
 (defun personal-go-mode-hook ()
-  (personal-global-config)
   ;;  (local-set-key (kbd "M-.") 'godef-jump)
   ;;  (local-set-key (kbd "C-c C-r") 'go-remove-unused-imports)
   ;;  (local-set-key (kbd "C-c i" ) 'go-goto-imports)
   ;;  (local-set-key (kbd "C-c d" ) 'godoc())
+  (personal-preference-config)
 )
 
 (when (require 'go-mode-load nil t)
