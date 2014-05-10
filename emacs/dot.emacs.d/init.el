@@ -28,7 +28,7 @@
   ;; Don't truncate lines in window mode
   (setq truncate-partial-width-windows t)
   ;; Dont' blink cursor
-  (blink-cursor-mode nil)
+  (blink-cursor-mode 0)
   ;; Highlight pair strings(ex. {and})
   (show-paren-mode 1)
   ;; font-lock-mode(enables keyword coloring or highlighting) is used in minor mode,
