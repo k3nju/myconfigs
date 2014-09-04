@@ -1,4 +1,12 @@
 ;;
+;; initialize package.el
+;;
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
+(add-to-list 'package-archives  '("marmalade" . "http://marmalade-repo.org/packages/"))
+(package-initialize)
+
+;;
 ;; common
 ;;
 (defun personal-preference-config ()
@@ -75,8 +83,16 @@
 ;;
 (defun personal-set-color ()
   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-  ;;(load-theme 'solarized-dark t)
-  (load-theme 'blue-sea t)
+  ;; load base theme
+  (load-theme 'solarized-dark t)
+  ;; customize per font-lock
+  (custom-set-faces
+   ;; comment
+   '(font-lock-comment-delimiter-face ((t (:foreground "green4"))))
+   '(font-lock-comment-face ((t (:foreground "green4"))))
+   ;; string
+   '(font-lock-string-face ((t (:foreground "OrangeRed3"))))
+   )
 )
 (personal-set-color)
 
@@ -167,7 +183,8 @@
 				;; extern "C"
 				(extern-lang-open . +)
 				(extern-lang-close . +)
-				(inextern-lang . 0))))
+				(inextern-lang . 0)))
+			 )
 
 ;; Hook function for C/C++ mode
 (defun personal-c-mode-hook ()
@@ -211,4 +228,6 @@
   ;; Compile when saving sources
   (add-hook 'before-save-hook 'gofmt-before-save)
   ;; Add Go mode hook function
-  (add-hook 'go-mode-hook 'personal-go-mode-hook))
+  (add-hook 'go-mode-hook 'personal-go-mode-hook)
+)
+
