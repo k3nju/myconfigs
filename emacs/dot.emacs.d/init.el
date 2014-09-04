@@ -86,7 +86,7 @@
 
 ;; .h/.rl files are opened with C++ mode
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
-(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+(add-to-list 'auto-mode-alist '("\\.rl\\'" . c++-mode))
 
 ;; My C++ coding style.
 ;; Whitesmiths-kai
