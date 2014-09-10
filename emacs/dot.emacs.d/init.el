@@ -188,7 +188,8 @@
 
 ;; Hook function for C/C++ mode
 (defun personal-c-mode-hook ()
-  (c-set-style "whitesmiths-kai"))
+  (c-set-style "whitesmiths-kai")
+  (personal-preference-config))
 
 ;; Macro for inserting delimiter line.(dedicated to C++)
 (defun macro-f1 ()
