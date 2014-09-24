@@ -75,6 +75,13 @@
   ;; Meta + 1でmacro-f1を実行
   ;; use "Meta + 1" to execute macro-f1
   (global-set-key "\M-1" 'macro-f1)
+
+  ;;
+  ;; Language and coding-system
+  ;;
+  ;; referenced from Software Design 2011/1
+  (set-language-environment "Japanese")
+  (prefer-coding-system 'utf-8)
 )
 (personal-preference-config)
 
