@@ -63,6 +63,11 @@
   (setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
   ;; Replace indents to tabs when indent depth matchs to one of tab-width
   (setq indent-tabs-mode t)
+  ;; Disable electric-indent-mode. emacs changed default value as t since ver 24.4
+  ;; NOTE: Enabling this mode swaps behaviors of ctrl-j for enter opposite to 23
+  ;;       (ctrl-j will invokes newline and enter will invoke newline-and-indent)
+  (if (= emacs-major-version 24)
+	  (setq electric-indent-mode  nil))
 
   ;;
   ;; global key map configuration
