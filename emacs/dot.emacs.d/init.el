@@ -12,7 +12,7 @@
 (defun personal-preference-config ()
   ;; Add load-path
   (add-to-list 'load-path "/usr/share/emacs/site-lisp" t) ;; system local
-  (add-to-list 'load-path "~/.emacs.d") ;; user local
+  (add-to-list 'load-path "~/.emacs.d/lisp") ;; user local
   
   ;;
   ;; Misc
