@@ -230,14 +230,11 @@
 ;; Go mode configuration 
 ;;
 (defun personal-go-mode-hook ()
-  ;;  (local-set-key (kbd "M-.") 'godef-jump)
-  ;;  (local-set-key (kbd "C-c C-r") 'go-remove-unused-imports)
-  ;;  (local-set-key (kbd "C-c i" ) 'go-goto-imports)
-  ;;  (local-set-key (kbd "C-c d" ) 'godoc())
+  (local-set-key (kbd "C-c C-r") 'go-remove-unused-imports)
   (personal-preference-config)
 )
 
-(when (require 'go-mode-load nil t)
+(when (require 'go-mode-autoloads nil t)
   ;; Compile when saving sources
   (add-hook 'before-save-hook 'gofmt-before-save)
   ;; Add Go mode hook function
