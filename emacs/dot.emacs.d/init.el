@@ -1,18 +1,29 @@
 ;;
-;; initialize package.el
-;;
-(require 'package)
-(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
-(add-to-list 'package-archives  '("marmalade" . "http://marmalade-repo.org/packages/"))
-(package-initialize)
-
-;;
 ;; common
 ;;
 (defun personal-preference-config ()
   ;; Add load-path
   (add-to-list 'load-path "/usr/share/emacs/site-lisp" t) ;; system local
   (add-to-list 'load-path "~/.emacs.d/lisp") ;; user local
+  
+  ;; initialize package.el
+  (when (require 'package nil t)
+    (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+	(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
+    (package-initialize))
+
+  ;; auto-complete setting
+  (when (require 'auto-complete nil t)
+	(require 'auto-complete-config nil t)
+	(global-auto-complete-mode t)
+	(define-key ac-completing-map (kbd "C-n") 'ac-next)
+	(define-key ac-completing-map (kbd "C-p") 'ac-previous)
+	(define-key ac-completing-map (kbd "C-m") 'ac-complete))
+	
+  ;; redo+
+  (when (require 'redo+ nil t)
+	;;(global-set-key (kbd "C-_") 'redo))
+	(define-key global-map (kbd "C-_") 'redo))
   
   ;;
   ;; Misc
@@ -26,9 +37,10 @@
 	(format "%%b - emacs@ %s"
 		system-name))
   ;; Print line number
-  (setq line-number-mode t)
-  (global-linum-mode t)
-  (linum-mode)
+  (when (require 'linum nil t)
+	(line-number-mode t)
+	(global-linum-mode t)
+	(setq linum-format "% 4d"))
   ;; Print column number
   (setq column-number-mode t)
   ;; Don't truncate lines
@@ -50,6 +62,10 @@
   (tool-bar-mode -1)
   (tooltip-mode -1)
   (menu-bar-mode -1)
+  ;; scroll per line
+  (setq scroll-conservatively 35
+		scroll-margin 0
+		scroll-step 1)
   
   ;;
   ;; tab configuration
@@ -230,14 +246,11 @@
 ;; Go mode configuration 
 ;;
 (defun personal-go-mode-hook ()
-  (local-set-key (kbd "C-c C-r") 'go-remove-unused-imports)
   (personal-preference-config)
+  (require 'go-autocomplete nil t)
+  (setq  gofmt-command "goimports")
+  (add-hook 'before-save-hook 'gofmt-before-save)
 )
 
 (when (require 'go-mode-autoloads nil t)
-  ;; Compile when saving sources
-  (add-hook 'before-save-hook 'gofmt-before-save)
-  ;; Add Go mode hook function
-  (add-hook 'go-mode-hook 'personal-go-mode-hook)
-)
-
+  (personal-go-mode-hook))
