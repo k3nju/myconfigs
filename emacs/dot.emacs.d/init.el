@@ -1,7 +1,7 @@
 ;; コメント入力マクロ
 (defun my-macro-insline ()
   (interactive)
-  (if my-common-prefix
+  (if (boundp 'my-comment-prefix)
 	  (insert-string
 	   (concat my-comment-prefix
 			   (make-string (- 80 (length my-comment-prefix))
@@ -24,13 +24,16 @@
 	(package-initialize))
 
   ;; auto-complete
+  ;; NOTE: auto-complete.el auto-complete-config.elを入れておく
   (when (and (require 'auto-complete nil t) (require 'auto-complete-config nil t))
 	(global-auto-complete-mode t)
+	(ac-config-default)
 	(define-key ac-completing-map (kbd "C-n") 'ac-next)
 	(define-key ac-completing-map (kbd "C-p") 'ac-previous)
 	(define-key ac-completing-map (kbd "C-m") 'ac-complete))
 
-  ;; redo+	 
+  ;; redo+
+  ;; NOTE: redo+.elを入れておく
   (when (require 'redo+ nil t)
 	(global-set-key (kbd "C-_") 'redo))
   
@@ -39,12 +42,12 @@
   ;;
 
   ;; tool-var, tooltop, tooltipを表示させない
-  (tool-bar-mode nil)
-  (tooltip-mode nil)
-  (menu-bar-mode nil)
+  (tool-bar-mode 0)
+  (tooltip-mode 0)
+  (menu-bar-mode 0)
   
   ;; スタートアップメッセージを表示しない
-  (setq inhibit-startup-message)
+  (setq inhibit-startup-message 0)
 
   ;; 行番号表示
   (global-linum-mode  t)
@@ -217,24 +220,26 @@
 (defun my-python-mode-hook ()
   (setq my-comment-prefix "#")
   (setq python-indent 4))
-  
-
 
 ;; Pythonモードフックの登録
 (add-hook 'python-mode-hook 'my-python-mode-hook)
 
-							
 ;;
 ;; Goの設定
 ;;
+;; NOTE: gocode, goimportsを入れてパスを通しておく
+;;       go-autocomplete.elを入れておく
 
-;; Goモードのフック関数
-(defun my-go-mode-hook ()
-  (setq my-comment-prefix "//")
+(when (require 'go-mode-autoloads nil t)
   (require 'go-autocomplete nil t)
-  ;; gofmtの代わりにgoimports使う
-  (setq gofmt-command "goimports")
-  (add-hook 'before-save-hook 'gofmt-before-save))
 
-;; Goモードフックの登録
-(add-hook 'go-mode-hook 'my-go-mode-hook)
+  ;; Goモードのフック関数
+  (defun my-go-mode-hook ()
+	(setq my-comment-prefix "//")
+	;; gofmtの代わりにgoimports使う
+	(setq gofmt-command "goimports")
+	(add-hook 'before-save-hook 'gofmt-before-save))
+  
+  ;; Goモードフックの登録
+  (add-hook 'go-mode-hook 'my-go-mode-hook))
+
