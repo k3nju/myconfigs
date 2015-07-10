@@ -1,8 +1,8 @@
 ;; コメント入力マクロ
 (defun my-macro-insline ()
   (interactive)
-  (insert-string
-   (if my-comment-prefix
+  (if my-common-prefix
+	  (insert-string
 	   (concat my-comment-prefix
 			   (make-string (- 80 (length my-comment-prefix))
 							?-))))
