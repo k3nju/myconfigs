@@ -1,139 +1,125 @@
-;;
-;; common
-;;
-(defun personal-preference-config ()
-  ;; Add load-path
-  (add-to-list 'load-path "/usr/share/emacs/site-lisp" t) ;; system local
-  (add-to-list 'load-path "~/.emacs.d/lisp") ;; user local
-  
-  ;; initialize package.el
-  (when (require 'package nil t)
-    (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
-	(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
-    (package-initialize))
+;; コメント入力マクロ
+(defun my-macro-insline ()
+  (interactive)
+  (insert-string
+   (if my-comment-prefix
+	   (concat my-comment-prefix
+			   (make-string (- 80 (length my-comment-prefix))
+							?-))))
+  ) ;; end of my-macro-insline
 
-  ;; auto-complete setting
-  (when (require 'auto-complete nil t)
-	(require 'auto-complete-config nil t)
+;; 各モードで共通実行するファイル
+(defun my-common-configure ()
+  ;;
+  ;; 非標準パッケージの読み込み
+  ;;
+  
+  ;; load-path設定
+  (add-to-list 'load-path "~/.emacs.d/lisp")
+  
+  ;; package (2.4から標準で入ったようだが古い環境でも使うので)
+  (when (require 'package nil t)
+	(add-to-list 'package-archives '("melpa"		.	"http://melpa.org/packages/"))
+	(add-to-list 'package-archives '("marmalade"	.	"http://marmalade-repo.org/packages/"))
+	(package-initialize))
+
+  ;; auto-complete
+  (when (and (require 'auto-complete nil t) (require 'auto-complete-config nil t))
 	(global-auto-complete-mode t)
 	(define-key ac-completing-map (kbd "C-n") 'ac-next)
 	(define-key ac-completing-map (kbd "C-p") 'ac-previous)
 	(define-key ac-completing-map (kbd "C-m") 'ac-complete))
-	
-  ;; redo+
+
+  ;; redo+	 
   (when (require 'redo+ nil t)
-	;;(global-set-key (kbd "C-_") 'redo))
-	(define-key global-map (kbd "C-_") 'redo))
+	(global-set-key (kbd "C-_") 'redo))
   
   ;;
-  ;; Misc
+  ;; フレーム、ウィンドウ、表示系の設定
   ;;
 
-  ;; Disable startup-message
-  (setq inhibit-startup-message t)
-  ;; Title bar format
-  (setq frame-title-format
-	;; %b = buffer name
-	(format "%%b - emacs@ %s"
-		system-name))
-  ;; Print line number
-  (when (require 'linum nil t)
-	(line-number-mode t)
-	(global-linum-mode t)
-	(setq linum-format "% 4d"))
-  ;; Print column number
-  (setq column-number-mode t)
-  ;; Don't truncate lines
+  ;; tool-var, tooltop, tooltipを表示させない
+  (tool-bar-mode nil)
+  (tooltip-mode nil)
+  (menu-bar-mode nil)
+  
+  ;; スタートアップメッセージを表示しない
+  (setq inhibit-startup-message)
+
+  ;; 行番号表示
+  (global-linum-mode  t)
+  (setq linum-format "%4d ")
+  
+  ;; モードラインに行/列番号表示
+  (line-number-mode t)
+  (column-number-mode t)
+  
+  ;; 折り返し表示しない
   (setq truncate-lines t)
-  ;; Don't truncate lines in window mode
-  (setq truncate-partial-width-windows t)
-  ;; Dont' blink cursor
+  (setq truncate-partial-width-windows t) ;; window分割時
+  
+  ;; カーソルを点滅表示させない
   (blink-cursor-mode 0)
-  ;; Highlight pair strings(ex. {and})
+  
+  ;; 対応するかっこを強調表示
   (show-paren-mode 1)
-  ;; font-lock-mode(enables keyword coloring or highlighting) is used in minor mode,
-  ;; enabling it automatically needs to call global-font-lock-mode passed with t
-  ;; fboundp returns symbol is bind with function or not
-  (when (fboundp 'global-font-lock-mode)
-    (global-font-lock-mode t))
-  ;; Ignore case in searching
+
+  ;; 検索時に大文字小文字を無視
   (setq case-fold-search t)
-  ;; Don't show tool-bar, menu-bar, tooltip
-  (tool-bar-mode -1)
-  (tooltip-mode -1)
-  (menu-bar-mode -1)
-  ;; scroll per line
-  (setq scroll-conservatively 35
-		scroll-margin 0
-		scroll-step 1)
   
-  ;;
-  ;; tab configuration
-  ;;
-  
-  ;; default-tab-width configures default vale of tab-width
+  ;; タブ設定
   (setq default-tab-width 4)
-  ;; default value of tab-width(No need to be set if default-tab-width is configured?)
-  (setq tab-width 4)
-  ;; List of position where cursor stops at when tab entered
+  (setq tab-width 4) ;; local mode
   (setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
-  ;; Replace indents to tabs when indent depth matchs to one of tab-width
-  (setq indent-tabs-mode t)
-  ;; Disable electric-indent-mode. emacs changed default value as t since ver 24.4
-  ;; NOTE: Enabling this mode swaps behaviors of ctrl-j for enter opposite to 23
-  ;;       (ctrl-j will invokes newline and enter will invoke newline-and-indent)
-  (if (= emacs-major-version 24)
+  
+  ;;
+  ;; キーバインド
+  ;;
+
+  ;; delキーで先方向の削除
+  (global-set-key "\177" 'delete-backward-char)
+  ;; C-hで先方向の削除
+  (global-set-key "\C-h" 'delete-backward-char)
+  ;; Meta + 1でmy-macro-inslineを実行
+  (global-set-key "\M-1" 'my-macro-insline)
+  
+  ;; emacsがver24以上だったら、electric-indent-modeを無効化する
+  ;; (23まではC-j => new-line-and-indent、enter => new-lineだったが、
+  ;;  emacs24.4からC-jとenterの挙動が入れ替わった)
+  (if (>= emacs-major-version 24)
 	  (setq electric-indent-mode  nil))
 
+  ;;  
+  ;; 文字コード、言語設定
   ;;
-  ;; global key map configuration
-  ;;
-  
-  ;; use "del" key to delete backward char.
-  (global-set-key "\177" 'delete-backward-char)
-  ;; use "Ctrl + h" to delete backward char
-  (global-set-key "\C-h" 'delete-backward-char)
-  ;; Meta + 1でmacro-f1を実行
-  ;; use "Meta + 1" to execute macro-f1
-  (global-set-key "\M-1" 'macro-f1)
 
-  ;;
-  ;; Language and coding-system
-  ;;
-  ;; referenced from Software Design 2011/1
   (set-language-environment "Japanese")
   (prefer-coding-system 'utf-8)
-)
-(personal-preference-config)
 
-;;
-;; Common coloring 
-;;
-(defun personal-set-color ()
-  (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-  ;; load base theme
-  (load-theme 'solarized-dark t)
-  ;; customize per font-lock
-  (custom-set-faces
-   ;; comment
-   '(font-lock-comment-delimiter-face ((t (:foreground "green4"))))
-   '(font-lock-comment-face ((t (:foreground "green4"))))
-   ;; string
-   '(font-lock-string-face ((t (:foreground "OrangeRed3"))))
-   )
-)
-(personal-set-color)
+  ;;
+  ;; フォント、色設定
+  ;; 
 
+  ;; フォントロックモードを自動的に有効にする
+  (global-font-lock-mode t)
+
+  ;; カスタムテーマのロード
+  (when (file-exists-p "~/.emacs.d/themes/")
+	(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+
+	;; solarized-dark
+	(when (load-theme 'solarized-dark t)
+	  '(font-lock-comment-delimiter-face ((t (:foreground "green4"))))
+	  '(font-lock-comment-face ((t (:foreground "green4"))))
+	  '(font-lock-string-face ((t (:foreground "OrangeRed3"))))))
+  );; end of my-common-configure
+(my-common-configure)
+ 
 ;;
-;; C/C++ mode configuration
+;; C/C++の設定
 ;;
 
-;; .h/.rl files are opened with C++ mode
-(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
-(add-to-list 'auto-mode-alist '("\\.rl\\'" . c++-mode))
-
-;; My C++ coding style.
-;; Whitesmiths-kai
+;; Whitesmiths-kai style
 ;;
 ;; namespace
 ;;     {           <- (namespace-open . +)
@@ -177,12 +163,10 @@
 ;;     }         <- (extern-lang-close . 0)
 ;;
 (c-add-style "whitesmiths-kai"
-			 ;; Don't inherit whitesmith because,
-			 ;; It indents when entered "if(", and undo indents when "exp..)".
-			 ;; This behavior is dirty-looking.
-			 '(;; Color configuration
-			   (personal-set-color)
-			   ;; Indentation configuration
+			 ;; whitesmithsを継承しない
+			 ;; whitesmithsは、"if("を入力した時点でインデントし、
+			 ;; "...)"まで入力した時点でインデントをundoする動作を行う
+			 '(;; Indentation configuration
 			   (c-offsets-alist
 				;; namespace
 				(namespace-open . +) 
@@ -211,46 +195,46 @@
 				;; extern "C"
 				(extern-lang-open . +)
 				(extern-lang-close . +)
-				(inextern-lang . 0)))
-			 )
+				(inextern-lang . 0))))
 
-;; Hook function for C/C++ mode
-(defun personal-c-mode-hook ()
-  (c-set-style "whitesmiths-kai")
-  (personal-preference-config))
+;; C/C++モードのフック関数
+(defun my-c-mode-hook ()
+  (setq my-comment-prefix "//")
+  (c-set-style "whitesmiths-kai"))
 
-;; Macro for inserting delimiter line.(dedicated to C++)
-(defun macro-f1 ()
-  (interactive)
-  (insert-string "//-----------------------------------------------------------------------------------------//")
-  )
+;; C/C++モードフック登録
+(add-hook 'c-mode-common-hook 'my-c-mode-hook)
 
-;; Add C/C++ hook function
-(add-hook 'c-mode-common-hook 'personal-c-mode-hook)
-
+;; .h .rlをC++モードで開く
+(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+(add-to-list 'auto-mode-alist '("\\.rl\\'" . c++-mode))
 
 ;;
-;; Python mode configuration
+;; Pythonの設定
 ;;
 
-;; Hook function for python mode
-(defun personal-python-mode-hook ()
-  (setq python-indent 4)
-  (personal-preference-config)
-)
+;; Pythonモードのフック関数
+(defun my-python-mode-hook ()
+  (setq my-comment-prefix "#")
+  (setq python-indent 4))
+  
 
-;; Add python mode hook function
-(add-hook 'python-mode-hook 'personal-python-mode-hook)
 
+;; Pythonモードフックの登録
+(add-hook 'python-mode-hook 'my-python-mode-hook)
+
+							
 ;;
-;; Go mode configuration 
+;; Goの設定
 ;;
-(defun personal-go-mode-hook ()
-  (personal-preference-config)
+
+;; Goモードのフック関数
+(defun my-go-mode-hook ()
+  (setq my-comment-prefix "//")
   (require 'go-autocomplete nil t)
-  (setq  gofmt-command "goimports")
-  (add-hook 'before-save-hook 'gofmt-before-save)
-)
+  ;; gofmtの代わりにgoimports使う
+  (setq gofmt-command "goimports")
+  (add-hook 'before-save-hook 'gofmt-before-save))
 
-(when (require 'go-mode-autoloads nil t)
-  (personal-go-mode-hook))
+;; Goモードフックの登録
+(add-hook 'go-mode-hook 'my-go-mode-hook)
