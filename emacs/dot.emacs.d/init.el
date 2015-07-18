@@ -101,20 +101,18 @@
 
   ;;
   ;; フォント、色設定
-  ;; 
-
-  ;; フォントロックモードを自動的に有効にする
-  (global-font-lock-mode t)
-
-  ;; カスタムテーマのロード
+  ;;
   (when (file-exists-p "~/.emacs.d/themes/")
 	(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
-	;; solarized-dark
+	;; テーマをロード
 	(when (load-theme 'solarized-dark t)
-	  '(font-lock-comment-delimiter-face ((t (:foreground "green4"))))
-	  '(font-lock-comment-face ((t (:foreground "green4"))))
-	  '(font-lock-string-face ((t (:foreground "OrangeRed3"))))))
+	  ;; さらにカスタマイズ
+	  (custom-set-faces
+	   '(font-lock-comment-delimiter-face ((t (:foreground "#008b00"))))
+	   '(font-lock-comment-face ((t (:foreground "#008b00"))))
+	   '(font-lock-string-face ((t (:foreground "#a42c00")))))))
+  
   );; end of my-common-configure
 (my-common-configure)
  
