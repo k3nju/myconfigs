@@ -58,8 +58,8 @@
   (column-number-mode t)
   
   ;; 折り返し表示しない
-  (setq truncate-lines t)
-  (setq truncate-partial-width-windows t) ;; window分割時
+  (set-default 'truncate-lines t)
+  (set-default 'truncate-partial-width-windows t) ;; window分割時
   
   ;; カーソルを点滅表示させない
   (blink-cursor-mode 0)
