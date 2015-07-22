@@ -1,4 +1,6 @@
-;; コメント入力マクロ
+;;
+;; Comment macro
+;;
 (defun my-macro-insline ()
   (interactive)
   (if (boundp 'my-comment-prefix)
@@ -8,23 +10,20 @@
 							?-))))
   ) ;; end of my-macro-insline
 
-;; 各モードで共通実行するファイル
-(defun my-common-configure ()
-  ;;
-  ;; 非標準パッケージの読み込み
-  ;;
-  
-  ;; load-path設定
+;;
+;; Load packages
+;;
+(defun my-load-packages ()
   (add-to-list 'load-path "~/.emacs.d/lisp")
   
-  ;; package (2.4から標準で入ったようだが古い環境でも使うので)
+  ;; package
   (when (require 'package nil t)
 	(add-to-list 'package-archives '("melpa"		.	"http://melpa.org/packages/"))
 	(add-to-list 'package-archives '("marmalade"	.	"http://marmalade-repo.org/packages/"))
 	(package-initialize))
 
   ;; auto-complete
-  ;; NOTE: auto-complete.el auto-complete-config.elを入れておく
+  ;; NOTE: Requires auto-complete.el, auto-complete-config.el
   (when (and (require 'auto-complete nil t) (require 'auto-complete-config nil t))
 	(global-auto-complete-mode t)
 	(ac-config-default)
@@ -33,91 +32,49 @@
 	(define-key ac-completing-map (kbd "C-m") 'ac-complete))
 
   ;; redo+
-  ;; NOTE: redo+.elを入れておく
+  ;; NOTE: Requires redo+.el
   (when (require 'redo+ nil t)
 	(global-set-key (kbd "C-_") 'redo))
   
-  ;;
-  ;; フレーム、ウィンドウ、表示系の設定
-  ;;
+  ) ;; end of my-load-packages
+(my-load-packages)
 
-  ;; tool-var, tooltop, tooltipを表示させない
-  (tool-bar-mode 0)
-  (tooltip-mode 0)
-  (menu-bar-mode 0)
-  
-  ;; スタートアップメッセージを表示しない
-  (setq inhibit-startup-message 0)
-
-  ;; 行番号表示
-  (global-linum-mode  t)
-  (setq linum-format "%4d ")
-  
-  ;; モードラインに行/列番号表示
-  (line-number-mode t)
-  (column-number-mode t)
-  
-  ;; 折り返し表示しない
-  (set-default 'truncate-lines t)
-  (set-default 'truncate-partial-width-windows t) ;; window分割時
-  
-  ;; カーソルを点滅表示させない
-  (blink-cursor-mode 0)
-  
-  ;; 対応するかっこを強調表示
-  (show-paren-mode 1)
-
-  ;; 検索時に大文字小文字を無視
-  (setq case-fold-search t)
-  
-  ;; タブ設定
-  (setq default-tab-width 4)
-  (setq tab-width 4) ;; local mode
-  (setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
-  
-  ;;
-  ;; キーバインド
-  ;;
-
-  ;; delキーで先方向の削除
+;;
+;; Key binding
+;;
+(defun my-set-key-bindings ()
+  ;; [del] key to delete backword char
   (global-set-key "\177" 'delete-backward-char)
-  ;; C-hで先方向の削除
+  ;; C-h to delete backword char
   (global-set-key "\C-h" 'delete-backward-char)
-  ;; Meta + 1でmy-macro-inslineを実行
+  ;; Execute my-macro-insline
   (global-set-key "\M-1" 'my-macro-insline)
   
   ;; emacsがver24以上だったら、electric-indent-modeを無効化する
-  ;; (23まではC-j => new-line-and-indent、enter => new-lineだったが、
-  ;;  emacs24.4からC-jとenterの挙動が入れ替わった)
+  ;; Disable electric-indent-mode if emacs version is greater than or equal to 24
+  ;; NOTE: until emacs version 23, C-j is assigned to new-line-and-indent,
+  ;;        and [enter] is assigned to enter.
   (if (>= emacs-major-version 24)
 	  (setq electric-indent-mode  nil))
+);; end of my-set-key-bindings
+(my-set-key-bindings)
 
-  ;;  
-  ;; 文字コード、言語設定
-  ;;
-
-  (set-language-environment "Japanese")
-  (prefer-coding-system 'utf-8)
-
-  ;;
-  ;; フォント、色設定
-  ;;
-  (when (file-exists-p "~/.emacs.d/themes/")
+;;
+;; Load theme
+;;
+(defun my-load-theme ()
+  (when (and (file-exists-p "~/.emacs.d/themes/")
+			 (boundp 'custom-theme-load-path))
 	(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
-	;; テーマをロード
-	(when (load-theme 'solarized-dark t)
-	  ;; さらにカスタマイズ
-	  (custom-set-faces
-	   '(font-lock-comment-delimiter-face ((t (:foreground "#008b00"))))
-	   '(font-lock-comment-face ((t (:foreground "#008b00"))))
-	   '(font-lock-string-face ((t (:foreground "#a42c00")))))))
+	;; load theme
+	(load-theme 'solarized-dark t))
   
-  );; end of my-common-configure
-(my-common-configure)
+  );; end of my-load-theme
+(my-load-theme)
  
 ;;
-;; C/C++の設定
+;; C/C++ configs
 ;;
 
 ;; Whitesmiths-kai style
@@ -164,9 +121,6 @@
 ;;     }         <- (extern-lang-close . 0)
 ;;
 (c-add-style "whitesmiths-kai"
-			 ;; whitesmithsを継承しない
-			 ;; whitesmithsは、"if("を入力した時点でインデントし、
-			 ;; "...)"まで入力した時点でインデントをundoする動作を行う
 			 '(;; Indentation configuration
 			   (c-offsets-alist
 				;; namespace
@@ -198,46 +152,95 @@
 				(extern-lang-close . +)
 				(inextern-lang . 0))))
 
-;; C/C++モードのフック関数
+
+;; C/C++ mode hook function
 (defun my-c-mode-hook ()
   (setq my-comment-prefix "//")
   (c-set-style "whitesmiths-kai"))
 
-;; C/C++モードフック登録
+;; Register C/C++ mode hook
 (add-hook 'c-mode-common-hook 'my-c-mode-hook)
 
-;; .h .rlをC++モードで開く
+;; Open .h .rl files in C++ mode
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (add-to-list 'auto-mode-alist '("\\.rl\\'" . c++-mode))
 
 ;;
-;; Pythonの設定
+;; Python configs
 ;;
 
-;; Pythonモードのフック関数
+;; Python mode hook function
 (defun my-python-mode-hook ()
   (setq my-comment-prefix "#")
   (setq python-indent 4))
 
-;; Pythonモードフックの登録
+;; Register python mode hook
 (add-hook 'python-mode-hook 'my-python-mode-hook)
 
 ;;
-;; Goの設定
+;; Go configs
 ;;
-;; NOTE: gocode, goimportsを入れてパスを通しておく
-;;       go-autocomplete.elを入れておく
-
+;; NOTE: Requires gocode, goimports and add them to PATH(environment variables)
+;;       Requires go-autocomplete.el
 (when (require 'go-mode-autoloads nil t)
   (require 'go-autocomplete nil t)
 
-  ;; Goモードのフック関数
+  ;; Go mode hook function
   (defun my-go-mode-hook ()
 	(setq my-comment-prefix "//")
-	;; gofmtの代わりにgoimports使う
+	;; Use goimports, instead of gofmt
 	(setq gofmt-command "goimports")
+	;; Run goimports when saving files
 	(add-hook 'before-save-hook 'gofmt-before-save))
   
-  ;; Goモードフックの登録
+  ;; Register Go mode  hook
   (add-hook 'go-mode-hook 'my-go-mode-hook))
+
+;;
+;; Define customized variables
+;;
+(custom-set-variables
+ ;; Don't display startup-message, tool-bar, menu-bar, tooltip
+ '(inhibit-startup-message 0)
+ '(tool-bar-mode nil)
+ '(menu-bar-mode nil)
+ '(tooltip-mode nil)
+
+ ;; Display line number
+ '(global-linum-mode  t)
+ '(linum-format "%4d ")
+
+ ;; Display line number, column number in the mode line
+ '(line-number-mode t)
+ '(column-number-mode t)
+
+ ;; Don't truncate lines
+ '(truncate-lines t)
+ '(truncate-partial-width-windows nil) ;; for split window
+
+ ;; Don't blink cursor
+ '(blink-cursor-mode nil)
+
+ ;; Highlight pair parentheses
+ '(show-paren-mode t)
+
+ ;; search in case-insensitive
+ '(case-fold-search nil)
+
+ ;; tab
+ '(tab-width 4)
+ '(tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
+
+ ;; encoding
+ '(set-language-environment "Japanese")
+ '(prefer-coding-system 'utf-8)
+ )
+
+;;
+;; Define faces
+;;
+(custom-set-faces
+ '(font-lock-comment-delimiter-face ((t (:foreground "#008b00"))))
+ '(font-lock-comment-face ((t (:foreground "#008b00"))))
+ '(font-lock-string-face ((t (:foreground "#a42c00")))))
 
