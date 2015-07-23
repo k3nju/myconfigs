@@ -197,6 +197,15 @@
   (add-hook 'go-mode-hook 'my-go-mode-hook))
 
 ;;
+;; perl
+;;
+(defun my-perl-mode-hook ()
+  (custom-set-faces
+   '(font-lock-variable-name-face ((t (:foreground "#0404B4"))))))
+(add-hook 'perl-mode-hook 'my-perl-mode-hook)
+
+
+;;
 ;; Define customized variables
 ;;
 (custom-set-variables
