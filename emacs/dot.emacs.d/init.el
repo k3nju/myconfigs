@@ -225,7 +225,7 @@
  '(show-paren-mode t)
 
  ;; search in case-insensitive
- '(case-fold-search nil)
+ '(case-fold-search t)
 
  ;; tab
  '(tab-width 4)
