@@ -18,24 +18,19 @@
   
   ;; package
   (when (require 'package nil t)
-	(add-to-list 'package-archives '("melpa"	 . "http://melpa.org/packages/") t)
+	(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
 	(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
 	(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 	(package-initialize))
 
   ;; auto-complete
-  ;; NOTE: Requires auto-complete.el, auto-complete-config.el
+  ;; NOTE: Requires auto-complete package
   (when (and (require 'auto-complete nil t) (require 'auto-complete-config nil t))
 	(global-auto-complete-mode t)
 	(ac-config-default)
 	(define-key ac-completing-map (kbd "C-n") 'ac-next)
 	(define-key ac-completing-map (kbd "C-p") 'ac-previous)
 	(define-key ac-completing-map (kbd "C-m") 'ac-complete))
-
-  ;; redo+
-  ;; NOTE: Requires redo+.el
-  (when (require 'redo+ nil t)
-	(global-set-key (kbd "C-_") 'redo))
   
   ) ;; end of my-load-packages
 (my-load-packages)
