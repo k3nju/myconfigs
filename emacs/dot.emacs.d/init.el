@@ -1,3 +1,12 @@
+;; lang and coding system
+(set-language-environment "Japanese")
+(set-default-coding-systems 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-buffer-file-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+
+
 ;;
 ;; Comment macro
 ;;
@@ -235,10 +244,6 @@
  ;; tab
  '(tab-width 4)
  '(tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
-
- ;; encoding
- '(set-language-environment "Japanese")
- '(prefer-coding-system 'utf-8)
  )
 
 ;;
