@@ -161,10 +161,14 @@
 ;; C/C++ mode hook function
 (defun my-c-mode-hook ()
   (setq my-comment-prefix "//")
-  (c-set-style "whitesmiths-kai"))
+  ;;(c-set-style "whitesmiths-kai")
+  )
 
 ;; Register C/C++ mode hook
 (add-hook 'c-mode-common-hook 'my-c-mode-hook)
+;; Use google C++ coding style.
+;; NOTE: Requires google-c-style
+(add-hook 'c-mode-common-hook 'google-set-c-style)
 
 ;; Open .h .rl files in C++ mode
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
