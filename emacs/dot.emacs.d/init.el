@@ -55,7 +55,6 @@
   ;; Execute my-macro-insline
   (global-set-key "\M-1" 'my-macro-insline)
   
-  ;; emacsがver24以上だったら、electric-indent-modeを無効化する
   ;; Disable electric-indent-mode if emacs version is greater than or equal to 24
   ;; NOTE: until emacs version 23, C-j is assigned to new-line-and-indent,
   ;;        and [enter] is assigned to enter.
