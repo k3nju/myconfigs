@@ -29,7 +29,6 @@
   (when (require 'package nil t)
 	(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
 	(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
-	(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 	(package-initialize))
 
   ;; auto-complete
@@ -40,6 +39,14 @@
 	(define-key ac-completing-map (kbd "C-n") 'ac-next)
 	(define-key ac-completing-map (kbd "C-p") 'ac-previous)
 	(define-key ac-completing-map (kbd "C-m") 'ac-complete))
+
+  ;; helm
+  ;; NOTE: Requires helm package
+  ;;(when (require 'helm-config nil t)
+	;;(helm-mode t)
+	;;(define-key helm-read-file-map (kbd "C-h") 'delete-backward-char)
+	;;(define-key helm-find-files-map (kbd "C-h") 'delete-backward-char)
+  ;;)
   
   ) ;; end of my-load-packages
 (my-load-packages)
@@ -55,6 +62,7 @@
   ;; Execute my-macro-insline
   (global-set-key "\M-1" 'my-macro-insline)
   
+  ;; emacsがver24以上だったら、electric-indent-modeを無効化する
   ;; Disable electric-indent-mode if emacs version is greater than or equal to 24
   ;; NOTE: until emacs version 23, C-j is assigned to new-line-and-indent,
   ;;        and [enter] is assigned to enter.
@@ -76,7 +84,7 @@
   
   );; end of my-load-theme
 (my-load-theme)
- 
+
 ;;
 ;; C/C++ configs
 ;;
@@ -166,8 +174,14 @@
 ;; Register C/C++ mode hook
 (add-hook 'c-mode-common-hook 'my-c-mode-hook)
 ;; Use google C++ coding style.
-;; NOTE: Requires google-c-style
+;; NOTE: Requires google-c-style package
 (add-hook 'c-mode-common-hook 'google-set-c-style)
+;; global ggtag
+;; NOTE: Requires ggtags package
+(add-hook 'c-mode-common-hook
+		  (lambda ()
+			(when (derived-mode-p 'c-mode 'c++mode 'java-mode)
+			  (ggtags-mode 1))))
 
 ;; Open .h .rl files in C++ mode
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
