@@ -1,5 +1,6 @@
-Emacs.geometry:120x50
+Emacs.geometry:120x30
 !Emacs.font: AnonymousPro-13
 !Emacs.font: Monaco-12
 !Emacs.font: Menlo-12
-Emacs.font: inconsolata-13
+!Emacs.font: inconsolata-13
+Emacs.font: SourceHanCodeJP-11
