@@ -1,49 +1,63 @@
 #!/bin/sh
-#
-# ~/.xinitrc
-#
-# Executed by startx (run your window manager from here)
 
-if [ -d /etc/X11/xinit/xinitrc.d ]; then
-  for f in /etc/X11/xinit/xinitrc.d/*; do
-    [ -x "$f" ] && . "$f"
-  done
-  unset f
+# NOTE: creating ~/.Xmodmap file
+#   1. change key assigns
+#      execute xmodmap commands as belows.
+#
+#      * Muhenkan -> alt
+#        $ xmodmap -e "keysym Muhenkan = Alt_R Meta_R"
+#      * shift + caps -> ctrl
+#        $ xmodmap -e "keycode 66 = Control_L Control_L Control_L Control_L"
+#  
+#      "xmodmap -e" is test mode. 
+#
+#   2. save key assign to ~/.Xmodmap file
+#      $ xmodmap -pke > ~/.Xmodmap
+#
+
+
+userresources=$HOME/.Xresources
+usermodmap=$HOME/.Xmodmap
+sysresources=/etc/X11/xinit/.Xresources
+sysmodmap=/etc/X11/xinit/.Xmodmap
+
+# merge in defaults and keymaps
+
+if [ -f $sysresources ]; then
+    xrdb -merge $sysresources
 fi
 
-# exec gnome-session
-# exec startkde
-# exec startxfce4
-# ...or the Window Manager of your choice
+if [ -f $sysmodmap ]; then
+    xmodmap $sysmodmap
+fi
 
-# keyboard
-# "xmodmap -e" is test mode. so this configuration is not persistent
-# use intead. xmodmap -pke > ./.Xmodmap and load it as below
-#xmodmap -e "keysym Muhenkan = Alt_R Meta_R" && echo $? > /tmp/a
-#xmodmap -e "keycode 66 = Control_L Control_L Control_L Control_L" # shift+caps as ctrl
+if [ -f "$userresources" ]; then
+    xrdb -merge "$userresources"
+fi
 
-PATH_TO_dotXmodmap=
-/usr/bin/xmodmap ${PATH_TO_dotXmodmap}
+if [ -f "$usermodmap" ]; then
+    xmodmap "$usermodmap"
+fi
 
-# setxkbmap must be called after xmodmap
+
+# change keyboard layout and swap caps/ctrl
+# !!! setxkbmap must be executed after xmodmap
 setxkbmap -rules evdev -model jp106 -layout jp
 setxkbmap -option "ctrl:swapcaps"
 
-# ---- ibus
-#export XIM=ibus
-#export XIM_PROGRAM=/usr/bin/ibus-daemon
-#export XIM_ARGS="--xim"
-#export XMODIFIERS="@im=ibus"
-#export GTK_IM_MODULE="ibus"
-#export QT_IM_MODULE="ibus"
-#ibus-daemon -d -x
 
-# ---- fcitx
+# start some nice programs
+
+if [ -d /etc/X11/xinit/xinitrc.d ] ; then
+ for f in /etc/X11/xinit/xinitrc.d/?*.sh ; do
+  [ -x "$f" ] && . "$f"
+ done
+ unset f
+fi
+
+# fcitx
 export GTK_IM_MODULE=fcitx
 export QT_IM_MODULE=fcitx
 export XMODIFIERS="@im=fcitx"
 
-# start window manager
 exec startxfce4
-#exec ck-launch-session startxfce4
-#exec ck-launch-session gnome-session

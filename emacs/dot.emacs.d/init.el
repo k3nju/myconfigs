@@ -74,11 +74,12 @@
   (when (and (file-exists-p "~/.emacs.d/themes/")
 			 (boundp 'custom-theme-load-path))
 	(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+  )
 
-	;; load theme
-	(load-theme 'solarized-dark t))
+  ;; load theme
+  (load-theme 'solarized-dark t)
   
-  );; end of my-load-theme
+);; end of my-load-theme
 (my-load-theme)
 
 ;;
