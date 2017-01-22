@@ -26,9 +26,11 @@
   
 ;; package
 (when (require 'package nil t)
-  (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
-  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
-  (package-initialize))
+  (package-initialize)
+  (setq package-archives
+		'(("gnu" . "http://elpa.gnu.org/packages/")
+		  ("melpa" . "http://melpa.org/packages/")
+		  ("org" . "http://orgmode.org/elpa/"))))
 
 ;; auto-complete
 ;; NOTE: Requires auto-complete package
@@ -46,9 +48,30 @@
 ;;(define-key helm-read-file-map (kbd "C-h") 'delete-backward-char)
 ;;(define-key helm-find-files-map (kbd "C-h") 'delete-backward-char)
 ;;)
+
+
+;; ido-mode
+;(ido-mode t)
+;(ido-everywhere t)
+;(setq ido-enable-flex-matching t)
+
+;; anything
+(when (require 'anything-config nil t)
+  (setq anything-enable-shortcuts 'prefix)
+  (define-key anything-map (kbd "@") 'anything-select-with-prefix-shortcut)
+  (global-set-key (kbd "C-x b") 'anything-mini))
+
+
+;; point-undo.el
+(when (require 'point-undo)
+  (global-set-key (kbd "C-\\") 'point-undo) ;; experimental binding
+  (global-set-key [f7] 'point-undo)
+  (global-set-key (kbd "M-\\") 'point-redo) ;; experimental binding
+  (global-set-key [S-f7] 'point-redo))
+
   
 ;;
-;; Key binding
+;; Default key binding
 ;;
 (defun my-set-key-bindings ()
   ;; [del] key to delete backword char
@@ -64,6 +87,13 @@
   ;;        and [enter] is assigned to enter.
   (if (>= emacs-major-version 24)
 	  (setq electric-indent-mode  nil))
+
+  ;; windmove
+  (setq windmove-wrap-around t)
+  (global-set-key (kbd "C-x <up>") 'windmove-up)
+  (global-set-key (kbd "C-x <down>") 'windmove-down)
+  (global-set-key (kbd "C-x <right>") 'windmove-right)
+  (global-set-key (kbd "C-x <left>") 'windmove-left)
 );; end of my-set-key-bindings
 (my-set-key-bindings)
 
@@ -227,47 +257,48 @@
    '(font-lock-variable-name-face ((t (:foreground "#0404B4"))))))
 (add-hook 'perl-mode-hook 'my-perl-mode-hook)
 
+;;
+;; my customized variables
+;;
+
 
 ;;
 ;; Define customized variables
 ;;
 (custom-set-variables
- ;; Don't display startup-message, tool-bar, menu-bar, tooltip
- '(inhibit-startup-message 0)
- '(tool-bar-mode nil)
- '(menu-bar-mode nil)
- '(tooltip-mode nil)
-
- ;; Display line number
- '(global-linum-mode  t)
- '(linum-format "%4d ")
-
- ;; Display line number, column number in the mode line
- '(line-number-mode t)
- '(column-number-mode t)
-
- ;; Don't truncate lines
- '(truncate-lines t)
- '(truncate-partial-width-windows nil) ;; for split window
-
- ;; Don't blink cursor
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  '(blink-cursor-mode nil)
-
- ;; Highlight pair parentheses
- '(show-paren-mode t)
-
- ;; search in case-insensitive
  '(case-fold-search t)
-
- ;; tab
+ '(column-number-mode t)
+ '(global-linum-mode t)
+ '(inhibit-startup-screen 0)
+ '(line-number-mode t)
+ '(linum-format "%4d ")
+ '(menu-bar-mode nil)
+ '(package-selected-packages
+   (quote
+	(anything-git-files anything-git-grep magit point-undo anything package-utils solarized-theme google-c-style go-autocomplete ggtags)))
+ '(show-paren-mode t)
+ '(tab-stop-list
+   (quote
+	(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
  '(tab-width 4)
- '(tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
- )
+ '(tool-bar-mode nil)
+ '(tooltip-mode nil)
+ '(truncate-lines t)
+ '(truncate-partial-width-windows nil))
 
 ;;
 ;; Define faces
 ;;
 (custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  '(font-lock-comment-delimiter-face ((t (:foreground "#008b00"))))
  '(font-lock-comment-face ((t (:foreground "#008b00"))))
  '(font-lock-string-face ((t (:foreground "#a42c00")))))
