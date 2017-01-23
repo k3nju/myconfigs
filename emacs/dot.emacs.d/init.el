@@ -63,7 +63,7 @@
 
 
 ;; point-undo.el
-(when (require 'point-undo)
+(when (require 'point-undo nil t)
   (global-set-key (kbd "C-\\") 'point-undo) ;; experimental binding
   (global-set-key [f7] 'point-undo)
   (global-set-key (kbd "M-\\") 'point-redo) ;; experimental binding
