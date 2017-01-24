@@ -8,18 +8,6 @@
 
 
 ;;
-;; Comment macro
-;;
-(defun my-macro-insline ()
-  (interactive)
-  (if (boundp 'my-comment-prefix)
-	  (insert-string
-	   (concat my-comment-prefix
-			   (make-string (- 80 (length my-comment-prefix))
-							?-))))
-  ) ;; end of my-macro-insline
-
-;;
 ;; Load packages
 ;;
 (add-to-list 'load-path "~/.emacs.d/lisp")
@@ -55,7 +43,8 @@
 ;(ido-everywhere t)
 ;(setq ido-enable-flex-matching t)
 
-;; anything
+;; anything.el
+;; NOTE: require anything.el package
 (when (require 'anything-config nil t)
   (setq anything-enable-shortcuts 'prefix)
   (define-key anything-map (kbd "@") 'anything-select-with-prefix-shortcut)
@@ -63,54 +52,59 @@
 
 
 ;; point-undo.el
+;; NOTE: require point-undo.el package
 (when (require 'point-undo nil t)
   (global-set-key (kbd "C-\\") 'point-undo) ;; experimental binding
   (global-set-key [f7] 'point-undo)
   (global-set-key (kbd "M-\\") 'point-redo) ;; experimental binding
   (global-set-key [S-f7] 'point-redo))
 
-  
-;;
-;; Default key binding
-;;
-(defun my-set-key-bindings ()
-  ;; [del] key to delete backword char
-  (global-set-key "\177" 'delete-backward-char)
-  ;; C-h to delete backword char
-  (global-set-key "\C-h" 'delete-backward-char)
-  ;; Execute my-macro-insline
-  (global-set-key "\M-1" 'my-macro-insline)
-  
-  ;; emacsがver24以上だったら、electric-indent-modeを無効化する
-  ;; Disable electric-indent-mode if emacs version is greater than or equal to 24
-  ;; NOTE: until emacs version 23, C-j is assigned to new-line-and-indent,
-  ;;        and [enter] is assigned to enter.
-  (if (>= emacs-major-version 24)
-	  (setq electric-indent-mode  nil))
 
-  ;; windmove
-  (setq windmove-wrap-around t)
-  (global-set-key (kbd "C-x <up>") 'windmove-up)
-  (global-set-key (kbd "C-x <down>") 'windmove-down)
-  (global-set-key (kbd "C-x <right>") 'windmove-right)
-  (global-set-key (kbd "C-x <left>") 'windmove-left)
-);; end of my-set-key-bindings
-(my-set-key-bindings)
+;; window-number
+;; NOTE: require window-number package
+;; move window M-1 .. M-9
+(when (require 'window-number nil t)
+  (window-number-meta-mode))
+  
+;;
+;; default key bindings
+;;
+
+;; [del] key to delete backword char
+(global-set-key "\177" 'delete-backward-char)
+
+;; C-h to delete backword char
+(global-set-key "\C-h" 'delete-backward-char)
+
+;; emacsがver24以上だったら、electric-indent-modeを無効化する
+;; Disable electric-indent-mode if emacs version is greater than or equal to 24
+;; NOTE: until emacs version 23, C-j is assigned to new-line-and-indent,
+;;        and [enter] is assigned to enter.
+(if (>= emacs-major-version 24)
+	(setq electric-indent-mode  nil))
+
+;; wrap around cursor window moving
+(setq windmove-wrap-around t)
+
+;; window moving
+;; M-n = next(other) window. same to C-x o
+;; M-p = previous window
+(global-set-key (kbd "M-n") 'other-window)
+(global-set-key (kbd "M-p") '(lambda ()
+							   (interactive)
+							   (other-window -1)))
 
 ;;
 ;; Load theme
 ;;
-(defun my-load-theme ()
-  (when (and (file-exists-p "~/.emacs.d/themes/")
-			 (boundp 'custom-theme-load-path))
-	(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-  )
+ (when (and (file-exists-p "~/.emacs.d/themes/")
+			(boundp 'custom-theme-load-path))
+   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+   )
+ 
+ ;; load theme
+ (load-theme 'solarized-dark t)
 
-  ;; load theme
-  (load-theme 'solarized-dark t)
-  
-);; end of my-load-theme
-(my-load-theme)
 
 ;;
 ;; C/C++ configs
