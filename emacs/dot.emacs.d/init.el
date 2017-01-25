@@ -218,7 +218,6 @@
 
 ;; Python mode hook function
 (defun my-python-mode-hook ()
-  (setq my-comment-prefix "#")
   (setq python-indent 4))
 
 ;; Register python mode hook
@@ -234,7 +233,6 @@
 
   ;; Go mode hook function
   (defun my-go-mode-hook ()
-	(setq my-comment-prefix "//")
 	;; Use goimports, instead of gofmt
 	(setq gofmt-command "goimports")
 	;; Run goimports when saving files
@@ -274,7 +272,7 @@
  '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-	(anything-git-files anything-git-grep magit point-undo anything package-utils solarized-theme google-c-style go-autocomplete ggtags)))
+	(window-number anything-git-files anything-git-grep magit point-undo anything package-utils solarized-theme google-c-style go-autocomplete ggtags)))
  '(show-paren-mode t)
  '(tab-stop-list
    (quote
