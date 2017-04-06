@@ -1,3 +1,7 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Basic config
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; lang and coding system
 (set-language-environment "Japanese")
 (set-default-coding-systems 'utf-8)
@@ -6,10 +10,7 @@
 (set-buffer-file-coding-system 'utf-8)
 (prefer-coding-system 'utf-8)
 
-
-;;
 ;; Load packages
-;;
 (add-to-list 'load-path "~/.emacs.d/lisp")
   
 ;; package
@@ -94,17 +95,20 @@
 							   (interactive)
 							   (other-window -1)))
 
-;;
-;; Load theme
-;;
- (when (and (file-exists-p "~/.emacs.d/themes/")
-			(boundp 'custom-theme-load-path))
-   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-   )
- 
- ;; load theme
- (load-theme 'solarized-dark t)
+;; ediff
+(setq ediff-split-window-function 'split-window-horizontally)
 
+;; themes config
+(when (and (file-exists-p "~/.emacs.d/themes/")
+		   (boundp 'custom-theme-load-path))
+  (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/"))
+;; use solarized-dark
+(load-theme 'solarized-dark t)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Language configs
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;
 ;; C/C++ configs
@@ -272,7 +276,7 @@
  '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-	(window-number anything-git-files anything-git-grep magit point-undo anything package-utils solarized-theme google-c-style go-autocomplete ggtags)))
+	(web-mode vue-mode window-number anything-git-files anything-git-grep magit point-undo anything package-utils solarized-theme google-c-style go-autocomplete ggtags)))
  '(show-paren-mode t)
  '(tab-stop-list
    (quote
