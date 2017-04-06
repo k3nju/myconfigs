@@ -98,6 +98,9 @@
 ;; ediff
 (setq ediff-split-window-function 'split-window-horizontally)
 
+;; wgrep
+(require 'wgrep)
+
 ;; themes config
 (when (and (file-exists-p "~/.emacs.d/themes/")
 		   (boundp 'custom-theme-load-path))
@@ -276,7 +279,7 @@
  '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-	(web-mode vue-mode window-number anything-git-files anything-git-grep magit point-undo anything package-utils solarized-theme google-c-style go-autocomplete ggtags)))
+	(wgrep web-mode vue-mode window-number magit point-undo anything package-utils solarized-theme google-c-style go-autocomplete ggtags)))
  '(show-paren-mode t)
  '(tab-stop-list
    (quote
