@@ -99,7 +99,7 @@
 (setq ediff-split-window-function 'split-window-horizontally)
 
 ;; wgrep
-(require 'wgrep)
+(require 'wgrep nil t)
 
 ;; themes config
 (when (and (file-exists-p "~/.emacs.d/themes/")
