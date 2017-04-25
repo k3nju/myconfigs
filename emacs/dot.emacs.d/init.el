@@ -237,13 +237,13 @@
 ;;       Requires go-autocomplete.el
 (when (require 'go-mode-autoloads nil t)
   (require 'go-autocomplete nil t)
-
+	
   ;; Go mode hook function
   (defun my-go-mode-hook ()
-	;; Use goimports, instead of gofmt
-	(setq gofmt-command "goimports")
-	;; Run goimports when saving files
-	(add-hook 'before-save-hook 'gofmt-before-save))
+		;; Use goimports, instead of gofmt
+		(setq gofmt-command "goimports")
+		;; Run goimports when saving files
+		(add-hook 'before-save-hook 'gofmt-before-save))
   
   ;; Register Go mode  hook
   (add-hook 'go-mode-hook 'my-go-mode-hook))
@@ -255,6 +255,13 @@
   (custom-set-faces
    '(font-lock-variable-name-face ((t (:foreground "#0404B4"))))))
 (add-hook 'perl-mode-hook 'my-perl-mode-hook)
+
+(defun my-js-mode-hook ()
+	(setq indent-tabs-mode nil)
+	(setq js-indent-level 2)
+	)
+(add-hook 'js-mode-hook 'my-js-mode-hook)
+
 
 ;;
 ;; my customized variables
@@ -281,9 +288,10 @@
    (quote
 	(wgrep web-mode vue-mode window-number magit point-undo anything package-utils solarized-theme google-c-style go-autocomplete ggtags)))
  '(show-paren-mode t)
- '(tab-stop-list
-   (quote
-	(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
+ ;; no need to be set?
+ ;; '(tab-stop-list
+ ;;   (quote
+ ;;	(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
  '(tab-width 2)
  '(tool-bar-mode nil)
  '(tooltip-mode nil)
