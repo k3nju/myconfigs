@@ -285,14 +285,12 @@
  '(linum-format "%4d ")
  '(menu-bar-mode nil)
  '(package-selected-packages
-   (quote
-	(wgrep web-mode vue-mode window-number magit point-undo anything package-utils solarized-theme google-c-style go-autocomplete ggtags)))
+	 (quote
+		(wgrep web-mode vue-mode window-number magit point-undo anything package-utils solarized-theme google-c-style go-autocomplete ggtags)))
  '(show-paren-mode t)
- ;; no need to be set?
- ;; '(tab-stop-list
- ;;   (quote
- ;;	(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120)))
  '(tab-width 2)
+ '(tab-stop-list (number-sequence 2 120 2))
+ '(indent-tabs-mode nil)
  '(tool-bar-mode nil)
  '(tooltip-mode nil)
  '(truncate-lines t)
