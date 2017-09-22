@@ -49,7 +49,16 @@
 (when (require 'anything-config nil t)
   (setq anything-enable-shortcuts 'prefix)
   (define-key anything-map (kbd "@") 'anything-select-with-prefix-shortcut)
-  (global-set-key (kbd "C-x b") 'anything-mini))
+  (global-set-key (kbd "C-x b") 'anything-mini)
+  
+  ;; anything-git-files.el
+  ;; NOTE: require anything-git-files.el
+  (when (require 'anything-git-files)
+    (global-set-key (kbd "C-x g")
+                    (lambda ()
+                      (interactive)
+                      (and (anything-git-files:git-p)
+                           (anything-git-files))))))
 
 
 ;; point-undo.el
@@ -280,17 +289,17 @@
  '(case-fold-search t)
  '(column-number-mode t)
  '(global-linum-mode t)
+ '(indent-tabs-mode nil)
  '(inhibit-startup-screen 0)
  '(line-number-mode t)
  '(linum-format "%4d ")
  '(menu-bar-mode nil)
  '(package-selected-packages
-	 (quote
-		(wgrep web-mode vue-mode window-number magit point-undo anything package-utils solarized-theme google-c-style go-autocomplete ggtags)))
+   (quote
+    (anything-git-files wgrep web-mode vue-mode window-number magit point-undo anything package-utils solarized-theme google-c-style go-autocomplete ggtags)))
  '(show-paren-mode t)
- '(tab-width 2)
  '(tab-stop-list (number-sequence 2 120 2))
- '(indent-tabs-mode nil)
+ '(tab-width 2)
  '(tool-bar-mode nil)
  '(tooltip-mode nil)
  '(truncate-lines t)
