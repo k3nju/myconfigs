@@ -1,0 +1,7 @@
+[user]
+	name = kenju
+	email = kenju.takano+git@gmail.com
+[core]
+	editor=emacs
+[alias]
+	l = log --all --graph --decorate --oneline
