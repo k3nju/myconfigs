@@ -21,14 +21,17 @@
 		  ("melpa" . "http://melpa.org/packages/")
 		  ("org" . "http://orgmode.org/elpa/"))))
 
-;; auto-complete
-;; NOTE: Requires auto-complete package
-(when (and (require 'auto-complete nil t) (require 'auto-complete-config nil t))
-  (global-auto-complete-mode t)
-  (ac-config-default)
-  (define-key ac-completing-map (kbd "C-n") 'ac-next)
-  (define-key ac-completing-map (kbd "C-p") 'ac-previous)
-  (define-key ac-completing-map (kbd "C-m") 'ac-complete))
+;; company-mode
+;; NOTE: Requires company package
+(when (require 'company nil t)
+  (add-hook 'after-init-hook 'global-company-mode)
+  
+  (define-key company-active-map (kbd "C-n") 'company-select-next)
+  (define-key company-active-map (kbd "C-p") 'company-select-previous)
+  (define-key company-active-map (kbd "C-m") 'company-complete-selection)
+  (define-key company-active-map (kbd "C-h") nil)
+
+  (setq company-idle-delay 0))
 
 ;; helm
 ;; NOTE: Requires helm package
@@ -231,35 +234,55 @@
 ;;
 ;; Python configs
 ;;
+;; NOTE: Requires company-jedi
+;; NOTE: Requires jedi, epc python package(pip install jedi epc)
+;; Installation:
+;;   mkdir ~/.emacs.d/.python-environments/
+;;   python -m venv ~/.emacs.d/.python-environments/default
+;;   ~/.emacs.d/.python-environments/default/bin/activate
+;;   pip install jedi epc
+;;   run emacs and "M-x jedi:install-server"
 
 ;; Python mode hook function
 (defun my-python-mode-hook ()
+  (when (require 'jedi-core nil t)
+    (setq jedi:complete-on-dot t)
+    (setq jedi:use-shortcuts t)
+    (add-to-list 'company-backends 'company-jedi))
+  
   (setq python-indent 4))
-
 ;; Register python mode hook
+(add-hook 'python-mode-hook 'jedi:setup)
 (add-hook 'python-mode-hook 'my-python-mode-hook)
+
 
 ;;
 ;; Go configs
 ;;
 ;; NOTE: Requires gocode, goimports and add them to PATH(environment variables)
-;;       Requires go-autocomplete.el
-(when (require 'go-mode-autoloads nil t)
-  (require 'go-autocomplete nil t)
+;; NOTE: Requires company-go package
 
-  ;; Go mode hook function
-  (defun my-go-mode-hook ()
-		;; golang uses tab and witdh is 4
-		(setq indent-tabs-mode t)
-		(setq tab-width 4)
-		
-		;; Use goimports, instead of gofmt
-		(setq gofmt-command "goimports")
-		;; Run goimports when saving files
-		(add-hook 'before-save-hook 'gofmt-before-save))
+;; Go mode hook function
+(defun my-go-mode-hook ()
+  (when (require 'company-go nil t)
+    ;; tell company-mode to use comany-go as backends
+    (add-to-list 'company-backends 'company-go))
+
+  ;; use godef command instead of tags
+  (local-set-key (kbd "M-.") 'godef-jump)
   
-  ;; Register Go mode  hook
-  (add-hook 'go-mode-hook 'my-go-mode-hook))
+  ;; golang uses tab and witdh is 4
+  (setq indent-tabs-mode t)
+  (setq tab-width 4)
+  
+  ;; Use goimports, instead of gofmt
+  (setq gofmt-command "goimports")
+  ;; Run goimports when saving files
+  (add-hook 'before-save-hook 'gofmt-before-save))
+
+;; Register Go mode hook
+(add-hook 'go-mode-hook 'my-go-mode-hook)
+
 
 ;;
 ;; perl
@@ -269,12 +292,20 @@
    '(font-lock-variable-name-face ((t (:foreground "#0404B4"))))))
 (add-hook 'perl-mode-hook 'my-perl-mode-hook)
 
+
+;;
+;; javascript
+;;
 (defun my-js-mode-hook ()
 	(setq indent-tabs-mode nil)
-	(setq js-indent-level 2)
-	)
+	(setq js-indent-level 2))
 (add-hook 'js-mode-hook 'my-js-mode-hook)
-
+;; elm-lang
+(defun my-elm-mode-hook ()
+  ;; currently not working.
+  ;; ???: need to npm -g elm-oracle?
+  (add-to-list 'company-backends 'company-elm))
+(add-hook 'elm-mode-hook 'my-elm-mode-hook)
 
 ;;
 ;; my customized variables
@@ -300,7 +331,7 @@
  '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-    (anything-git-files wgrep web-mode vue-mode window-number magit point-undo anything package-utils solarized-theme google-c-style go-autocomplete ggtags)))
+    (company-jedi company-go company elm-mode anything-git-files wgrep web-mode vue-mode window-number magit point-undo anything package-utils solarized-theme google-c-style ggtags)))
  '(show-paren-mode t)
  '(tab-stop-list (number-sequence 2 120 2))
  '(tab-width 2)
