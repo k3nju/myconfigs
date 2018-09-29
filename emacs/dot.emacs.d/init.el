@@ -118,7 +118,8 @@
 		   (boundp 'custom-theme-load-path))
   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/"))
 ;; use solarized-dark
-(load-theme 'solarized-dark t)
+(when (getenv "DISPLAY")
+  (load-theme 'solarized-dark t))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
