@@ -40,10 +40,10 @@ if [ -f "$usermodmap" ]; then
 fi
 
 
-# change keyboard layout and swap caps/ctrl
+# change keyboard layout
 # !!! setxkbmap must be executed after xmodmap
 setxkbmap -rules evdev -model jp106 -layout jp
-setxkbmap -option "ctrl:swapcaps"
+#setxkbmap -option "ctrl:swapcaps"
 
 
 # start some nice programs
