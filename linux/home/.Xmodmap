@@ -1,0 +1,24 @@
+! configure orcer: remove -> assign -> add
+
+
+! remove caps assignment from lock
+remove lock = Caps_Lock
+
+
+! swap ctrl and caps
+keycode 66 = Control_L
+keycode 37 = Caps_Lock NoSymbol Caps_Lock
+
+! muhenkan as alt
+keycode 102 = Alt_R Meta_R Alt_R Meta_R
+
+! henkan as enter, shift + henkan as backspace
+keycode 100 = Return BackSpace Return
+
+! kana as backspace
+keycode 101 = BackSpace BackSpace BackSpace BackSpace
+
+
+! assign ctrl as control keymodifier
+add control = Control_L
+
