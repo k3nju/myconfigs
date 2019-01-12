@@ -10,7 +10,7 @@ keycode 66 = Control_L
 keycode 37 = Caps_Lock NoSymbol Caps_Lock
 
 ! muhenkan as alt
-keycode 102 = Alt_R Meta_R Alt_R Meta_R
+keycode 102 = Alt_L Meta_L Alt_L Meta_L
 
 ! henkan as enter, shift + henkan as backspace
 keycode 100 = Return BackSpace Return
