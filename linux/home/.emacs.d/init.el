@@ -1,10 +1,10 @@
-;; coding system
+;; references
+;; https://github.com/technomancy/better-defaults/blob/master/better-defaults.el
 
-;; Added by Package.el.  This must come before configurations of
-;; installed packages.  Don't delete this line.  If you don't want it,
-;; just comment it out by adding a semicolon to the start of the line.
-;; You may delete these explanatory comments.
-(package-initialize)
+
+;;
+;; coding system
+;;
 
 (prefer-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
@@ -13,12 +13,83 @@
 (setq-default buffer-file-coding-system 'utf-8)
 
 
-;; path config 
+;;
+;; basic configs
+;;
+
+;; display
+(setq inhibit-startup-screen t)
+(menu-bar-mode -1)
+(when (fboundp 'tool-bar-mode)
+  (tool-bar-mode -1))
+(when (fboundp 'scroll-bar-mode)
+  (scroll-bar-mode -1))
+
+;; disable bell & screen flashes
+(setq ring-bell-function 'ignore)
+
+;; line and column number
+(if (>= emacs-major-version 26)
+    (global-display-line-numbers-mode t)
+  (global-linum-mode t))
+(setq linum-format "%4d ")
+(column-number-mode t)
+
+;; cursor
+(blink-cursor-mode 0)
+(global-subword-mode t)
+(global-hl-line-mode t)
+
+;; buffer
+(show-paren-mode t)
+(setq show-trailing-whitespace t)
+
+;; copy & paste
+(setq x-select-enable-clipboard t)
+(setq x-select-enable-primary t)
+(setq save-interprogram-paste-before-kill t)
+
+;; search
+(setq case-fold-search t)
+
+;; tab
+(setq-default indent-tabs-mode t)
+(setq-default tab-width 2)
+(setq tab-stop-list (number-sequence 2 120 2))
+(setq tab-always-indent 'complete)
+
+;; line trancation
+(setq-default truncate-lines t)
+(setq-default truncate-partial-width-windows nil)
+
+;; path
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
+;; backup
+(setq version-control t)
+(setq kept-new-versions 5)
+(setq kept-old-versions 1)
+(setq delete-old-versions t)
+
+;; yes or no
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;; font & color
+;(setq font-lock-comment-delimiter-face ((t (:foreground "#008b00"))))
+;(setq font-lock-comment-face ((t (:foreground "#008b00"))))
+;(setq font-lock-string-face ((t (:foreground "#a42c00")))))
+
+;; disable electric-indent-mode always
+(add-hook 'after-change-major-mode-hook (lambda() (electric-indent-mode -1)))
+
+;; ediff
+(setq-default ediff-split-window-function 'split-window-horizontally)
 
 
+;;
 ;; key bindings
+;;
+
 ;; set "C-h" as delete-backward-char
 (global-set-key (kbd "C-h") 'delete-backward-char)
 ;; enable cursor to move with M-p and M-p among windows
@@ -26,25 +97,24 @@
 (global-set-key (kbd "M-p") '(lambda ()
 			       (interactive)
 			       (other-window -1)))
+;; reverse isearch and regex isearch
+;(global-set-key (kbd "C-s") 'isearch-forward-regexp)
+(global-set-key (kbd "C-r") 'isearch-backward-regexp)
+(global-set-key (kbd "C-M-s") 'isearch-forward)
+(global-set-key (kbd "C-M-r") 'isearch-backward)
 
 
-;; mode config
-;; disable electric-indent-mode always
-(add-hook 'after-change-major-mode-hook (lambda() (electric-indent-mode -1)))
-;; ediff
-(setq ediff-split-window-function 'split-window-horizontally)
-;; winner-mode
-(winner-mode t)
-
-
+;;
 ;; package config
+;;
+
+;; package
 (when (require 'package nil t)
+  (package-initialize)
   (setq package-archives
 		    '(("gnu" . "http://elpa.gnu.org/packages/")
 		      ("melpa" . "http://melpa.org/packages/")
-		      ("org" . "http://orgmode.org/elpa/")))
-  (package-initialize))
-
+		      ("org" . "http://orgmode.org/elpa/"))))
 
 ;; use-package
 (unless (package-installed-p 'use-package)
@@ -52,17 +122,51 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
+;; uniquify(builtin)
+(use-package uniquify
+	:defer t
+  :config (setq uniquify-buffer-name-style 'forward))
+
+;; winner-mode(builtin)
+(use-package winner
+  :init (winner-mode 1)
+	:defer t
+	:commands (winner-undo winner-redo)
+	:bind (("C-x p" . 'winner-undo)
+				 ("C-x n" . 'winner-redo)))
+
+;; ido(builtin)
+(use-package ido
+  :init (ido-mode t)
+	:defer t
+  :config
+  (setq ido-enable-flex-matching t)
+  (use-package ido-vertical-mode
+    :ensure t
+    :init (ido-vertical-mode t)))
 
 ;; window-number
 (use-package window-number
   :ensure t
-  :config (window-number-meta-mode))
-
+	;; *not work* :init (window-number-meta-mode)
+	:config (window-number-meta-mode))
 
 ;; wgrep
 (use-package wgrep
-  :ensure t)
+  :ensure t
+  :defer t)
 
+;; neotree
+(use-package neotree
+  :ensure t
+  :defer 1)
+
+;; anzu
+(use-package anzu
+  :ensure t
+  :init (global-anzu-mode +1)
+  :bind (("M-%" . anzu-isearch-query-replace)
+	 ("C-M-%" . anzu-isearch-query-replace-regexp)))
 
 ;; company
 (use-package company
@@ -70,6 +174,7 @@
   :defer t
   :init (global-company-mode)
   :config
+	(global-set-key (kbd "C-M-i") 'company-complete)
   (define-key company-active-map (kbd "C-n") 'company-select-next)
   (define-key company-active-map (kbd "C-p") 'company-select-previous)
   (define-key company-active-map (kbd "C-j") 'company-complete-selection)
@@ -77,40 +182,36 @@
   (setq company-idle-delay 0)
   (setq company-show-numbers t))
 
-
 ;; ggtags
 (use-package ggtags
   :ensure t
   :defer 1
-  :init
-  (add-hook 'c-mode-common-hook
-            (lambda ()
-              (when (derived-mode-p 'c-mode 'c++-mode)
-                (ggtags-mode 1)))))
-
+  :init (add-hook 'c-mode-common-hook
+									(lambda ()
+										(when (derived-mode-p 'c-mode 'c++-mode)
+											(ggtags-mode 1)))))
 
 ;; google-c-style
 (use-package google-c-style
   :ensure t
-  :defer 1
-  :init (add-hook 'c-mode-common-hook 'google-set-c-style))
-
+	:init (add-hook 'c-mode-common-hook 'google-set-c-style))
 
 ;; lsp-mode
-;(use-package lsp-mode
-;  :ensure t
-;  :commands lsp)
-
+(use-package lsp-mode
+  :ensure t
+  :commands lsp
+	:hook ((prog-mode . lsp))
+	:config
+	(use-package company-lsp
+		:ensure t
+		:after company
+		:config
+		(add-to-list 'company-backends 'company-lsp))
+	(add-hook 'python-mode-hook #'lsp))
 
 ;; lsp-ui
 ;(use-package lsp-ui
 ;  :commands lsp-ui-mode)
-
-
-;; company-lsp
-;(use-package company-lsp
-;  :commands company-lsp)
-
 
 ;; theme config
 (when (and (file-exists-p (expand-file-name "themes" user-emacs-directory))
@@ -120,41 +221,17 @@
   (load-theme 'solarized-dark t))
 
 
-;; customs
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(blink-cursor-mode nil)
- '(case-fold-search t)
- '(column-number-mode t)
- '(global-linum-mode t)
- '(global-subword-mode t)
- '(indent-tabs-mode nil)
- '(inhibit-startup-screen 0)
- '(line-number-mode t)
- '(linum-format "%4d ")
- '(menu-bar-mode nil)
  '(package-selected-packages
-   (quote
-    (solarized-theme google-c-style company window-number wgrep use-package ggtags)))
- '(show-paren-mode t)
- '(tab-stop-list (number-sequence 2 120 2))
- '(tab-width 2)
- '(tool-bar-mode nil)
- '(tooltip-mode nil)
- '(truncate-lines t)
- '(truncate-partial-width-windows nil))
-
+	 (quote
+		(company-lsp neotree window-number wgrep use-package solarized-theme google-c-style ggtags company))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(font-lock-comment-delimiter-face ((t (:foreground "#008b00"))))
- '(font-lock-comment-face ((t (:foreground "#008b00"))))
- '(font-lock-string-face ((t (:foreground "#a42c00")))))
-
-
-
+ )
