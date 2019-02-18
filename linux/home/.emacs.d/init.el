@@ -17,13 +17,6 @@
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
 
-;; theme config
-(when (and (file-exists-p (expand-file-name "themes" user-emacs-directory))
-           (boundp 'custom-theme-load-path))
-  (add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory)))
-(when (getenv "DISPLAY")
-  (load-theme 'solarized-dark t))
-
 
 ;; key bindings
 ;; set "C-h" as delete-backward-char
@@ -119,6 +112,14 @@
 ;  :commands company-lsp)
 
 
+;; theme config
+(when (and (file-exists-p (expand-file-name "themes" user-emacs-directory))
+           (boundp 'custom-theme-load-path))
+  (add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory)))
+(when (getenv "DISPLAY")
+  (load-theme 'solarized-dark t))
+
+
 ;; customs
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -137,7 +138,7 @@
  '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-    (google-c-style company window-number wgrep use-package ggtags)))
+    (solarized-theme google-c-style company window-number wgrep use-package ggtags)))
  '(show-paren-mode t)
  '(tab-stop-list (number-sequence 2 120 2))
  '(tab-width 2)
