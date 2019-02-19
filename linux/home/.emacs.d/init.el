@@ -191,6 +191,14 @@
 										(when (derived-mode-p 'c-mode 'c++-mode)
 											(ggtags-mode 1)))))
 
+;; projectile
+(use-package projectile
+	:ensure t
+	:defer 1
+	:config
+	(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+	(projectile-mode +1))
+
 ;; google-c-style
 (use-package google-c-style
   :ensure t
@@ -206,8 +214,7 @@
 		:ensure t
 		:after company
 		:config
-		(add-to-list 'company-backends 'company-lsp))
-	(add-hook 'python-mode-hook #'lsp))
+		(add-to-list 'company-backends 'company-lsp)))
 
 ;; lsp-ui
 ;(use-package lsp-ui
