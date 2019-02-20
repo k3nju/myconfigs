@@ -128,7 +128,7 @@
 	:defer t
   :config (setq uniquify-buffer-name-style 'forward))
 
-;; winner-mode(builtin)
+;; winner(builtin)
 (use-package winner
   :init (winner-mode 1)
 	:defer t
@@ -136,15 +136,32 @@
 	:bind (("C-x p" . 'winner-undo)
 				 ("C-x n" . 'winner-redo)))
 
+;; recentf(builtin)
+(use-package recentf-mode
+	:init (recentf-mode t)
+	:defer t
+	:config
+	(setq recentf-max-saved-items 100)
+	(setq recentf-exclude '(".recentf"))
+	(setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list)))
+
 ;; ido(builtin)
 (use-package ido
   :init (ido-mode t)
 	:defer t
   :config
+	(setq ido-everywhere t)
   (setq ido-enable-flex-matching t)
+	(setq ido-use-virtual-buffers t)
   (use-package ido-vertical-mode
     :ensure t
-    :init (ido-vertical-mode t)))
+    :init (ido-vertical-mode t)
+		:config
+		(setq ido-vertical-show-count t)
+		(setq ido-vertical-define-keys 'C-n-and-C-p-only))
+	(use-package ido-completing-read+
+		:ensure t
+		:init (ido-ubiquitous-mode t)))
 
 ;; window-number
 (use-package window-number
