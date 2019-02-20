@@ -75,6 +75,7 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 
 ;; font & color
+(set-frame-font "OfficeCodePro 11")
 ;(setq font-lock-comment-delimiter-face ((t (:foreground "#008b00"))))
 ;(setq font-lock-comment-face ((t (:foreground "#008b00"))))
 ;(setq font-lock-string-face ((t (:foreground "#a42c00")))))
@@ -98,7 +99,7 @@
 			       (interactive)
 			       (other-window -1)))
 ;; reverse isearch and regex isearch
-;(global-set-key (kbd "C-s") 'isearch-forward-regexp)
+(global-set-key (kbd "C-s") 'isearch-forward-regexp)
 (global-set-key (kbd "C-r") 'isearch-backward-regexp)
 (global-set-key (kbd "C-M-s") 'isearch-forward)
 (global-set-key (kbd "C-M-r") 'isearch-backward)
