@@ -1,7 +1,3 @@
-;; references
-;; https://github.com/technomancy/better-defaults/blob/master/better-defaults.el
-
-
 ;;
 ;; coding system
 ;;
@@ -68,17 +64,17 @@
 ;; backup
 (setq version-control t)
 (setq kept-new-versions 5)
-(setq kept-old-versions 1)
+(setq kept-old-versions 0)
 (setq delete-old-versions t)
+(setq backup-by-copying t)
+(setq backup-directory-alist `((".*" . ,(expand-file-name "backup" user-emacs-directory))))
+
 
 ;; yes or no
 (fset 'yes-or-no-p 'y-or-n-p)
 
 ;; font & color
 (set-frame-font "OfficeCodePro 11")
-;(setq font-lock-comment-delimiter-face ((t (:foreground "#008b00"))))
-;(setq font-lock-comment-face ((t (:foreground "#008b00"))))
-;(setq font-lock-string-face ((t (:foreground "#a42c00")))))
 
 ;; disable electric-indent-mode always
 (add-hook 'after-change-major-mode-hook (lambda() (electric-indent-mode -1)))
@@ -88,7 +84,7 @@
 
 
 ;;
-;; key bindings
+;; basic key bindings
 ;;
 
 ;; set "C-h" as delete-backward-char
@@ -169,23 +165,6 @@
 	;; *not work* :init (window-number-meta-mode)
 	:config (window-number-meta-mode))
 
-;; wgrep
-(use-package wgrep
-  :ensure t
-  :defer t)
-
-;; neotree
-(use-package neotree
-  :ensure t
-  :defer 1)
-
-;; anzu
-(use-package anzu
-  :ensure t
-  :init (global-anzu-mode +1)
-  :bind (("M-%" . anzu-isearch-query-replace)
-	 ("C-M-%" . anzu-isearch-query-replace-regexp)))
-
 ;; company
 (use-package company
   :ensure t
@@ -200,6 +179,13 @@
   (setq company-idle-delay 0)
   (setq company-show-numbers t))
 
+;; anzu
+(use-package anzu
+  :ensure t
+  :init (global-anzu-mode +1)
+  :bind (("M-%" . anzu-isearch-query-replace)
+	 ("C-M-%" . anzu-isearch-query-replace-regexp)))
+
 ;; ggtags
 (use-package ggtags
   :ensure t
@@ -208,6 +194,16 @@
 									(lambda ()
 										(when (derived-mode-p 'c-mode 'c++-mode)
 											(ggtags-mode 1)))))
+
+;; wgrep
+(use-package wgrep
+  :ensure t
+  :defer t)
+
+;; neotree
+(use-package neotree
+  :ensure t
+  :defer 1)
 
 ;; projectile
 (use-package projectile
@@ -238,13 +234,20 @@
 ;(use-package lsp-ui
 ;  :commands lsp-ui-mode)
 
+
+;;
 ;; theme config
+;;
 (when (and (file-exists-p (expand-file-name "themes" user-emacs-directory))
            (boundp 'custom-theme-load-path))
   (add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory)))
 (when (getenv "DISPLAY")
   (load-theme 'solarized-dark t))
 
+
+;;
+;; customize
+;;
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
