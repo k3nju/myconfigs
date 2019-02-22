@@ -149,12 +149,14 @@
 	(setq ido-everywhere t)
   (setq ido-enable-flex-matching t)
 	(setq ido-use-virtual-buffers t)
+	;; ido-vertical-mode
   (use-package ido-vertical-mode
     :ensure t
     :init (ido-vertical-mode t)
 		:config
 		(setq ido-vertical-show-count t)
 		(setq ido-vertical-define-keys 'C-n-and-C-p-only))
+	;; ido-completing-read+(ido-ubiquitous)
 	(use-package ido-completing-read+
 		:ensure t
 		:init (ido-ubiquitous-mode t)))
@@ -177,7 +179,9 @@
   (define-key company-active-map (kbd "C-j") 'company-complete-selection)
   (define-key company-active-map (kbd "C-h") nil)
   (setq company-idle-delay 0)
-  (setq company-show-numbers t))
+  (setq company-show-numbers nil)
+	(setq company-tooltip-limit 20)
+	(setq company-selection-wrap-around t))
 
 ;; anzu
 (use-package anzu
@@ -224,15 +228,18 @@
   :commands lsp
 	:hook ((prog-mode . lsp))
 	:config
+	;; company-lsp
 	(use-package company-lsp
 		:ensure t
 		:after company
 		:config
-		(add-to-list 'company-backends 'company-lsp)))
-
-;; lsp-ui
-;(use-package lsp-ui
-;  :commands lsp-ui-mode)
+		(add-to-list 'company-backends 'company-lsp)
+		(setq company-lsp-enable-snippet t)
+		(setq company-lsp-enable-recompletion t))
+	;; lsp-ui
+	(use-package lsp-ui
+		:ensure t
+		:hook ((lsp-mode . lsp-ui-mode))))
 
 
 ;;
@@ -256,7 +263,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
 	 (quote
-		(company-lsp neotree window-number wgrep use-package solarized-theme google-c-style ggtags company))))
+		(lsp-ui company-lsp neotree window-number wgrep use-package solarized-theme google-c-style ggtags company))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
