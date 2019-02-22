@@ -17,17 +17,17 @@
 (setq inhibit-startup-screen t)
 (menu-bar-mode -1)
 (when (fboundp 'tool-bar-mode)
-  (tool-bar-mode -1))
+	(tool-bar-mode -1))
 (when (fboundp 'scroll-bar-mode)
-  (scroll-bar-mode -1))
+	(scroll-bar-mode -1))
 
 ;; disable bell & screen flashes
 (setq ring-bell-function 'ignore)
 
 ;; line and column number
 (if (>= emacs-major-version 26)
-    (global-display-line-numbers-mode t)
-  (global-linum-mode t))
+		(global-display-line-numbers-mode t)
+	(global-linum-mode t))
 (setq linum-format "%4d ")
 (column-number-mode t)
 
@@ -69,7 +69,6 @@
 (setq backup-by-copying t)
 (setq backup-directory-alist `((".*" . ,(expand-file-name "backup" user-emacs-directory))))
 
-
 ;; yes or no
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -92,8 +91,8 @@
 ;; enable cursor to move with M-p and M-p among windows
 (global-set-key (kbd "M-n") 'other-window)
 (global-set-key (kbd "M-p") '(lambda ()
-			       (interactive)
-			       (other-window -1)))
+						 (interactive)
+						 (other-window -1)))
 ;; reverse isearch and regex isearch
 (global-set-key (kbd "C-s") 'isearch-forward-regexp)
 (global-set-key (kbd "C-r") 'isearch-backward-regexp)
@@ -107,26 +106,26 @@
 
 ;; package
 (when (require 'package nil t)
-  (package-initialize)
-  (setq package-archives
-		    '(("gnu" . "http://elpa.gnu.org/packages/")
-		      ("melpa" . "http://melpa.org/packages/")
-		      ("org" . "http://orgmode.org/elpa/"))))
+	(package-initialize)
+	(setq package-archives
+				'(("gnu" . "http://elpa.gnu.org/packages/")
+					("melpa" . "http://melpa.org/packages/")
+					("org" . "http://orgmode.org/elpa/"))))
 
 ;; use-package
 (unless (package-installed-p 'use-package)
-  (message "use-package is not installed and installing it") 
-  (package-refresh-contents)
-  (package-install 'use-package))
+	(message "use-package is not installed and installing it") 
+	(package-refresh-contents)
+	(package-install 'use-package))
 
 ;; uniquify(builtin)
 (use-package uniquify
 	:defer t
-  :config (setq uniquify-buffer-name-style 'forward))
+	:config (setq uniquify-buffer-name-style 'forward))
 
 ;; winner(builtin)
 (use-package winner
-  :init (winner-mode 1)
+	:init (winner-mode 1)
 	:defer t
 	:commands (winner-undo winner-redo)
 	:bind (("C-x p" . 'winner-undo)
@@ -143,16 +142,16 @@
 
 ;; ido(builtin)
 (use-package ido
-  :init (ido-mode t)
+	:init (ido-mode t)
 	:defer t
-  :config
+	:config
 	(setq ido-everywhere t)
-  (setq ido-enable-flex-matching t)
+	(setq ido-enable-flex-matching t)
 	(setq ido-use-virtual-buffers t)
 	;; ido-vertical-mode
-  (use-package ido-vertical-mode
-    :ensure t
-    :init (ido-vertical-mode t)
+	(use-package ido-vertical-mode
+		:ensure t
+		:init (ido-vertical-mode t)
 		:config
 		(setq ido-vertical-show-count t)
 		(setq ido-vertical-define-keys 'C-n-and-C-p-only))
@@ -163,69 +162,75 @@
 
 ;; window-number
 (use-package window-number
-  :ensure t
+	:ensure t
 	;; *not work* :init (window-number-meta-mode)
 	:config (window-number-meta-mode))
 
 ;; company
 (use-package company
-  :ensure t
-  :defer t
-  :init (global-company-mode)
-  :config
+	:ensure t
+	:defer t
+	:init (global-company-mode)
+	:config
 	(global-set-key (kbd "C-M-i") 'company-complete)
-  (define-key company-active-map (kbd "C-n") 'company-select-next)
-  (define-key company-active-map (kbd "C-p") 'company-select-previous)
-  (define-key company-active-map (kbd "C-j") 'company-complete-selection)
-  (define-key company-active-map (kbd "C-h") nil)
-  (setq company-idle-delay 0)
-  (setq company-show-numbers nil)
+	(define-key company-active-map (kbd "C-n") 'company-select-next)
+	(define-key company-active-map (kbd "C-p") 'company-select-previous)
+	(define-key company-active-map (kbd "C-j") 'company-complete-selection)
+	(define-key company-active-map (kbd "C-h") nil)
+	(setq company-idle-delay 0)
+	(setq company-show-numbers nil)
 	(setq company-tooltip-limit 20)
 	(setq company-selection-wrap-around t))
 
 ;; anzu
 (use-package anzu
-  :ensure t
-  :init (global-anzu-mode +1)
-  :bind (("M-%" . anzu-isearch-query-replace)
+	:ensure t
+	:init (global-anzu-mode +1)
+	:bind (("M-%" . anzu-isearch-query-replace)
 	 ("C-M-%" . anzu-isearch-query-replace-regexp)))
 
 ;; ggtags
 (use-package ggtags
-  :ensure t
-  :defer 1
-  :init (add-hook 'c-mode-common-hook
+	:ensure t
+	:defer t
+	:init (add-hook 'c-mode-common-hook
 									(lambda ()
 										(when (derived-mode-p 'c-mode 'c++-mode)
 											(ggtags-mode 1)))))
 
 ;; wgrep
 (use-package wgrep
-  :ensure t
-  :defer t)
+	:ensure t
+	:defer t)
 
 ;; neotree
 (use-package neotree
-  :ensure t
-  :defer 1)
+	:ensure t
+	:defer 1)
 
 ;; projectile
 (use-package projectile
 	:ensure t
-	:defer 1
+	:defer t
 	:config
 	(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 	(projectile-mode +1))
 
 ;; google-c-style
 (use-package google-c-style
-  :ensure t
+	:ensure t
+	:defer t
 	:init (add-hook 'c-mode-common-hook 'google-set-c-style))
 
 ;; lsp-mode
+;; NOTE: Resuires language servers individually.
+;;			 C/C++: pacman -S clang
+;;			 python: pip install python-language-server (install pyls system wide)
+;;			 golang: go get -u golang.org/saibing/bingo
 (use-package lsp-mode
-  :ensure t
-  :commands lsp
+	:ensure t
+	:defer t
+	:commands lsp
 	:hook ((prog-mode . lsp))
 	:config
 	;; company-lsp
@@ -241,15 +246,25 @@
 		:ensure t
 		:hook ((lsp-mode . lsp-ui-mode))))
 
+;; go-mode
+;; NOTE: Requires "goimports"
+;;			 go get -u golang.org/x/tools/cmd/goimports
+(use-package go-mode
+	:ensure t
+	:defer t
+	:config
+	(setq gofmt-command "goimports")
+	(add-hook 'before-save-hook 'gofmt-before-save))
+
 
 ;;
 ;; theme config
 ;;
 (when (and (file-exists-p (expand-file-name "themes" user-emacs-directory))
-           (boundp 'custom-theme-load-path))
-  (add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory)))
+					 (boundp 'custom-theme-load-path))
+	(add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory)))
 (when (getenv "DISPLAY")
-  (load-theme 'solarized-dark t))
+	(load-theme 'solarized-dark t))
 
 
 ;;
