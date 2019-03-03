@@ -160,6 +160,13 @@
 		:ensure t
 		:init (ido-ubiquitous-mode t)))
 
+;; flymake(builtin)
+(use-package flymake
+	:bind (:map flymake-mode-map
+							("C-, e p" . flymake-goto-prev-error)
+							("C-, e n" . flymake-goto-next-error)
+							("C-, e c" . flymake-display-err-menu-for-current-line)))
+
 ;; which-key
 (use-package which-key
 	:ensure t
@@ -176,12 +183,13 @@
 	:ensure t
 	:defer t
 	:init (global-company-mode)
+	:bind (("C-M-i" . company-complete)
+				 :map company-active-map
+				 ("C-n" . company-select-next)
+				 ("C-p" . company-select-previous)
+				 ("C-j" . company-complete-selection)
+				 ("C-h" . nil))
 	:config
-	(global-set-key (kbd "C-M-i") 'company-complete)
-	(define-key company-active-map (kbd "C-n") 'company-select-next)
-	(define-key company-active-map (kbd "C-p") 'company-select-previous)
-	(define-key company-active-map (kbd "C-j") 'company-complete-selection)
-	(define-key company-active-map (kbd "C-h") nil)
 	(setq company-idle-delay 0)
 	(setq company-show-numbers nil)
 	(setq company-tooltip-limit 20)
@@ -194,6 +202,17 @@
 	:bind (("M-%" . anzu-isearch-query-replace)
 				 ("C-M-%" . anzu-isearch-query-replace-regexp)))
 
+(use-package yasnippet
+	:ensure t
+	:init (yas-global-mode 1)
+	:config
+	(setq yas-prompt-functions '(yas-ido-prompt)))
+
+;; wgrep
+(use-package wgrep
+	:ensure t
+	:defer t)
+
 ;; ggtags
 (use-package ggtags
 	:ensure t
@@ -203,29 +222,13 @@
 										(when (derived-mode-p 'c-mode 'c++-mode)
 											(ggtags-mode 1)))))
 
-;; wgrep
-(use-package wgrep
-	:ensure t
-	:defer t)
-
-;; neotree
-(use-package neotree
-	:ensure t
-	:defer 1)
-
 ;; projectile
 (use-package projectile
 	:ensure t
 	:init (projectile-mode +1)
-	:defer t
-	:config
-	(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
-
-;; google-c-style
-(use-package google-c-style
-	:ensure t
-	:defer t
-	:init (add-hook 'c-mode-common-hook 'google-set-c-style))
+	:bind (:map projectile-mode-map
+							("C-c p" . projectile-command-map))
+	:defer t)
 
 ;; lsp-mode
 ;; NOTE: Resuires language servers individually.
@@ -251,12 +254,20 @@
 	(use-package lsp-ui
 		:ensure t
 		:hook ((lsp-mode . lsp-ui-mode))
-		:bind (("C-, m" . lsp-ui-imenu)
-					 ("C-, r" . lsp-ui-peek-find-references)
-					 ("C-, d" . lsp-ui-peek-find-definitions)
-					 ("C-, i" . lsp-ui-peek-find-implementation))
+		:bind (:map lsp-ui-mode-map
+								([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
+								([remap xref-find-references] . lsp-ui-peek-find-references); M-?
+								("C-, u i" . lsp-ui-find-implementation)
+								("C-, u m" . lsp-ui-imenu))
 		:config
+		(setq lsp-ui-doc-enable nil)
 		(setq lsp-ui-doc-include-signature t)))
+	
+;; google-c-style
+(use-package google-c-style
+	:ensure t
+	:defer t
+	:init (add-hook 'c-mode-common-hook 'google-set-c-style))
 
 ;; go-mode
 ;; NOTE: Requires "goimports"
@@ -267,6 +278,11 @@
 	:config
 	(setq gofmt-command "goimports")
 	(add-hook 'before-save-hook 'gofmt-before-save))
+
+;; neotree
+(use-package neotree
+	:ensure t
+	:defer 1)
 
 
 ;;
