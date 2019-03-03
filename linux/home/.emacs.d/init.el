@@ -216,10 +216,10 @@
 ;; projectile
 (use-package projectile
 	:ensure t
+	:init (projectile-mode +1)
 	:defer t
 	:config
-	(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
-	(projectile-mode +1))
+	(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
 
 ;; google-c-style
 (use-package google-c-style
