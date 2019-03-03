@@ -160,6 +160,11 @@
 		:ensure t
 		:init (ido-ubiquitous-mode t)))
 
+;; which-key
+(use-package which-key
+	:ensure t
+	:hook (after-init . which-key-mode))
+
 ;; window-number
 (use-package window-number
 	:ensure t
@@ -187,7 +192,7 @@
 	:ensure t
 	:init (global-anzu-mode +1)
 	:bind (("M-%" . anzu-isearch-query-replace)
-	 ("C-M-%" . anzu-isearch-query-replace-regexp)))
+				 ("C-M-%" . anzu-isearch-query-replace-regexp)))
 
 ;; ggtags
 (use-package ggtags
@@ -239,12 +244,19 @@
 		:after company
 		:config
 		(add-to-list 'company-backends 'company-lsp)
+		(setq company-lsp-cache-candidates t)
 		(setq company-lsp-enable-snippet t)
 		(setq company-lsp-enable-recompletion t))
 	;; lsp-ui
 	(use-package lsp-ui
 		:ensure t
-		:hook ((lsp-mode . lsp-ui-mode))))
+		:hook ((lsp-mode . lsp-ui-mode))
+		:bind (("C-, m" . lsp-ui-imenu)
+					 ("C-, r" . lsp-ui-peek-find-references)
+					 ("C-, d" . lsp-ui-peek-find-definitions)
+					 ("C-, i" . lsp-ui-peek-find-implementation))
+		:config
+		(setq lsp-ui-doc-include-signature t)))
 
 ;; go-mode
 ;; NOTE: Requires "goimports"
