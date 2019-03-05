@@ -126,6 +126,7 @@
 ;; winner(builtin)
 (use-package winner
 	:init (winner-mode 1)
+	:custom (winner-dont-bind-my-keys t)
 	:defer t
 	:commands (winner-undo winner-redo)
 	:bind (("C-x p" . 'winner-undo)
@@ -137,7 +138,7 @@
 	:defer t
 	:config
 	(setq recentf-max-saved-items 100)
-	(setq recentf-exclude '(".recentf"))
+	(setq recentf-exclude `("recentf" "ido.last" ,(expand-file-name package-user-dir)))
 	(setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list)))
 
 ;; ido(builtin)
