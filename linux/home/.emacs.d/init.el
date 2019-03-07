@@ -87,7 +87,8 @@
 ;;
 
 ;; set "C-h" as delete-backward-char
-(global-set-key (kbd "C-h") 'delete-backward-char)
+(define-key key-translation-map (kbd "C-h") (kbd "DEL"))
+(define-key key-translation-map (kbd "C-?") (kbd "C-h"))
 ;; enable cursor to move with M-p and M-p among windows
 (global-set-key (kbd "M-n") 'other-window)
 (global-set-key (kbd "M-p") '(lambda ()
@@ -133,7 +134,7 @@
 				 ("C-x n" . 'winner-redo)))
 
 ;; recentf(builtin)
-(use-package recentf-mode
+(use-package recentf
 	:init (recentf-mode t)
 	:defer t
 	:config
