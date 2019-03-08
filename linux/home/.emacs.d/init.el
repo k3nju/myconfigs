@@ -201,8 +201,11 @@
 (use-package anzu
 	:ensure t
 	:init (global-anzu-mode +1)
+	:defer t
 	:bind (("M-%" . anzu-isearch-query-replace)
-				 ("C-M-%" . anzu-isearch-query-replace-regexp)))
+				 ("C-M-%" . anzu-isearch-query-replace-regexp))
+	:config
+	(setq anzu-search-threshold 999))
 
 (use-package yasnippet
 	:ensure t
