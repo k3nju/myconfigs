@@ -165,9 +165,9 @@
 ;; flymake(builtin)
 (use-package flymake
 	:bind (:map flymake-mode-map
-							("C-, e p" . flymake-goto-prev-error)
-							("C-, e n" . flymake-goto-next-error)
-							("C-, e c" . flymake-display-err-menu-for-current-line)))
+							("C-, C-p" . flymake-goto-prev-error)
+							("C-, C-n" . flymake-goto-next-error)
+							("C-, C-c" . flymake-display-err-menu-for-current-line)))
 
 ;; which-key
 (use-package which-key
@@ -262,8 +262,8 @@
 		:bind (:map lsp-ui-mode-map
 								([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
 								([remap xref-find-references] . lsp-ui-peek-find-references); M-?
-								("C-, u i" . lsp-ui-find-implementation)
-								("C-, u m" . lsp-ui-imenu))
+								("C-, C-m" . lsp-ui-imenu)
+								("C-, C-i" . lsp-ui-find-implementation))
 		:config
 		(setq lsp-ui-doc-enable nil)
 		(setq lsp-ui-doc-include-signature t)))
@@ -297,7 +297,8 @@
 					 (boundp 'custom-theme-load-path))
 	(add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory)))
 (when (getenv "DISPLAY")
-	(load-theme 'solarized-dark t))
+	;(load-theme 'solarized-dark t)
+	(load-theme 'doom-Iosvkem t))
 
 
 ;;
@@ -311,7 +312,8 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
 	 (quote
-		(lsp-ui company-lsp neotree window-number wgrep use-package solarized-theme google-c-style ggtags company))))
+		(lsp-ui company-lsp neotree window-number wgrep use-package solarized-theme google-c-style ggtags company)))
+ '(winner-dont-bind-my-keys t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
