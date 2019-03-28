@@ -264,9 +264,19 @@
 								([remap xref-find-references] . lsp-ui-peek-find-references); M-?
 								("C-, C-m" . lsp-ui-imenu)
 								("C-, C-i" . lsp-ui-find-implementation))
-		:config
-		(setq lsp-ui-doc-enable nil)
-		(setq lsp-ui-doc-include-signature t)))
+		:custom
+		;; lsp-ui-doc
+		(lsp-ui-doc-enable t)
+		(lsp-ui-doc-header t)
+		(lsp-ui-doc-include-signature t)
+		(lsp-ui-doc-max-width 200)
+		(lsp-ui-doc-max-height 60)
+		(lsp-ui-doc-use-childframe t)
+		;; lsp-ui-sideline
+		(lsp-ui-sideline-enable nil)
+		;; lsp-ui-peek
+		(lsp-ui-peek-enable t)))
+
 	
 ;; google-c-style
 (use-package google-c-style
