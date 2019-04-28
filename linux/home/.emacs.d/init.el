@@ -169,6 +169,26 @@
 							("C-, C-n" . flymake-goto-next-error)
 							("C-, C-c" . flymake-display-err-menu-for-current-line)))
 
+;; org(builtin)
+(use-package org
+	:ensure t
+	:mode ("\\.org$" . org-mode)
+	:init
+	(setq org-directory (expand-file-name "org" user-emacs-directory))
+	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
+
+	;(setq org-use-speed-commands t)
+	(setq org-hide-leading-stars t)
+	(setq org-return-follows-link t)
+	(setq org-blank-before-new-entry
+				'((heading . always)
+					(plain-list-item . nil)))
+
+	(setq org-todo-keywords
+				'((sequence "TODO(t)" "|" "DONE(d)" "CANCELED(c)")))
+	;(setq org-capture-templates
+)
+
 ;; which-key
 (use-package which-key
 	:ensure t

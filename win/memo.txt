@@ -1,0 +1,20 @@
+chrome
+windows server 2003 recource kit tools(remapkey)
+python
+keyhac
+sakura editor
+emacs
+teraterm
+winmerge
+7zip
+
+
+
+sysinternals
+ollydbg
+immdbg
+x64dbg
+hxd
+stiring
+
+
