@@ -173,11 +173,16 @@
 (use-package org
 	:ensure t
 	:mode ("\\.org$" . org-mode)
+	:bind (("C-c c" . org-capture)
+				 ("C-c a" . org-agenda)
+				 ("C-c l" . org-store-link))
 	:init
 	(setq org-directory (expand-file-name "org" user-emacs-directory))
-	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
-
-	;(setq org-use-speed-commands t)
+	(setq org-default-notes-file (expand-file-name "default-notes.org" org-directory))
+	(setq org-agenda-files (list org-directory))
+	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
+	
+	;;(setq org-use-speed-commands t)
 	(setq org-hide-leading-stars t)
 	(setq org-return-follows-link t)
 	(setq org-blank-before-new-entry
@@ -186,8 +191,11 @@
 
 	(setq org-todo-keywords
 				'((sequence "TODO(t)" "|" "DONE(d)" "CANCELED(c)")))
-	;(setq org-capture-templates
-)
+	(setq org-log-done 'time)
+	
+	(setq org-capture-templates
+				'(("n" "Note" entry (file+headline "notes.org" "notes") "* %?\n %U\n %i\n %a")
+					("t" "Task" entry (file+headline "tasks.org" "tasks") "* TODO %?\n"))))
 
 ;; which-key
 (use-package which-key
@@ -242,10 +250,9 @@
 (use-package ggtags
 	:ensure t
 	:defer t
-	:init (add-hook 'c-mode-common-hook
-									(lambda ()
-										(when (derived-mode-p 'c-mode 'c++-mode)
-											(ggtags-mode 1)))))
+	:hook (c-mode-common . (lambda ()
+													 (when (derived-mode-p 'c-mode 'c++-mode)
+														 (ggtags-mode 1)))))
 
 ;; projectile
 (use-package projectile
@@ -261,6 +268,7 @@
 ;;			 python: pip install python-language-server (install pyls system wide)
 ;;			 golang: go get -u golang.org/saibing/bingo
 (use-package lsp-mode
+	:disabled
 	:ensure t
 	:defer t
 	:commands lsp
@@ -297,12 +305,12 @@
 		;; lsp-ui-peek
 		(lsp-ui-peek-enable t)))
 
-	
+(defun aaa () (message "AAAAAAAAAAAA")) 
 ;; google-c-style
 (use-package google-c-style
 	:ensure t
 	:defer t
-	:init (add-hook 'c-mode-common-hook 'google-set-c-style))
+	:hook (c-mode-common . google-set-c-style))
 
 ;; go-mode
 ;; NOTE: Requires "goimports"
@@ -310,9 +318,9 @@
 (use-package go-mode
 	:ensure t
 	:defer t
+	:hook (before-save . gofmt-before-save)
 	:config
-	(setq gofmt-command "goimports")
-	(add-hook 'before-save-hook 'gofmt-before-save))
+	(setq gofmt-command "goimports"))
 
 ;; neotree
 (use-package neotree
