@@ -305,7 +305,6 @@
 		;; lsp-ui-peek
 		(lsp-ui-peek-enable t)))
 
-(defun aaa () (message "AAAAAAAAAAAA")) 
 ;; google-c-style
 (use-package google-c-style
 	:ensure t
