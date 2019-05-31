@@ -73,7 +73,7 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 
 ;; font & color
-(set-frame-font "OfficeCodePro 11")
+(set-frame-font "Office Code Pro 11")
 
 ;; disable electric-indent-mode always
 (add-hook 'after-change-major-mode-hook (lambda() (electric-indent-mode -1)))
@@ -336,6 +336,25 @@
 (when (getenv "DISPLAY")
 	;(load-theme 'solarized-dark t)
 	(load-theme 'doom-Iosvkem t))
+
+
+;;
+;; windows customize
+;;
+(when (eq system-type 'windows-nt)
+	;; font
+	
+	
+	;; IME config
+	(setq default-input-method "W32-IME")
+	(setq-default w32-ime-mode-line-state-indicator "[--]")
+	(setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
+	(w32-ime-initialize)
+
+	;; python27 pyls
+	(defun use-python27 ()
+		(interactive)
+		(setq lsp-clients-python-command '("c:\\python27\\scripts\\pyls.exe")))
 
 
 ;;
