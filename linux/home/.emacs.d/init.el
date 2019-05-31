@@ -354,7 +354,7 @@
 	;; python27 pyls
 	(defun use-python27 ()
 		(interactive)
-		(setq lsp-clients-python-command '("c:\\python27\\scripts\\pyls.exe")))
+		(setq lsp-clients-python-command '("c:\\python27\\scripts\\pyls.exe"))))
 
 
 ;;
