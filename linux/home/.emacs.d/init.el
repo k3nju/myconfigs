@@ -178,7 +178,7 @@
 				 ("C-c l" . org-store-link))
 	:init
 	(setq org-directory (expand-file-name "org" user-emacs-directory))
-	(setq org-default-notes-file (expand-file-name "default-notes.org" org-directory))
+	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
 	(setq org-agenda-files (list org-directory))
 	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
 	
