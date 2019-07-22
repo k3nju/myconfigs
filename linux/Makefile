@@ -61,7 +61,7 @@ dotfiles:
 # install and uninstall packages
 PKGS_DIR:=$(HERE)pkgs/
 .PHONY: pkg
-pkg: pkgs_core yay aur uninstalls
+pkg: pkgs_core pkgs_desktop yay aur uninstalls
 
 CORES:=$(shell cat $(PKGS_DIR)core.txt)
 .PHONY: pkgs_core
@@ -82,7 +82,7 @@ aur:
 UNINSTALLS:=$(shell cat $(PKGS_DIR)uninstalls.txt)
 .PHONY: uninstalls
 uninstalls:
-	$(foreach v,$(UNINSTALLS),sudo pacman -Rsn --noconfirm -- $(v);)
+	$(foreach v,$(UNINSTALLS),-sudo pacman -Rsn --noconfirm -- $(v);)
 
 DESKTOPS:=$(shell cat $(PKGS_DIR)desktops.txt)
 .PHONY: pkg_desktop
