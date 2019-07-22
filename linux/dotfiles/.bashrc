@@ -9,9 +9,8 @@ alias less='less -R -S -i'
 alias grep='grep --color=auto'
 
 
-if [[ ! -z $DISPLAY ]]; then
-		alias emacs='/usr/local/bin/emacsnw'
-		alias emacscs='/usr/bin/emacs'
+if [[ -e /usr/local/bin/emacs_launcher.sh  ]]; then
+		alias emacs='/usr/local/bin/emacs_launcher.sh'
 fi
 
 

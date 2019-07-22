@@ -4,34 +4,43 @@ HERE:=$(dir $(ME))
 
 
 .PHONY: all
-all: system-wides dotfiles pkg
-	echo "all"
+all: init dotfiles pkg
 
 
-# system-wide configs
-# note: after making system-wides config, sudo will work.
-SYSTEM_WIDES_DIR:=$(HERE)system-wides
-SYSTEM_WIDES:=$(shell find $(SYSTEM_WIDES_DIR) -type f -exec realpath {} \;)
-SYSTEM_WIDES_OVERRIDE_DIR:=$(HERE)system-wides-override
-SYSTEM_WIDES_OVERRIDES:=$(shell find $(SYSTEM_WIDES_OVERRIDE_DIR) -type f -exec realpath {} \;)
-
+# initialization. configure high priorities	first
 define add_archlinuxfr
-if ! grep -q archlinuxfr /etc/pacman.conf; then \
-	echo "[archlinuxfr]" | sudo tee -a /etc/pacman.conf; \
-	echo "SigLevel = Never" | sudo tee -a /etc/pacman.conf; \
-	echo 'Server = http://repo.archlinux.fr/$$arch' | sudo tee -a /etc/pacman.conf; \
+if ! grep -q archlinuxfr $(1); then \
+	echo '[archlinuxfr]' | sudo tee -a $(1); \
+	echo 'SigLevel = Never' | sudo tee -a $(1); \
+	echo 'Server = http://repo.archlinux.fr/$$arch' | sudo tee -a $(1); \
 fi
 
 endef
 
-.PHONY: system-wides
-system-wides:
-	su -c "$(foreach v,$(SYSTEM_WIDES),cp -- $(v) $(subst $(SYSTEM_WIDES_DIR),,$(v));)"
-	$(call add_archlinuxfr)
+define create_emacs_launcher
+if [[ ! -e $(1) ]]; then \
+	echo '#! /usr/bin/bash' | sudo tee -a $(1); \
+	echo 'if [[ ! -z $${DISPLAY} ]]; then' | sudo tee -a $(1); \
+	echo '/usr/bin/emacs $$@ &' | sudo tee -a $(1); \
+	echo 'else' | sudo tee -a $(1); \
+	echo '/usr/bin/emacs -nw $$@' | sudo tee -a $(1); \
+	echo 'fi' | sudo tee -a $(1); \
+	sudo chmod a+x $(1); \
+fi
 
-.PHONY: system-wides-override
-system-wides-override:
-	$(foreach v,$(SYSTEM_WIDES_OVERRIDES),sudo cp -- $(v) $(subst ($SYSTEM_WIDES_OVERRIDES),,$(v)))
+endef
+
+.PHONY: init
+init:
+	su -c "echo 'kj ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/kj"
+	$(call add_archlinuxfr,/etc/pacman.conf)
+	$(call create_emacs_launcher,/usr/local/bin/emacs_launcher.sh)
+
+CONFIGS_DIR:=$(HERE)configs/
+CONFIGS:=$(shell find $(CONFIGS_DIR) -type f -exec realpath {} \;)
+.PHONY: configs
+configs:
+	$(foreach v,$(CONFIGS),sudo cp -- $(v) $(subst $(CONFIGS_DIR),/,$(v)))
 
 
 # deploy dotfiles(and other configs)
@@ -40,7 +49,7 @@ DOTFILES:=$(shell find $(DOTFILES_DIR) -type f -exec realpath {} \;)
 
 define link_dotfile
 	mkdir -p -- "$(dir $(2))"
-	ln -sfv -- "$(1)" "$(2)"
+	ln -sf -- "$(1)" "$(2)"
 
 endef
 
@@ -51,14 +60,10 @@ dotfiles:
 
 # install and uninstall packages
 PKGS_DIR:=$(HERE)pkgs/
-CORES:=$(shell cat $(PKGS_DIR)core.txt)
-AURS:=$(shell cat $(PKGS_DIR)aurs.txt)
-UNINSTALLS:=$(shell cat $(PKGS_DIR)uninstalls.txt)
-DESKTOPS:=$(shell cat $(PKGS_DIR)desktops.txt)
-
 .PHONY: pkg
 pkg: pkgs_core yay aur uninstalls
 
+CORES:=$(shell cat $(PKGS_DIR)core.txt)
 .PHONY: pkgs_core
 pkgs_core:
 	$(foreach v,$(CORES),sudo pacman -Syu --noconfirm -- $(v);)
@@ -69,14 +74,17 @@ yay:
 	git clone --depth 1 https://aur.archlinux.org/yay.git /tmp/yay/ && \
 	cd /tmp/yay/ && yes | makepkg -si
 
+AURS:=$(shell cat $(PKGS_DIR)aurs.txt)
 .PHONY: aur
 aur:
 	$(foreach	v,$(AURS),yay -S --noconfirm -- $(v);)
 
+UNINSTALLS:=$(shell cat $(PKGS_DIR)uninstalls.txt)
 .PHONY: uninstalls
 uninstalls:
 	$(foreach v,$(UNINSTALLS),sudo pacman -Rsn --noconfirm -- $(v);)
 
+DESKTOPS:=$(shell cat $(PKGS_DIR)desktops.txt)
 .PHONY: pkg_desktop
 pkg_desktop:
 	$(foreach v,$(DESKTOPS),sudo pacman -Syu --noconfirm -- $(v);)
