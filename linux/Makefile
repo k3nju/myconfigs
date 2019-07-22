@@ -17,9 +17,9 @@ SYSTEM_WIDES_OVERRIDES:=$(shell find $(SYSTEM_WIDES_OVERRIDE_DIR) -type f -exec 
 
 define add_archlinuxfr
 if ! grep -q archlinuxfr /etc/pacman.conf; then \
-	echo "[archlinuxfr]" >> /etc/pacman.conf; \
-	echo "SigLevel = Never" >> /etc/pacman.conf; \
-	echo 'Server = http://repo.archlinux.fr/$$arch' >> /etc/pacman.conf; \
+	echo "[archlinuxfr]" | sudo tee -a /etc/pacman.conf; \
+	echo "SigLevel = Never" | sudo tee -a /etc/pacman.conf; \
+	echo 'Server = http://repo.archlinux.fr/$$arch' | sudo tee -a /etc/pacman.conf; \
 fi
 
 endef
