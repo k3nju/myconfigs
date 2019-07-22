@@ -19,7 +19,7 @@ define add_archlinuxfr
 if ! grep -q archlinuxfr /etc/pacman.conf; then \
 	echo "[archlinuxfr]" >> /etc/pacman.conf; \
 	echo "SigLevel = Never" >> /etc/pacman.conf; \
-	echo 'Server = http://repo.archlinux.fr/$$arch' >> /etc/pacman.conf;
+	echo 'Server = http://repo.archlinux.fr/$$arch' >> /etc/pacman.conf; \
 fi
 
 endef
