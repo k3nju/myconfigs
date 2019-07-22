@@ -82,7 +82,7 @@ aur:
 UNINSTALLS:=$(shell cat $(PKGS_DIR)uninstalls.txt)
 .PHONY: uninstalls
 uninstalls:
-	$(foreach v,$(UNINSTALLS),-sudo pacman -Rsn --noconfirm -- $(v);)
+	-$(foreach v,$(UNINSTALLS),sudo pacman -Rsn --noconfirm -- $(v);)
 
 DESKTOPS:=$(shell cat $(PKGS_DIR)desktops.txt)
 .PHONY: pkg_desktop
