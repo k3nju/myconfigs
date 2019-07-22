@@ -85,8 +85,8 @@ uninstalls:
 	-$(foreach v,$(UNINSTALLS),sudo pacman -Rsn --noconfirm -- $(v);)
 
 DESKTOPS:=$(shell cat $(PKGS_DIR)desktops.txt)
-.PHONY: pkg_desktop
-pkg_desktop:
+.PHONY: pkgs_desktop
+pkgs_desktop:
 	$(foreach v,$(DESKTOPS),sudo pacman -Syu --noconfirm -- $(v);)
 
 
