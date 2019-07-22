@@ -12,6 +12,8 @@ all: system-wides dotfiles pkg
 # note: after making system-wides config, sudo will work.
 SYSTEM_WIDES_DIR:=$(HERE)system-wides
 SYSTEM_WIDES:=$(shell find $(SYSTEM_WIDES_DIR) -type f -exec realpath {} \;)
+SYSTEM_WIDES_OVERRIDE_DIR:=$(HERE)system-wides-override
+SYSTEM_WIDES_OVERRIDES:=$(shell find $(SYSTEM_WIDES_OVERRIDE_DIR) -type f -exec realpath {} \;)
 
 define add_archlinuxfr
 if ! grep -q archlinuxfr /etc/pacman.conf; then \
@@ -26,6 +28,11 @@ endef
 system-wides:
 	su -c "$(foreach v,$(SYSTEM_WIDES),cp -- $(v) $(subst $(SYSTEM_WIDES_DIR),,$(v));)"
 	$(call add_archlinuxfr)
+
+.PHONY: system-wides-override
+system-wides-override:
+	$(foreach v,$(SYSTEM_WIDES_OVERRIDES),sudo cp -- $(v) $(subst ($SYSTEM_WIDES_OVERRIDES),,$(v)))
+
 
 # deploy dotfiles(and other configs)
 DOTFILES_DIR:=$(HERE)dotfiles/
