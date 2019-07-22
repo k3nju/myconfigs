@@ -1,0 +1,17 @@
+rdesktop
+noto-fonts
+noto-fonts-cjk
+xorg-server
+pavucontrol-qt
+xfce4
+chromium
+firefox
+thunderbird
+hexchat
+virtualbox
+virtualbox-host-modules-arch
+keepass
+jre-openjdk
+
+
+

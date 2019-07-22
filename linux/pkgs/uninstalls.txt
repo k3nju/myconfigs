@@ -1,0 +1,7 @@
+dhcpcd
+jfsutils
+nano
+reiserfsprogs
+s-nail
+
+

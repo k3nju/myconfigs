@@ -2,9 +2,8 @@ emacs
 tmux
 git
 curl
-sudo
 gnu-netcat
 openssh
-
+rsync
 
 
