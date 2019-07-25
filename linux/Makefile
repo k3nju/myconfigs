@@ -93,4 +93,3 @@ DESKTOPS:=$(filter-out $(INSTALLEDS),$(shell cat $(PKGS_DIR)desktops.txt))
 pkg_desktop:
 	$(foreach v,$(DESKTOPS),sudo pacman -Syu --noconfirm -- $(v);)
 
-

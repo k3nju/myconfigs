@@ -1,5 +1,5 @@
 office-code-pro
 global
 ratslap
-
+systemd-boot-pacman-hook
 

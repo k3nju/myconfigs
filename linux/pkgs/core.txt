@@ -6,5 +6,4 @@ gnu-netcat
 openssh
 rsync
 wireshark-cli
-systemd-boot-pacman-hook
 
