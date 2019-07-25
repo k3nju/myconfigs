@@ -12,6 +12,9 @@ virtualbox
 virtualbox-host-modules-arch
 keepass
 jre-openjdk
-
-
+wireshark-qt
+fcitx
+fcitx-mozc
+fcitx-im
+fcitx-configtool
 

@@ -44,49 +44,53 @@ configs:
 
 
 # deploy dotfiles(and other configs)
-DOTFILES_DIR:=$(HERE)dotfiles/
-DOTFILES:=$(shell find $(DOTFILES_DIR) -type f -exec realpath {} \;)
-
 define link_dotfile
 	mkdir -p -- "$(dir $(2))"
 	ln -sf -- "$(1)" "$(2)"
 
 endef
 
+DOTFILES_DIR:=$(HERE)dotfiles/
+DOTFILES:=$(shell find $(DOTFILES_DIR) -type f -exec realpath {} \;)
 .PHONY: dotfiles
 dotfiles:
 	$(foreach v,$(DOTFILES),$(call link_dotfile,$(v),$(subst $(DOTFILES_DIR),$(HOME)/,$(v))))
 
 
 # install and uninstall packages
+INSTALLEDS:=$(shell pacman -Q|awk '{print $$1}')
 PKGS_DIR:=$(HERE)pkgs/
 .PHONY: pkg
-pkg: pkgs_core pkgs_desktop yay aur uninstalls
+pkg: pkg_update pkg_core pkg_desktop pkg_yay pkg_aur pkg_uninstalls
 
-CORES:=$(shell cat $(PKGS_DIR)core.txt)
-.PHONY: pkgs_core
-pkgs_core:
+.PHONY: pkg_update
+pkg_update:
+	sudo pacman -Syu --noconfirm
+
+CORES:=$(filter-out $(INSTALLEDS),$(shell cat $(PKGS_DIR)core.txt))
+.PHONY: pkg_core
+pkg_core:
 	$(foreach v,$(CORES),sudo pacman -Syu --noconfirm -- $(v);)
 
-.PHONY: yay
-yay:
+.PHONY: pkg_yay
+pkg_yay:
 	rm -rf /tmp/yay/ && \
 	git clone --depth 1 https://aur.archlinux.org/yay.git /tmp/yay/ && \
 	cd /tmp/yay/ && yes | makepkg -si
 
-AURS:=$(shell cat $(PKGS_DIR)aurs.txt)
-.PHONY: aur
-aur:
+AURS:=$(filter-out $(INSTALLEDS),$(shell cat $(PKGS_DIR)aurs.txt))
+.PHONY: pkg_aur
+pkg_aur:
 	$(foreach	v,$(AURS),yay -S --noconfirm -- $(v);)
 
-UNINSTALLS:=$(shell cat $(PKGS_DIR)uninstalls.txt)
-.PHONY: uninstalls
-uninstalls:
-	-$(foreach v,$(UNINSTALLS),sudo pacman -Rsn --noconfirm -- $(v);)
+UNINSTALLS:=$(filter $(INSTALLEDS),$(shell cat $(PKGS_DIR)uninstalls.txt))
+.PHONY: pkg_uninstalls
+pkg_uninstalls:
+	$(foreach v,$(UNINSTALLS),sudo pacman -Rsn --noconfirm -- $(v);)
 
-DESKTOPS:=$(shell cat $(PKGS_DIR)desktops.txt)
-.PHONY: pkgs_desktop
-pkgs_desktop:
+DESKTOPS:=$(filter-out $(INSTALLEDS),$(shell cat $(PKGS_DIR)desktops.txt))
+.PHONY: pkg_desktop
+pkg_desktop:
 	$(foreach v,$(DESKTOPS),sudo pacman -Syu --noconfirm -- $(v);)
 
 
