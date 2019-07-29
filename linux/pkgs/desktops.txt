@@ -9,7 +9,6 @@ firefox
 thunderbird
 hexchat
 virtualbox
-virtualbox-host-modules-arch
 keepass
 jre-openjdk
 wireshark-qt
