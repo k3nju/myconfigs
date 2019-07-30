@@ -1,10 +1,10 @@
-ME:=$(realpath $(lastword $(MAKEFILE_LIST)))
-# here is where I reside
-HERE:=$(dir $(ME))
+me:=$(realpath $(lastword $(MAKEFILE_LIST)))
+# here is where I reside and the root directory to work
+here:=$(dir $(me))
 
 
 .PHONY: all
-all: init dotfiles pkg
+all: init configs dotfiles pkg
 
 
 # initialization. configure high priorities	first
@@ -30,18 +30,28 @@ fi
 
 endef
 
+#------------------------------------------------------------------------------#
+# init
+
 .PHONY: init
 init:
 	su -c "echo 'kj ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/kj"
 	$(call add_archlinuxfr,/etc/pacman.conf)
 	$(call create_emacs_launcher,/usr/local/bin/emacs_launcher.sh)
 
-CONFIGS_DIR:=$(HERE)configs/
-CONFIGS:=$(shell find $(CONFIGS_DIR) -type f -exec realpath {} \;)
+
+#------------------------------------------------------------------------------#
+# configs
+
+CONFIGS_DIR?=$(here)configs/
+configs:=$(shell find $(CONFIGS_DIR) -type f -exec realpath {} \;)
 .PHONY: configs
 configs:
-	$(foreach v,$(CONFIGS),sudo cp -- $(v) $(subst $(CONFIGS_DIR),/,$(v)))
+	$(foreach v,$(configs),sudo cp -- $(v) $(subst $(CONFIGS_DIR),/,$(v)))
 
+
+#------------------------------------------------------------------------------#
+# dotfiles
 
 # deploy dotfiles(and other configs)
 define link_dotfile
@@ -50,16 +60,20 @@ define link_dotfile
 
 endef
 
-DOTFILES_DIR:=$(HERE)dotfiles/
-DOTFILES:=$(shell find $(DOTFILES_DIR) -type f -exec realpath {} \;)
+DOTFILES_DIR?=$(here)dotfiles/
+dotfiles:=$(shell find $(DOTFILES_DIR) -type f -exec realpath {} \;)
 .PHONY: dotfiles
 dotfiles:
-	$(foreach v,$(DOTFILES),$(call link_dotfile,$(v),$(subst $(DOTFILES_DIR),$(HOME)/,$(v))))
+	$(foreach v,$(dotfiles),$(call link_dotfile,$(v),$(subst $(DOTFILES_DIR),$(HOME)/,$(v))))
 
+
+#------------------------------------------------------------------------------#
+# pkgs
 
 # install and uninstall packages
-INSTALLEDS:=$(shell pacman -Q|awk '{print $$1}')
-PKGS_DIR:=$(HERE)pkgs/
+installeds:=$(shell pacman -Q|awk '{print $$1}')
+installeds+=$(shell pacman -Qg|awk '{print $$1}')
+pkgs_dir:=$(here)pkgs/
 .PHONY: pkg
 pkg: pkg_update pkg_core pkg_desktop pkg_yay pkg_aur pkg_uninstalls
 
@@ -67,28 +81,36 @@ pkg: pkg_update pkg_core pkg_desktop pkg_yay pkg_aur pkg_uninstalls
 pkg_update:
 	sudo pacman -Syu --noconfirm
 
-CORES:=$(filter-out $(INSTALLEDS),$(shell cat $(PKGS_DIR)core.txt))
+CORES?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)core.txt))
 .PHONY: pkg_core
 pkg_core:
 	$(foreach v,$(CORES),sudo pacman -Syu --noconfirm -- $(v);)
 
-.PHONY: pkg_yay
-pkg_yay:
+define install_yay
+if ! pacman -Qs yay; then \
 	rm -rf /tmp/yay/ && \
 	git clone --depth 1 https://aur.archlinux.org/yay.git /tmp/yay/ && \
-	cd /tmp/yay/ && yes | makepkg -si
+	cd /tmp/yay/ && \
+	yes | makepkg -si; \
+fi
 
-AURS:=$(filter-out $(INSTALLEDS),$(shell cat $(PKGS_DIR)aurs.txt))
+endef
+
+.PHONY: pkg_yay
+pkg_yay:
+	$(call install_yay)
+
+AURS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)aurs.txt))
 .PHONY: pkg_aur
 pkg_aur:
 	$(foreach	v,$(AURS),yay -S --noconfirm -- $(v);)
 
-UNINSTALLS:=$(filter $(INSTALLEDS),$(shell cat $(PKGS_DIR)uninstalls.txt))
+UNINSTALLS?=$(filter $(installeds),$(shell cat $(pkgs_dir)uninstalls.txt))
 .PHONY: pkg_uninstalls
 pkg_uninstalls:
 	$(foreach v,$(UNINSTALLS),sudo pacman -Rsn --noconfirm -- $(v);)
 
-DESKTOPS:=$(filter-out $(INSTALLEDS),$(shell cat $(PKGS_DIR)desktops.txt))
+DESKTOPS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)desktops.txt))
 .PHONY: pkg_desktop
 pkg_desktop:
 	$(foreach v,$(DESKTOPS),sudo pacman -Syu --noconfirm -- $(v);)
