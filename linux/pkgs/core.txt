@@ -1,6 +1,7 @@
 emacs
 tmux
 git
+dnsutils
 curl
 gnu-netcat
 openssh
