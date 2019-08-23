@@ -6,7 +6,7 @@ export HISTFILESIZE=10000
 alias ll='ls -alth --color'
 alias ls='ls --color'
 alias less='less -R -S -i'
-alias grep='grep --color=auto'
+alias grep='grep --color=always'
 
 
 if [[ -e /usr/local/bin/emacs_launcher.sh  ]]; then
