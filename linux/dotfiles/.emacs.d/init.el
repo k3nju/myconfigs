@@ -371,7 +371,7 @@
 		("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default)))
  '(package-selected-packages
 	 (quote
-		(lsp-ui company-lsp neotree window-number wgrep use-package solarized-theme google-c-style ggtags company)))
+		(elm-mode lsp-ui company-lsp neotree window-number wgrep use-package solarized-theme google-c-style ggtags company)))
  '(winner-dont-bind-my-keys t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
