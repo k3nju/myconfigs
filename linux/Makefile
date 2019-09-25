@@ -4,7 +4,7 @@ here:=$(dir $(me))
 
 
 .PHONY: all
-all: init configs dotfiles pkg
+all: init pkg dotfiles configs
 
 
 # initialization. configure high priorities	first
@@ -65,6 +65,7 @@ dotfiles:=$(shell find $(DOTFILES_DIR) -type f -exec realpath {} \;)
 .PHONY: dotfiles
 dotfiles:
 	$(foreach v,$(dotfiles),$(call link_dotfile,$(v),$(subst $(DOTFILES_DIR),$(HOME)/,$(v))))
+	bash -x $(DOTFILES_DIR)/reset-ratslap.sh
 
 
 #------------------------------------------------------------------------------#
@@ -114,4 +115,5 @@ DESKTOPS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)desktops.txt))
 .PHONY: pkg_desktop
 pkg_desktop:
 	$(foreach v,$(DESKTOPS),sudo pacman -Syu --noconfirm -- $(v);)
+
 
