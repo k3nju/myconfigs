@@ -1,10 +1,6 @@
 emacs
 tmux
-git
-dnsutils
+bind-tools
 curl
 gnu-netcat
 openssh
-rsync
-wireshark-cli
-

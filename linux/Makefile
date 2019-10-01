@@ -4,7 +4,7 @@ here:=$(dir $(me))
 
 
 .PHONY: all
-all: init pkg dotfiles configs
+all: init pkg_all dotfiles configs
 
 
 # initialization. configure high priorities	first
@@ -75,17 +75,20 @@ dotfiles:
 installeds:=$(shell pacman -Q|awk '{print $$1}')
 installeds+=$(shell pacman -Qg|awk '{print $$1}')
 pkgs_dir:=$(here)pkgs/
-.PHONY: pkg
-pkg: pkg_update pkg_core pkg_desktop pkg_yay pkg_aur pkg_uninstalls
+.PHONY: pkg_all
+pkg_all: pkg_update pkg_core pkg_opts pkg_desktop pkg_yay pkg_aur pkg_uninstalls
+
+.PHONY: pkg_min
+pkg_min: pkg_update pkg_core pkg_uninstalls
 
 .PHONY: pkg_update
 pkg_update:
 	sudo pacman -Syu --noconfirm
 
-CORES?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)core.txt))
+PKG_CORES?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)core.txt))
 .PHONY: pkg_core
 pkg_core:
-	$(foreach v,$(CORES),sudo pacman -Syu --noconfirm -- $(v);)
+	$(foreach v,$(PKG_CORES),sudo pacman -Su --noconfirm -- $(v);)
 
 define install_yay
 if ! pacman -Qs yay; then \
@@ -101,19 +104,25 @@ endef
 pkg_yay:
 	$(call install_yay)
 
-AURS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)aurs.txt))
+PKG_AURS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)aurs.txt))
 .PHONY: pkg_aur
 pkg_aur:
-	$(foreach	v,$(AURS),yay -S --noconfirm -- $(v);)
+	$(foreach	v,$(PKG_AURS),yay -Su --noconfirm -- $(v);)
 
-UNINSTALLS?=$(filter $(installeds),$(shell cat $(pkgs_dir)uninstalls.txt))
-.PHONY: pkg_uninstalls
-pkg_uninstalls:
-	$(foreach v,$(UNINSTALLS),sudo pacman -Rsn --noconfirm -- $(v);)
-
-DESKTOPS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)desktops.txt))
+PKG_DESKTOPS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)desktops.txt))
 .PHONY: pkg_desktop
 pkg_desktop:
-	$(foreach v,$(DESKTOPS),sudo pacman -Syu --noconfirm -- $(v);)
+	$(foreach v,$(PKG_DESKTOPS),sudo pacman -Su --noconfirm -- $(v);)
+
+PKG_OPTS?:=$(filter-out $(installeds),$(shell cat $(pkgs_dir)opts.txt))
+.PHONY: pkg_opts
+pkg_opts:
+	$(foreach v,$(PKG_OPTS),sudo pacman -Su --noconfirm -- $(v);)
+
+PKG_UNINSTALLS?=$(filter $(installeds),$(shell cat $(pkgs_dir)uninstalls.txt))
+.PHONY: pkg_uninstalls
+pkg_uninstalls:
+	$(foreach v,$(PKG_UNINSTALLS),sudo pacman -Rsn --noconfirm -- $(v);)
+
 
 

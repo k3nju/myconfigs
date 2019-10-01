@@ -1,0 +1,9 @@
+git
+rsync
+wireshark-cli
+linux-headers
+mlocate
+smartmontools
+lm_sensors
+sysstat
+nvme-cli
