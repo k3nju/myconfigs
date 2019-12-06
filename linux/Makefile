@@ -7,6 +7,11 @@ here:=$(dir $(me))
 all: init pkg_all dotfiles configs
 
 
+.PHONY: help
+help:
+	@grep .PHONY $(MAKEFILE_LIST) | grep -v grep | awk '{print $$2}'
+
+
 # initialization. configure high priorities	first
 define add_archlinuxfr
 if ! grep -q archlinuxfr $(1); then \
