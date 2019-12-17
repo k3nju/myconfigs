@@ -4,3 +4,4 @@ bind-tools
 curl
 gnu-netcat
 openssh
+mdadm
