@@ -269,7 +269,6 @@
 ;;			 python: pip install python-language-server (install pyls system wide)
 ;;			 golang: go get -u golang.org/saibing/bingo
 (use-package lsp-mode
-	:disabled
 	:ensure t
 	:defer t
 	:commands lsp
@@ -370,6 +369,14 @@
  '(custom-safe-themes
 	 (quote
 		("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default)))
+ '(lsp-ui-doc-enable t)
+ '(lsp-ui-doc-header t)
+ '(lsp-ui-doc-include-signature t)
+ '(lsp-ui-doc-max-height 60)
+ '(lsp-ui-doc-max-width 200)
+ '(lsp-ui-doc-use-childframe t)
+ '(lsp-ui-peek-enable t)
+ '(lsp-ui-sideline-enable nil)
  '(package-selected-packages
 	 (quote
 		(elm-mode lsp-ui company-lsp neotree window-number wgrep use-package solarized-theme google-c-style ggtags company)))
