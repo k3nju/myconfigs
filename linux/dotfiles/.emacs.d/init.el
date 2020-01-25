@@ -261,7 +261,7 @@
 	:init (projectile-mode +1)
 	:bind (:map projectile-mode-map
 							("C-c p" . projectile-command-map))
-	:defer t)
+	:defer t)	
 
 ;; lsp-mode
 ;; NOTE: Resuires language servers individually.
@@ -310,6 +310,20 @@
 	:ensure t
 	:defer t
 	:hook (c-mode-common . google-set-c-style))
+
+;; clang-format
+(use-package clang-format
+	:ensure t
+	:after projectile
+	:commands clang-format-buffer
+	:bind ("C-c w" . clang-format-buffer)
+	:hook (before-save . (lambda ()
+												 (when (derived-mode-p 'c-mode 'c++-mode)
+													 (clang-format-buffer))))
+	:config
+	(custom-set-variables
+	 '(clang-format-style "file")
+	 '(clang-format-fallback-style "google")))
 
 ;; go-mode
 ;; NOTE: Requires "goimports"
@@ -379,7 +393,7 @@
  '(lsp-ui-sideline-enable nil)
  '(package-selected-packages
 	 (quote
-		(elm-mode lsp-ui company-lsp neotree window-number wgrep use-package solarized-theme google-c-style ggtags company)))
+		(clang-format elm-mode lsp-ui company-lsp neotree window-number wgrep use-package solarized-theme google-c-style ggtags company)))
  '(winner-dont-bind-my-keys t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
