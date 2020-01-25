@@ -315,8 +315,9 @@
 (use-package clang-format
 	:ensure t
 	:after projectile
-	:commands clang-format-buffer
-	:bind ("C-c w" . clang-format-buffer)
+	:commands (clang-format-buffer clang-format-region)
+	:bind (("C-c f b" . clang-format-buffer)
+				 ("C-c f r" . clang-format-region))
 	:hook (before-save . (lambda ()
 												 (when (derived-mode-p 'c-mode 'c++-mode)
 													 (clang-format-buffer))))
