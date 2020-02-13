@@ -1,3 +1,10 @@
+;; debuggggging
+(global-unset-key (kbd "C-q"))
+(global-set-key (kbd "C-q d v") 'describe-variable)
+(global-set-key (kbd "C-q d k") 'describe-key)
+(global-set-key (kbd "C-q d m") 'describe-mode)
+
+
 ;;
 ;; coding system
 ;;
@@ -94,6 +101,8 @@
 (global-set-key (kbd "M-p") '(lambda ()
 						 (interactive)
 						 (other-window -1)))
+
+
 ;; reverse isearch and regex isearch
 (global-set-key (kbd "C-s") 'isearch-forward-regexp)
 (global-set-key (kbd "C-r") 'isearch-backward-regexp)
@@ -102,7 +111,7 @@
 
 
 ;;
-;; package config
+;; Package config
 ;;
 
 ;; package
@@ -129,7 +138,6 @@
 	:init (winner-mode 1)
 	:custom (winner-dont-bind-my-keys t)
 	:defer t
-	:commands (winner-undo winner-redo)
 	:bind (("C-x p" . 'winner-undo)
 				 ("C-x n" . 'winner-redo)))
 
@@ -161,13 +169,6 @@
 	(use-package ido-completing-read+
 		:ensure t
 		:init (ido-ubiquitous-mode t)))
-
-;; flymake(builtin)
-(use-package flymake
-	:bind (:map flymake-mode-map
-							("C-, C-p" . flymake-goto-prev-error)
-							("C-, C-n" . flymake-goto-next-error)
-							("C-, C-c" . flymake-display-err-menu-for-current-line)))
 
 ;; org(builtin)
 (use-package org
@@ -251,17 +252,36 @@
 (use-package ggtags
 	:ensure t
 	:defer t
-	:hook (c-mode-common . (lambda ()
-													 (when (derived-mode-p 'c-mode 'c++-mode)
-														 (ggtags-mode 1)))))
+	:bind (("C-q g" . 'ggtags-mode))
+	;:hook (c-mode-common . (lambda ()
+	;(when (derived-mode-p 'c-mode 'c++-mode)
+	;(ggtags-mode 1)))))
+)
 
+;; treemacs
+(use-package treemacs
+	:ensure t
+	:defer t
+)
+	
 ;; projectile
 (use-package projectile
 	:ensure t
 	:init (projectile-mode +1)
 	:bind (:map projectile-mode-map
 							("C-c p" . projectile-command-map))
-	:defer t)	
+	:defer t)
+
+;(use-package flycheck
+;	:ensure t
+;	:init (global-flycheck-mode))
+
+; flymake(builtin)
+(use-package flymake
+	:disabled
+	:bind (:map flymake-mode-map
+							("C-q C-p" . flymake-goto-prev-error)
+							("C-q C-n" . flymake-goto-next-error)))
 
 ;; lsp-mode
 ;; NOTE: Resuires language servers individually.
@@ -273,7 +293,13 @@
 	:defer t
 	:commands lsp
 	:hook ((prog-mode . lsp))
+	:custom
+	(lsp-log-io nil) ; t when debug
+	(lsp-prefer-flymake nil)
+	(lsp-keymap-prefix "C-q l")
 	:config
+	(setq lsp-clients-clangd-args '("-j=2" "--background-index" "--log=error"))
+	
 	;; company-lsp
 	(use-package company-lsp
 		:ensure t
@@ -283,27 +309,31 @@
 		(setq company-lsp-cache-candidates t)
 		(setq company-lsp-enable-snippet t)
 		(setq company-lsp-enable-recompletion t))
+	
 	;; lsp-ui
 	(use-package lsp-ui
 		:ensure t
 		:hook ((lsp-mode . lsp-ui-mode))
 		:bind (:map lsp-ui-mode-map
+								("C-q C-u ." . lsp-ui-peek-find-definitions)
+								("C-q C-u " . lsp-ui-peek-find-definitions)
 								([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
 								([remap xref-find-references] . lsp-ui-peek-find-references); M-?
-								("C-, C-m" . lsp-ui-imenu)
-								("C-, C-i" . lsp-ui-find-implementation))
+								("C-q C-u m" . lsp-ui-imenu)
+								("C-q C-u f i" . lsp-ui-find-implementation))
 		:custom
 		;; lsp-ui-doc
-		(lsp-ui-doc-enable t)
 		(lsp-ui-doc-header t)
 		(lsp-ui-doc-include-signature t)
-		(lsp-ui-doc-max-width 200)
-		(lsp-ui-doc-max-height 60)
-		(lsp-ui-doc-use-childframe t)
+		;(lsp-ui-doc-max-width 200)
+		;(lsp-ui-doc-max-height 60)
 		;; lsp-ui-sideline
 		(lsp-ui-sideline-enable nil)
+		(lsp-ui-sideline-show-hover t)
 		;; lsp-ui-peek
-		(lsp-ui-peek-enable t)))
+		(lsp-ui-peek-always-show t)
+)
+)
 
 ;; google-c-style
 (use-package google-c-style
@@ -314,17 +344,14 @@
 ;; clang-format
 (use-package clang-format
 	:ensure t
-	:after projectile
-	:commands (clang-format-buffer clang-format-region)
 	:bind (("C-c f b" . clang-format-buffer)
 				 ("C-c f r" . clang-format-region))
 	:hook (before-save . (lambda ()
 												 (when (derived-mode-p 'c-mode 'c++-mode)
 													 (clang-format-buffer))))
-	:config
-	(custom-set-variables
-	 '(clang-format-style "file")
-	 '(clang-format-fallback-style "google")))
+	:custom
+	(clang-format-style "file")
+	(clang-format-fallback-style "google"))
 
 ;; go-mode
 ;; NOTE: Requires "goimports"
@@ -381,20 +408,15 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(clang-format-fallback-style "google" t)
+ '(clang-format-style "file" t)
  '(custom-safe-themes
 	 (quote
 		("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default)))
- '(lsp-ui-doc-enable t)
- '(lsp-ui-doc-header t)
- '(lsp-ui-doc-include-signature t)
- '(lsp-ui-doc-max-height 60)
- '(lsp-ui-doc-max-width 200)
- '(lsp-ui-doc-use-childframe t)
- '(lsp-ui-peek-enable t)
- '(lsp-ui-sideline-enable nil)
+ '(lsp-log-io t t)
  '(package-selected-packages
 	 (quote
-		(clang-format elm-mode lsp-ui company-lsp neotree window-number wgrep use-package solarized-theme google-c-style ggtags company)))
+		(treemacs clang-format elm-mode lsp-ui company-lsp neotree window-number wgrep use-package solarized-theme google-c-style ggtags company)))
  '(winner-dont-bind-my-keys t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
