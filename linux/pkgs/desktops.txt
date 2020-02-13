@@ -16,4 +16,6 @@ fcitx
 fcitx-mozc
 fcitx-im
 fcitx-configtool
+ghex
+libreoffice-fresh
 
