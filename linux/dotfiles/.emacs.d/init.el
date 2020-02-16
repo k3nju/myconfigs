@@ -48,8 +48,8 @@
 (setq show-trailing-whitespace t)
 
 ;; copy & paste
-(setq x-select-enable-clipboard t)
-(setq x-select-enable-primary t)
+(setq select-enable-clipboard t)
+(setq select-enable-primary t)
 (setq save-interprogram-paste-before-kill t)
 
 ;; search
@@ -124,7 +124,7 @@
 
 ;; use-package
 (unless (package-installed-p 'use-package)
-	(message "use-package is not installed and installing it") 
+	(message "use-package is not installed and installing it")
 	(package-refresh-contents)
 	(package-install 'use-package))
 
@@ -148,7 +148,9 @@
 	:config
 	(setq recentf-max-saved-items 100)
 	(setq recentf-exclude `("recentf" "ido.last" ,(expand-file-name package-user-dir)))
-	(setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list)))
+	;; recentf-auto-save-timer deprecated?
+	;;(setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list)
+	)
 
 ;; ido(builtin)
 (use-package ido
@@ -272,9 +274,9 @@
 							("C-c p" . projectile-command-map))
 	:defer t)
 
-;(use-package flycheck
-;	:ensure t
-;	:init (global-flycheck-mode))
+(use-package flycheck
+	:ensure t
+	:init (global-flycheck-mode))
 
 ; flymake(builtin)
 (use-package flymake
@@ -315,25 +317,28 @@
 		:ensure t
 		:hook ((lsp-mode . lsp-ui-mode))
 		:bind (:map lsp-ui-mode-map
-								("C-q C-u ." . lsp-ui-peek-find-definitions)
-								("C-q C-u " . lsp-ui-peek-find-definitions)
 								([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
 								([remap xref-find-references] . lsp-ui-peek-find-references); M-?
 								("C-q C-u m" . lsp-ui-imenu)
 								("C-q C-u f i" . lsp-ui-find-implementation))
 		:custom
 		;; lsp-ui-doc
+		(lsp-ui-doc-enable t)
 		(lsp-ui-doc-header t)
 		(lsp-ui-doc-include-signature t)
-		;(lsp-ui-doc-max-width 200)
-		;(lsp-ui-doc-max-height 60)
+		(lsp-ui-doc-delay 2)
+
 		;; lsp-ui-sideline
 		(lsp-ui-sideline-enable nil)
 		(lsp-ui-sideline-show-hover t)
+		(lsp-ui-sideline-delay 2)
+
 		;; lsp-ui-peek
 		(lsp-ui-peek-always-show t)
-)
-)
+
+		:custom-face
+		(lsp-ui-sideline-symbol-info ((t (:background "grey10"))))))
+
 
 ;; google-c-style
 (use-package google-c-style
@@ -375,7 +380,7 @@
 (when (and (file-exists-p (expand-file-name "themes" user-emacs-directory))
 					 (boundp 'custom-theme-load-path))
 	(add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory)))
-(when (getenv "DISPLAY")
+(when window-system
 	;(load-theme 'solarized-dark t)
 	(load-theme 'doom-Iosvkem t))
 
@@ -410,17 +415,19 @@
  ;; If there is more than one, they won't work right.
  '(clang-format-fallback-style "google" t)
  '(clang-format-style "file" t)
- '(custom-safe-themes
-	 (quote
-		("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default)))
- '(lsp-log-io t t)
+ '(lsp-keymap-prefix "C-q l")
+ '(lsp-log-io nil)
+ '(lsp-prefer-flymake nil)
+ '(lsp-ui-sideline-show-hover t t nil "Customized with use-package lsp-ui")
  '(package-selected-packages
 	 (quote
-		(treemacs clang-format elm-mode lsp-ui company-lsp neotree window-number wgrep use-package solarized-theme google-c-style ggtags company)))
+		(yasnippet window-number which-key wgrep use-package treemacs tramp projectile neotree mozc lsp-ui ido-vertical-mode ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes company-lsp clang-format anzu)))
  '(winner-dont-bind-my-keys t))
+
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(lsp-ui-sideline-symbol-info ((t (:background "default")))))
