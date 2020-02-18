@@ -149,7 +149,7 @@
 	(setq recentf-max-saved-items 100)
 	(setq recentf-exclude `("recentf" "ido.last" ,(expand-file-name package-user-dir)))
 	;; recentf-auto-save-timer deprecated?
-	;;(setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list)
+	;;(setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list))
 	)
 
 ;; ido(builtin)
