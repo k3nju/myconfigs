@@ -405,3 +405,24 @@
 		(setq lsp-clients-python-command '("c:\\python27\\scripts\\pyls.exe"))))
 
 
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(clang-format-fallback-style "google" t)
+ '(clang-format-style "file" t)
+ '(lsp-keymap-prefix "C-q l")
+ '(lsp-log-io nil)
+ '(lsp-prefer-flymake nil t)
+ '(package-selected-packages
+	 (quote
+		(yasnippet window-number which-key wgrep use-package treemacs projectile neotree lsp-ui ido-vertical-mode ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes company-lsp clang-format anzu)))
+ '(winner-dont-bind-my-keys t))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(lsp-ui-sideline-symbol-info ((t (:background "default"))))
+ '(markdown-code-face ((t (:background "grey10")))))
