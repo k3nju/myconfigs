@@ -1,10 +1,16 @@
+linux-firmware
+man-db
+man-pages
+lvm2
+device-mapper
+mdadm
+xfsprogs
 emacs
 tmux
 bind-tools
 curl
 gnu-netcat
 openssh
-mdadm
 git
 rsync
 mlocate
