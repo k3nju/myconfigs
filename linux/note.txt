@@ -1,5 +1,7 @@
 requires
 make
 sudo
+fakeroot
 git (maybe)
 
+just install base-devel group.
