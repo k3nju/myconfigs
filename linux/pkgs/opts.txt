@@ -1,10 +1,8 @@
-git
-rsync
-wireshark-cli
 linux-headers
-mlocate
+sysstat
 smartmontools
 lm_sensors
-sysstat
 nvme-cli
 clang
+wireshark-cli
+

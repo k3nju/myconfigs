@@ -3,5 +3,4 @@ global
 ratslap
 systemd-boot-pacman-hook
 dropbox
-ghidra-bin
 

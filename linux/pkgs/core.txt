@@ -5,3 +5,7 @@ curl
 gnu-netcat
 openssh
 mdadm
+git
+rsync
+mlocate
+

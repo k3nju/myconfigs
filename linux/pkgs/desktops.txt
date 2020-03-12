@@ -18,4 +18,5 @@ fcitx-im
 fcitx-configtool
 ghex
 libreoffice-fresh
+ghidra
 
