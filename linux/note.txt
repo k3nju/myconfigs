@@ -1,1 +1,5 @@
-requires base, base-devel
+requires
+make
+sudo
+git (maybe)
+
