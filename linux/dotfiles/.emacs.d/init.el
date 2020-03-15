@@ -187,7 +187,7 @@
 	
 	;;(setq org-use-speed-commands t)
 	;;(setq org-hide-leading-stars t)
-	(setq org-adapt-indentation nil)
+	(setq org-adapt-indentation t)
 	(setq org-return-follows-link t)
 	(setq org-blank-before-new-entry
 				'((heading . always)
