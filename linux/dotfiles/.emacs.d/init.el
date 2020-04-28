@@ -289,7 +289,7 @@
 ;; NOTE: Resuires language servers individually.
 ;;			 C/C++: pacman -S clang
 ;;			 python: pip install python-language-server (install pyls system wide)
-;;			 golang: go get -u golang.org/saibing/bingo
+;;			 golang: go get golang.org./x/tools/gopls@latest
 (use-package lsp-mode
 	:ensure t
 	:defer t
@@ -306,6 +306,7 @@
 	(use-package company-lsp
 		:ensure t
 		:after company
+		:commands company-lsp
 		:config
 		(add-to-list 'company-backends 'company-lsp)
 		(setq company-lsp-cache-candidates t)
@@ -315,6 +316,7 @@
 	;; lsp-ui
 	(use-package lsp-ui
 		:ensure t
+		:commands lsp-ui-mode
 		:hook ((lsp-mode . lsp-ui-mode))
 		:bind (:map lsp-ui-mode-map
 								([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
@@ -360,14 +362,11 @@
 	(clang-format-fallback-style "google"))
 
 ;; go-mode
-;; NOTE: Requires "goimports"
-;;			 go get -u golang.org/x/tools/cmd/goimports
 (use-package go-mode
 	:ensure t
 	:defer t
-	:hook (before-save . gofmt-before-save)
-	:config
-	(setq gofmt-command "goimports"))
+	:hook ((before-save . lsp-format-buffer))
+				 (before-save . lsp-organize-imports))
 
 ;; neotree
 (use-package neotree
@@ -412,6 +411,9 @@
  ;; If there is more than one, they won't work right.
  '(clang-format-fallback-style "google" t)
  '(clang-format-style "file" t)
+ '(custom-safe-themes
+	 (quote
+		("9b01a258b57067426cc3c8155330b0381ae0d8dd41d5345b5eddac69f40d409b" default)))
  '(lsp-keymap-prefix "C-q l")
  '(lsp-log-io nil)
  '(lsp-prefer-flymake nil t)
