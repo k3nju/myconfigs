@@ -16,9 +16,8 @@ if [[ -e /usr/local/bin/emacs_launcher.sh  ]]; then
 fi
 
 
-if [[ -e $HOME/goenv/ ]]; then
-		export GOROOT=$HOME/goenv/go/
-		export GOPATH=$HOME/goenv/workspace/
+if [[ -e $HOME/go ]]; then
+		export GOPATH=$HOME/go
 		export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
 fi
 
