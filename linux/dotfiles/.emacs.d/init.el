@@ -299,6 +299,7 @@
 	(lsp-log-io nil) ; t when debug
 	(lsp-prefer-flymake nil)
 	(lsp-keymap-prefix "C-q l")
+	(lsp-signature-auto-activate nil)
 	:config
 	(setq lsp-clients-clangd-args '("-j=2" "--background-index" "--log=error"))
 	
@@ -331,7 +332,7 @@
 		(lsp-ui-doc-delay 2)
 
 		;; lsp-ui-sideline
-		(lsp-ui-sideline-enable nil)
+		(lsp-ui-sideline-enable t)
 		(lsp-ui-sideline-show-hover t)
 		(lsp-ui-sideline-delay 0.2)
 
