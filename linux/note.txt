@@ -5,3 +5,8 @@ fakeroot
 git (maybe)
 
 just install base-devel group.
+
+
+* ratslap
+ratslap from aur may be old.
+its good that download and install it from github release binary.
