@@ -332,7 +332,7 @@
 		(lsp-ui-doc-delay 2)
 
 		;; lsp-ui-sideline
-		(lsp-ui-sideline-enable t)
+		(lsp-ui-sideline-enable nil)
 		(lsp-ui-sideline-show-hover t)
 		(lsp-ui-sideline-delay 0.2)
 
