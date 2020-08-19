@@ -1,9 +1,9 @@
+xfce4
 rdesktop
 noto-fonts
 noto-fonts-cjk
 xorg-server
 pavucontrol-qt
-xfce4
 chromium
 firefox
 thunderbird
@@ -19,4 +19,5 @@ fcitx-configtool
 ghex
 libreoffice-fresh
 ghidra
+cawbird
 
