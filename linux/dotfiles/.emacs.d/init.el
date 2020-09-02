@@ -349,7 +349,6 @@
 	(clang-format-style "file")
 	(clang-format-fallback-style "google"))
 
-
 ;; go-mode
 (use-package go-mode
 	:ensure t
