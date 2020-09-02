@@ -130,21 +130,18 @@
 
 ;; uniquify(builtin)
 (use-package uniquify
-	:defer t
 	:config (setq uniquify-buffer-name-style 'forward))
 
 ;; winner(builtin)
 (use-package winner
 	:init (winner-mode 1)
 	:custom (winner-dont-bind-my-keys t)
-	:defer t
 	:bind (("C-x p" . 'winner-undo)
 				 ("C-x n" . 'winner-redo)))
 
 ;; recentf(builtin)
 (use-package recentf
 	:init (recentf-mode t)
-	:defer t
 	:config
 	(setq recentf-max-saved-items 100)
 	(setq recentf-exclude `("recentf" "ido.last" ,(expand-file-name package-user-dir)))
@@ -155,7 +152,6 @@
 ;; ido(builtin)
 (use-package ido
 	:init (ido-mode t)
-	:defer t
 	:config
 	(setq ido-everywhere t)
 	(setq ido-enable-flex-matching t)
@@ -215,7 +211,6 @@
 ;; company
 (use-package company
 	:ensure t
-	:defer t
 	:init (global-company-mode)
 	:bind (("C-M-i" . company-complete)
 				 :map company-active-map
@@ -233,7 +228,6 @@
 (use-package anzu
 	:ensure t
 	:init (global-anzu-mode +1)
-	:defer t
 	:bind (("M-%" . anzu-isearch-query-replace)
 				 ("C-M-%" . anzu-isearch-query-replace-regexp))
 	:config
@@ -247,13 +241,11 @@
 
 ;; wgrep
 (use-package wgrep
-	:ensure t
-	:defer t)
+	:ensure t)
 
 ;; ggtags
 (use-package ggtags
 	:ensure t
-	:defer t
 	:bind (("C-q g" . 'ggtags-mode))
 	;:hook (c-mode-common . (lambda ()
 	;(when (derived-mode-p 'c-mode 'c++-mode)
@@ -262,17 +254,14 @@
 
 ;; treemacs
 (use-package treemacs
-	:ensure t
-	:defer t
-)
+	:ensure t)
 	
 ;; projectile
 (use-package projectile
 	:ensure t
 	:init (projectile-mode +1)
 	:bind (:map projectile-mode-map
-							("C-c p" . projectile-command-map))
-	:defer t)
+							("C-c p" . projectile-command-map)))
 
 (use-package flycheck
 	:ensure t
@@ -292,9 +281,8 @@
 ;;			 golang: go get golang.org./x/tools/gopls@latest
 (use-package lsp-mode
 	:ensure t
-	:defer t
-	:commands lsp
-	:hook ((prog-mode . lsp))
+	:commands lsp-deferred
+	:hook ((prog-mode . lsp-deferred))
 	:custom
 	(lsp-log-io nil) ; t when debug
 	(lsp-prefer-flymake nil)
@@ -347,7 +335,6 @@
 ;; google-c-style
 (use-package google-c-style
 	:ensure t
-	:defer t
 	:hook (c-mode-common . google-set-c-style))
 
 ;; clang-format
@@ -362,17 +349,18 @@
 	(clang-format-style "file")
 	(clang-format-fallback-style "google"))
 
+
 ;; go-mode
 (use-package go-mode
 	:ensure t
-	:defer t
+	:requires lsp-mode
+	:mode "\\.go\\"
 	:hook ((before-save . lsp-format-buffer))
 				 (before-save . lsp-organize-imports))
 
 ;; neotree
 (use-package neotree
-	:ensure t
-	:defer 1)
+	:ensure t)
 
 
 ;;
@@ -429,3 +417,4 @@
  ;; If there is more than one, they won't work right.
  '(lsp-ui-sideline-symbol-info ((t (:background "default"))))
  '(markdown-code-face ((t (:background "grey10")))))
+
