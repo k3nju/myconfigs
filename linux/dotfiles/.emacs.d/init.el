@@ -134,15 +134,15 @@
 
 ;; winner(builtin)
 (use-package winner
-	:init (winner-mode 1)
+	:config (winner-mode 1)
 	:custom (winner-dont-bind-my-keys t)
 	:bind (("C-x p" . 'winner-undo)
 				 ("C-x n" . 'winner-redo)))
 
 ;; recentf(builtin)
 (use-package recentf
-	:init (recentf-mode t)
 	:config
+	(recentf-mode t)
 	(setq recentf-max-saved-items 100)
 	(setq recentf-exclude `("recentf" "ido.last" ,(expand-file-name package-user-dir)))
 	;; recentf-auto-save-timer deprecated?
@@ -151,22 +151,22 @@
 
 ;; ido(builtin)
 (use-package ido
-	:init (ido-mode t)
 	:config
+	(ido-mode t)
 	(setq ido-everywhere t)
 	(setq ido-enable-flex-matching t)
 	(setq ido-use-virtual-buffers t)
 	;; ido-vertical-mode
 	(use-package ido-vertical-mode
 		:ensure t
-		:init (ido-vertical-mode t)
 		:config
+		(ido-vertical-mode t)
 		(setq ido-vertical-show-count t)
 		(setq ido-vertical-define-keys 'C-n-and-C-p-only))
 	;; ido-completing-read+(ido-ubiquitous)
 	(use-package ido-completing-read+
 		:ensure t
-		:init (ido-ubiquitous-mode t)))
+		:config (ido-ubiquitous-mode t)))
 
 ;; org(builtin)
 (use-package org
@@ -175,7 +175,7 @@
 	:bind (("C-c c" . org-capture)
 				 ("C-c a" . org-agenda)
 				 ("C-c l" . org-store-link))
-	:init
+	:config
 	(setq org-directory (expand-file-name "org" user-emacs-directory))
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
 	(setq org-agenda-files (list org-directory))
@@ -211,7 +211,6 @@
 ;; company
 (use-package company
 	:ensure t
-	:init (global-company-mode)
 	:bind (("C-M-i" . company-complete)
 				 :map company-active-map
 				 ("C-n" . company-select-next)
@@ -219,6 +218,7 @@
 				 ("C-j" . company-complete-selection)
 				 ("C-h" . nil))
 	:config
+	(global-company-mode)
 	(setq company-idle-delay 0)
 	(setq company-show-numbers nil)
 	(setq company-tooltip-limit 20)
@@ -227,16 +227,16 @@
 ;; anzu
 (use-package anzu
 	:ensure t
-	:init (global-anzu-mode +1)
 	:bind (("M-%" . anzu-isearch-query-replace)
 				 ("C-M-%" . anzu-isearch-query-replace-regexp))
 	:config
+	 (global-anzu-mode +1)
 	(setq anzu-search-threshold 999))
 
 (use-package yasnippet
 	:ensure t
-	:init (yas-global-mode 1)
 	:config
+	(yas-global-mode 1)
 	(setq yas-prompt-functions '(yas-ido-prompt)))
 
 ;; wgrep
@@ -259,13 +259,13 @@
 ;; projectile
 (use-package projectile
 	:ensure t
-	:init (projectile-mode +1)
 	:bind (:map projectile-mode-map
-							("C-c p" . projectile-command-map)))
+							("C-c p" . projectile-command-map))
+	:config (projectile-mode +1))
 
 (use-package flycheck
 	:ensure t
-	:init (global-flycheck-mode))
+	:config (global-flycheck-mode))
 
 ; flymake(builtin)
 (use-package flymake
@@ -400,14 +400,12 @@
  '(clang-format-fallback-style "google" t)
  '(clang-format-style "file" t)
  '(custom-safe-themes
-	 (quote
-		("9b01a258b57067426cc3c8155330b0381ae0d8dd41d5345b5eddac69f40d409b" default)))
+	 '("4bca89c1004e24981c840d3a32755bf859a6910c65b829d9441814000cf6c3d0" "9b01a258b57067426cc3c8155330b0381ae0d8dd41d5345b5eddac69f40d409b" default))
  '(lsp-keymap-prefix "C-q l")
  '(lsp-log-io nil)
  '(lsp-prefer-flymake nil t)
  '(package-selected-packages
-	 (quote
-		(yasnippet window-number which-key wgrep use-package treemacs projectile neotree lsp-ui ido-vertical-mode ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes company-lsp clang-format anzu)))
+	 '(yasnippet window-number which-key wgrep use-package treemacs projectile neotree lsp-ui ido-vertical-mode ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes company-lsp clang-format anzu))
  '(winner-dont-bind-my-keys t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
