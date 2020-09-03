@@ -1,10 +1,3 @@
-;; debuggggging
-(global-unset-key (kbd "C-q"))
-(global-set-key (kbd "C-q d v") 'describe-variable)
-(global-set-key (kbd "C-q d k") 'describe-key)
-(global-set-key (kbd "C-q d m") 'describe-mode)
-
-
 ;;
 ;; coding system
 ;;
