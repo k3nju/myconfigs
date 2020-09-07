@@ -1,3 +1,7 @@
+;; need to insert non-graphic chars?
+(global-unset-key (kbd "C-q"))
+
+
 ;;
 ;; coding system
 ;;

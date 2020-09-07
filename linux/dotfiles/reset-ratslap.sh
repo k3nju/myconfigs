@@ -9,7 +9,7 @@ sudo ratslap \
 -8 rightctrl+rightshift+tab \
 -9 rightctrl+tab \
 -U \
---d2 3000 \
+--d2 2000 \
 -F 2 \
 -r 250 \
 -p f3
