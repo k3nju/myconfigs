@@ -21,6 +21,10 @@ if [[ -e $HOME/go ]]; then
 		export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
 fi
 
+if [[ -e $HOME/home2/vagrant.d ]]; then
+		export VAGRANT_HOME=$HOME/home2/vagrant.d
+fi
+
 
 function wttr {
 		curl -s wttr.in/tokyo | less -R
