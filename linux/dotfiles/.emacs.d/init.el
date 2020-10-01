@@ -99,12 +99,19 @@
 						 (interactive)
 						 (other-window -1)))
 
-
 ;; reverse isearch and regex isearch
 (global-set-key (kbd "C-s") 'isearch-forward-regexp)
 (global-set-key (kbd "C-r") 'isearch-backward-regexp)
 (global-set-key (kbd "C-M-s") 'isearch-forward)
 (global-set-key (kbd "C-M-r") 'isearch-backward)
+
+
+;;
+;; helpers
+;;
+
+(defun add-before-save-hook (f)
+	(add-hook 'before-save-hook f nil 'local))
 
 
 ;;
@@ -125,16 +132,17 @@
 	(package-refresh-contents)
 	(package-install 'use-package))
 
+;; auto-package-update
+(use-package auto-package-update
+	:disabled
+	:ensure t
+	:config
+	(setq auto-package-update-delete-old-versions t)
+	(auto-package-update-maybe))
+
 ;; uniquify(builtin)
 (use-package uniquify
 	:config (setq uniquify-buffer-name-style 'forward))
-
-;; winner(builtin)
-(use-package winner
-	:config (winner-mode 1)
-	:custom (winner-dont-bind-my-keys t)
-	:bind (("C-x p" . 'winner-undo)
-				 ("C-x n" . 'winner-redo)))
 
 ;; recentf(builtin)
 (use-package recentf
@@ -168,7 +176,6 @@
 ;; org(builtin)
 (use-package org
 	:ensure t
-	:mode ("\\.org$" . org-mode)
 	:bind (("C-c c" . org-capture)
 				 ("C-c a" . org-agenda)
 				 ("C-c l" . org-store-link))
@@ -194,16 +201,29 @@
 				'(("n" "Note" entry (file+headline "notes.org" "notes") "* %?\n %U\n %i\n %a")
 					("t" "Task" entry (file+headline "tasks.org" "tasks") "* TODO %?\n"))))
 
-;; which-key
-(use-package which-key
-	:ensure t
-	:hook (after-init . which-key-mode))
+;; winner(builtin)
+(use-package winner
+	:config (winner-mode 1)
+	:custom (winner-dont-bind-my-keys t)
+	:bind (("C-x p" . 'winner-undo)
+				 ("C-x n" . 'winner-redo)))
 
 ;; window-number
 (use-package window-number
 	:ensure t
 	;; *not work* :init (window-number-meta-mode)
 	:config (window-number-meta-mode))
+
+;; which-key
+(use-package which-key
+	:ensure t
+	:hook (after-init . which-key-mode))
+
+;; goto-chg
+(use-package goto-chg
+	:ensure t
+	:bind (("C-q /" . goto-last-change)
+				 ("C-q C-/" . goto-last-change-reverse)))
 
 ;; company
 (use-package company
@@ -231,6 +251,7 @@
 	(setq anzu-search-threshold 999))
 
 (use-package yasnippet
+	:disabled
 	:ensure t
 	:config
 	(yas-global-mode 1)
@@ -329,30 +350,34 @@
 		;; background face of sideline and doc
 		(markdown-code-face ((t (:background "grey10"))))))
 
-;; google-c-style
-(use-package google-c-style
+;; cc-mode(builtin)
+(use-package cc-mode
 	:ensure t
-	:hook (c-mode-common . google-set-c-style))
+	:config
+	;; google-c-style
+	(use-package google-c-style
+		:ensure t
+		:hook (c-mode-common . google-set-c-style))
 
-;; clang-format
-(use-package clang-format
-	:ensure t
-	:bind (("C-c f b" . clang-format-buffer)
-				 ("C-c f r" . clang-format-region))
-	:hook (before-save . (lambda ()
-												 (when (derived-mode-p 'c-mode 'c++-mode)
-													 (clang-format-buffer))))
-	:custom
-	(clang-format-style "file")
-	(clang-format-fallback-style "google"))
+	;; clang-format
+	(use-package clang-format
+		:ensure t
+		:bind (("C-c f b" . clang-format-buffer)
+					 ("C-c f r" . clang-format-region))
+		:hook (c-mode-common . (lambda () (add-before-save-hook 'clang-format-buffer)))
+		:custom
+		(clang-format-style "file")
+		(clang-format-fallback-style "google")))
 
 ;; go-mode
 (use-package go-mode
 	:ensure t
-	:requires lsp-mode
-	:mode "\\.go\\"
-	:hook ((before-save . lsp-format-buffer))
-				 (before-save . lsp-organize-imports))
+	:after lsp-mode
+	:hook (go-mode . (lambda ()
+										 (add-before-save-hook
+											(lambda ()
+												(lsp-format-buffer)
+												(lsp-organize-imports))))))
 
 ;; neotree
 (use-package neotree
@@ -394,16 +419,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(clang-format-fallback-style "google" t)
- '(clang-format-style "file" t)
  '(custom-safe-themes
 	 '("4bca89c1004e24981c840d3a32755bf859a6910c65b829d9441814000cf6c3d0" "9b01a258b57067426cc3c8155330b0381ae0d8dd41d5345b5eddac69f40d409b" default))
- '(lsp-keymap-prefix "C-q l")
- '(lsp-log-io nil)
- '(lsp-prefer-flymake nil t)
  '(package-selected-packages
-	 '(yasnippet window-number which-key wgrep use-package treemacs projectile neotree lsp-ui ido-vertical-mode ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes company-lsp clang-format anzu))
- '(winner-dont-bind-my-keys t))
+	 '(yasnippet window-number which-key wgrep use-package treemacs projectile neotree lsp-ui ido-vertical-mode ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes company-lsp clang-format anzu)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
