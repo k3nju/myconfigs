@@ -161,6 +161,7 @@
 	(setq ido-everywhere t)
 	(setq ido-enable-flex-matching t)
 	(setq ido-use-virtual-buffers t)
+	(setq ido-use-filename-at-point 'guess)
 	;; ido-vertical-mode
 	(use-package ido-vertical-mode
 		:ensure t
@@ -171,7 +172,10 @@
 	;; ido-completing-read+(ido-ubiquitous)
 	(use-package ido-completing-read+
 		:ensure t
-		:config (ido-ubiquitous-mode t)))
+		:config (ido-ubiquitous-mode t))
+	;; amx
+	(use-package amx
+		:config (amx-mode t)))
 
 ;; org(builtin)
 (use-package org
@@ -222,8 +226,8 @@
 ;; goto-chg
 (use-package goto-chg
 	:ensure t
-	:bind (("C-q /" . goto-last-change)
-				 ("C-q C-/" . goto-last-change-reverse)))
+	:bind (("C-q p" . goto-last-change)
+				 ("C-q n" . goto-last-change-reverse)))
 
 ;; company
 (use-package company
@@ -247,9 +251,10 @@
 	:bind (("M-%" . anzu-isearch-query-replace)
 				 ("C-M-%" . anzu-isearch-query-replace-regexp))
 	:config
-	 (global-anzu-mode +1)
+	(global-anzu-mode +1)
 	(setq anzu-search-threshold 999))
 
+;; yasnippet
 (use-package yasnippet
 	:disabled
 	:ensure t
@@ -270,17 +275,21 @@
 	;(ggtags-mode 1)))))
 )
 
-;; treemacs
-(use-package treemacs
-	:ensure t)
-	
 ;; projectile
 (use-package projectile
 	:ensure t
+	:init
+	(projectile-mode +1)
 	:bind (:map projectile-mode-map
-							("C-c p" . projectile-command-map))
-	:config (projectile-mode +1))
+							("C-c p" . projectile-command-map)))
 
+;; treemacs
+(use-package treemacs
+	:ensure t
+	:defer t
+	)
+
+;; flycheck
 (use-package flycheck
 	:ensure t
 	:config (global-flycheck-mode))
@@ -362,8 +371,8 @@
 	;; clang-format
 	(use-package clang-format
 		:ensure t
-		:bind (("C-c f b" . clang-format-buffer)
-					 ("C-c f r" . clang-format-region))
+		:bind (("C-q f b" . clang-format-buffer)
+					 ("C-q f r" . clang-format-region))
 		:hook (c-mode-common . (lambda () (add-before-save-hook 'clang-format-buffer)))
 		:custom
 		(clang-format-style "file")
@@ -378,11 +387,6 @@
 											(lambda ()
 												(lsp-format-buffer)
 												(lsp-organize-imports))))))
-
-;; neotree
-(use-package neotree
-	:ensure t)
-
 
 ;;
 ;; theme config
@@ -422,7 +426,7 @@
  '(custom-safe-themes
 	 '("4bca89c1004e24981c840d3a32755bf859a6910c65b829d9441814000cf6c3d0" "9b01a258b57067426cc3c8155330b0381ae0d8dd41d5345b5eddac69f40d409b" default))
  '(package-selected-packages
-	 '(yasnippet window-number which-key wgrep use-package treemacs projectile neotree lsp-ui ido-vertical-mode ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes company-lsp clang-format anzu)))
+	 '(amx powershell hcl-mode yasnippet window-number which-key wgrep use-package treemacs projectile lsp-ui ido-vertical-mode ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes company-lsp clang-format anzu)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
