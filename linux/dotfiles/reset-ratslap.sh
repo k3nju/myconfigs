@@ -9,7 +9,7 @@ sudo ratslap \
 		 --g7 pageup \
 		 --g8 rightctrl+rightshift+tab \
 		 --g9 rightctrl+tab \
-		 --d2 2000 \
+		 --d2 2000\
 		 --no-dpishift \
 		 --default-dpi 2 \
 		 --rate 250 \

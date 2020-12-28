@@ -10,3 +10,4 @@ just install base-devel group.
 * ratslap
 ratslap from aur may be old.
 its good that download and install it from github release binary.
+added: 2020/12/28 ratslap 0.4.1 available from aur.
