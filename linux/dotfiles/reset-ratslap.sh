@@ -1,20 +1,33 @@
 #! /bin/sh
 
-
+# default usage
 sudo ratslap \
--m f3 \
--c black \
--6 pagedown \
--7 pageup \
--8 rightctrl+rightshift+tab \
--9 rightctrl+tab \
--U \
---d2 2000 \
--F 2 \
--r 250 \
--p f3
+		 --modify f3 \
+		 --color black \
+		 --middle modeswitch \
+		 --g6 pagedown \
+		 --g7 pageup \
+		 --g8 rightctrl+rightshift+tab \
+		 --g9 rightctrl+tab \
+		 --d2 2000 \
+		 --no-dpishift \
+		 --default-dpi 2 \
+		 --rate 250 \
+		 --print f3
 
-#sudo ratslap -m f4 -c red -4 leftalt+n -5 leftalt+p -6 leftalt+f -7 leftalt+c -p f4
+# ghidra
+sudo ratslap -m f4 --middle modeswitch
+#sudo ratslap \
+#		 --modify f4 \
+#		 --color red \
+#		 --g4 leftalt+n \
+#		 --g5 leftalt+p \
+#		 --g6 leftalt+f \
+#		 --g7 leftalt+c \
+#		 --print f4
+
+# excel
+sudo ratslap -m f5 --middle modeswitch
 #sudo ratslap -m f5 -c green -p f5
 
 
