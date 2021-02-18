@@ -175,7 +175,11 @@
 		:config (ido-ubiquitous-mode t))
 	;; amx
 	(use-package amx
-		:config (amx-mode t)))
+		:ensure t
+		:bind (("M-x" . amx))
+		:config (amx-mode)
+		:custom
+		(amx-backend 'ido)))
 
 ;; org(builtin)
 (use-package org
@@ -430,7 +434,7 @@
  '(custom-safe-themes
 	 '("4bca89c1004e24981c840d3a32755bf859a6910c65b829d9441814000cf6c3d0" "9b01a258b57067426cc3c8155330b0381ae0d8dd41d5345b5eddac69f40d409b" default))
  '(package-selected-packages
-	 '(treemacs-projectile amx powershell hcl-mode yasnippet window-number which-key wgrep use-package treemacs projectile lsp-ui ido-vertical-mode ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes company-lsp clang-format anzu)))
+	 '(csharp-mode treemacs-projectile amx powershell hcl-mode yasnippet window-number which-key wgrep use-package treemacs projectile lsp-ui ido-vertical-mode ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes company-lsp clang-format anzu)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
