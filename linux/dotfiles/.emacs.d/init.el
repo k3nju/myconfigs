@@ -260,10 +260,13 @@
 
 ;; yasnippet
 (use-package yasnippet
-	:disabled
 	:ensure t
 	:config
-	(yas-global-mode 1)
+	;; actual snippets
+	(use-package yasnippet-snippets
+		:ensure t)
+	(yas-global-mode t)
+	(yas-reload-all)
 	(setq yas-prompt-functions '(yas-ido-prompt)))
 
 ;; wgrep
@@ -432,9 +435,9 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-	 '("4bca89c1004e24981c840d3a32755bf859a6910c65b829d9441814000cf6c3d0" "9b01a258b57067426cc3c8155330b0381ae0d8dd41d5345b5eddac69f40d409b" default))
+	 '("a3b6a3708c6692674196266aad1cb19188a6da7b4f961e1369a68f06577afa16" "f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" "4bca89c1004e24981c840d3a32755bf859a6910c65b829d9441814000cf6c3d0" "9b01a258b57067426cc3c8155330b0381ae0d8dd41d5345b5eddac69f40d409b" default))
  '(package-selected-packages
-	 '(csharp-mode treemacs-projectile amx powershell hcl-mode yasnippet window-number which-key wgrep use-package treemacs projectile lsp-ui ido-vertical-mode ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes company-lsp clang-format anzu)))
+	 '(yasnippet-snippets gnu-elpa-keyring-update csharp-mode treemacs-projectile amx powershell hcl-mode yasnippet window-number which-key wgrep use-package treemacs projectile lsp-ui ido-vertical-mode ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes company-lsp clang-format anzu)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
