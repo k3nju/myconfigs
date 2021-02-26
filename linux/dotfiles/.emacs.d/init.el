@@ -90,9 +90,8 @@
 ;; basic key bindings
 ;;
 
-;; set "C-h" as delete-backward-char
+;; set "C-h" as delete-backward-char, use F1 to see helps(default keybinding)
 (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
-(define-key key-translation-map (kbd "C-?") (kbd "C-h"))
 ;; enable cursor to move with M-p and M-p among windows
 (global-set-key (kbd "M-n") 'other-window)
 (global-set-key (kbd "M-p") '(lambda ()
