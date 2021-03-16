@@ -325,11 +325,14 @@
 	(lsp-prefer-flymake nil)
 	(lsp-keymap-prefix "C-q l")
 	(lsp-signature-auto-activate nil)
+	(lsp-completion-provider :capf)
 	:config
 	(setq lsp-clients-clangd-args '("-j=2" "--background-index" "--log=error"))
 	
 	;; company-lsp
+	;; company-lsp is no loger maintained. remove here later
 	(use-package company-lsp
+		:disabled
 		:ensure t
 		:after company
 		:commands company-lsp
