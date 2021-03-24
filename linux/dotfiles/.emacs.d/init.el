@@ -340,16 +340,20 @@
 								("C-q C-u m" . lsp-ui-imenu)
 								("C-q C-u f i" . lsp-ui-find-implementation))
 		:custom
+		(lsp-lens-enable t)
+		
 		;; lsp-ui-doc
-		(lsp-ui-doc-enable t)
+		(lsp-ui-doc-enable nil)
 		(lsp-ui-doc-header t)
 		(lsp-ui-doc-include-signature t)
 		(lsp-ui-doc-delay 2)
+		(lsp-ui-sideline-show-code-actions t)
 
 		;; lsp-ui-sideline
-		(lsp-ui-sideline-enable nil)
-		(lsp-ui-sideline-show-hover t)
+		(lsp-ui-sideline-enable t)
 		(lsp-ui-sideline-delay 0.2)
+		(lsp-ui-sideline-show-hover nil)
+		(lsp-ui-sideline-show-diagnostics t)
 
 		;; lsp-ui-peek
 		(lsp-ui-peek-always-show t)
