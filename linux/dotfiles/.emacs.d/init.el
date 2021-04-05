@@ -1,3 +1,5 @@
+;;(profiler-start 'cpu)
+
 ;; need to insert non-graphic chars?
 (global-unset-key (kbd "C-q"))
 
@@ -336,7 +338,7 @@
 		:hook ((lsp-mode . lsp-ui-mode))
 		:bind (:map lsp-ui-mode-map
 								([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
-								([remap xref-find-references] . lsp-ui-peek-find-references); M-?
+								([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
 								("C-q C-u m" . lsp-ui-imenu)
 								("C-q C-u f i" . lsp-ui-find-implementation))
 		:custom
@@ -439,3 +441,6 @@
  '(lsp-ui-sideline-symbol-info ((t (:background "default"))))
  '(markdown-code-face ((t (:background "grey10")))))
 
+
+;;(profiler-report)
+;;(profiler-stop)
