@@ -60,8 +60,8 @@ configs:
 
 # deploy dotfiles(and other configs)
 define link_dotfile
-	mkdir -p -- "$(dir $(2))"
-	ln -sf -- "$(1)" "$(2)"
+mkdir -p -- "$(dir $(2))"
+ln -sf -- "$(1)" "$(2)"
 
 endef
 
