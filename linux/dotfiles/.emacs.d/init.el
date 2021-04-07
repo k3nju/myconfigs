@@ -188,12 +188,16 @@
 	:bind (("C-c c" . org-capture)
 				 ("C-c a" . org-agenda)
 				 ("C-c l" . org-store-link))
+	:custom
+	(org-display-custom-times t) ;; or use setq-default in config
+	(org-time-stamp-custom-formats '("<%Y/%m/%d>" . "<%Y/%m/%d %H:%M:%S>"))
+	
 	:config
 	(setq org-directory (expand-file-name "org" user-emacs-directory))
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
 	(setq org-agenda-files (list org-directory))
 	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
-	
+
 	;;(setq org-use-speed-commands t)
 	(setq org-hide-leading-stars t)
 	(setq org-adapt-indentation t)
