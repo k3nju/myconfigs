@@ -5,6 +5,8 @@ sudo ratslap \
 		 --modify f3 \
 		 --color black \
 		 --middle modeswitch \
+		 --g4 rightalt+right \
+		 --g5 rightalt+left \
 		 --g6 pagedown \
 		 --g7 pageup \
 		 --g8 rightctrl+rightshift+tab \
