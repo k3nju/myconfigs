@@ -403,6 +403,14 @@
 												(lsp-format-buffer)
 												(lsp-organize-imports))))))
 
+;; csharp-mode
+(use-package csharp-mode
+	:ensure nil
+	:config
+	(setq-default tab-width 4)
+	(setq-default c-basic-offset 4)
+	(setq tab-stop-list (number-sequence 4 120 4)))
+
 ;;
 ;; theme config
 ;;
