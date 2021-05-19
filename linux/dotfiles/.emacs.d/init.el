@@ -404,12 +404,12 @@
 												(lsp-organize-imports))))))
 
 ;; csharp-mode
-(use-package csharp-mode
-	:ensure nil
-	:config
-	(setq-default tab-width 4)
-	(setq-default c-basic-offset 4)
-	(setq tab-stop-list (number-sequence 4 120 4)))
+;;(use-package csharp-mode
+;;	:ensure nil
+;;	:config
+;;	(setq-default tab-width 4)
+;;	(setq-default c-basic-offset 4)
+;;	(setq tab-stop-list (number-sequence 4 120 4)))
 
 ;;
 ;; theme config
@@ -429,11 +429,11 @@
 	;; font
 	
 	
-	;; IME config
-	(setq default-input-method "W32-IME")
-	(setq-default w32-ime-mode-line-state-indicator "[--]")
-	(setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
-	(w32-ime-initialize)
+	;; IME config (use ime custom patch)
+  ;;(setq default-input-method "W32-IME")
+	;;(setq-default w32-ime-mode-line-state-indicator "[--]")
+	;;(setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
+	;;(w32-ime-initialize)
 
 	;; python27 pyls
 	(defun use-python27 ()
