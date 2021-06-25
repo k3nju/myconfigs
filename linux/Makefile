@@ -40,7 +40,7 @@ endef
 
 .PHONY: init
 init:
-	su -c "echo 'kj ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/kj"
+	su -c "pacman -S --noconfirm sudo && sudo echo 'kj ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/kj"
 	$(call add_archlinuxfr,/etc/pacman.conf)
 	$(call create_emacs_launcher,/usr/local/bin/emacs_launcher.sh)
 
