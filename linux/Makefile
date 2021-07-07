@@ -38,9 +38,18 @@ endef
 #------------------------------------------------------------------------------#
 # init
 
+define ensure_su
+if ! which su; then \
+	echo "install su first" && \
+	exit 1; \
+fi
+
+endef
+
 .PHONY: init
 init:
-	su -c "pacman -S --noconfirm sudo && echo 'kj ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/kj"
+	$(call ensure_su)
+	su -c "pacman -S --needed --noconfirm base-devel && echo 'kj ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/kj"
 	$(call add_archlinuxfr,/etc/pacman.conf)
 	$(call create_emacs_launcher,/usr/local/bin/emacs_launcher.sh)
 
@@ -93,7 +102,7 @@ pkg_update:
 PKG_CORES?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)core.txt))
 .PHONY: pkg_core
 pkg_core:
-	$(foreach v,$(PKG_CORES),sudo pacman -Su --noconfirm -- $(v);)
+	$(foreach v,$(PKG_CORES),sudo pacman -Su --needed --noconfirm -- $(v);)
 
 define install_yay
 if ! pacman -Qs yay; then \
@@ -117,12 +126,12 @@ pkg_aur:
 PKG_DESKTOPS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)desktops.txt))
 .PHONY: pkg_desktop
 pkg_desktop:
-	$(foreach v,$(PKG_DESKTOPS),sudo pacman -Su --noconfirm -- $(v);)
+	$(foreach v,$(PKG_DESKTOPS),sudo pacman -Su --needed --noconfirm -- $(v);)
 
 PKG_OPTS?:=$(filter-out $(installeds),$(shell cat $(pkgs_dir)opts.txt))
 .PHONY: pkg_opts
 pkg_opts:
-	$(foreach v,$(PKG_OPTS),sudo pacman -Su --noconfirm -- $(v);)
+	$(foreach v,$(PKG_OPTS),sudo pacman -Su --needed --noconfirm -- $(v);)
 
 PKG_UNINSTALLS?=$(filter $(installeds),$(shell cat $(pkgs_dir)uninstalls.txt))
 .PHONY: pkg_uninstalls
