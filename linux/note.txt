@@ -1,13 +1,12 @@
-requires
+* requirements before make 
+git
 make
-sudo
-fakeroot
-git (maybe)
-
-just install base-devel group.
-
 
 * ratslap
 ratslap from aur may be old.
 its good that download and install it from github release binary.
-added: 2020/12/28 ratslap 0.4.1 available from aur.
+2020/12/28: ratslap 0.4.1 available from aur.
+
+* dropbox
+2021/07/07: needed to import gpg key manually. added "dropbox_workaround" target.
+

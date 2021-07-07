@@ -79,7 +79,6 @@ dotfiles:=$(shell find $(DOTFILES_DIR) -type f -exec realpath {} \;)
 .PHONY: dotfiles
 dotfiles:
 	$(foreach v,$(dotfiles),$(call link_dotfile,$(v),$(subst $(DOTFILES_DIR),$(HOME)/,$(v))))
-	bash -x $(DOTFILES_DIR)/reset-ratslap.sh
 
 
 #------------------------------------------------------------------------------#
@@ -120,8 +119,8 @@ pkg_yay:
 
 PKG_AURS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)aurs.txt))
 .PHONY: pkg_aur
-pkg_aur:
-	$(foreach	v,$(PKG_AURS),yay -Su --noconfirm -- $(v);)
+pkg_aur: dropbox_workaround
+	$(foreach	v,$(PKG_AURS),yay -Su --needed --noconfirm -- $(v);)
 
 PKG_DESKTOPS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)desktops.txt))
 .PHONY: pkg_desktop
@@ -139,4 +138,9 @@ pkg_uninstalls:
 	$(foreach v,$(PKG_UNINSTALLS),sudo pacman -Rsn --noconfirm -- $(v);)
 
 
+#------------------------------------------------------------------------------#
+# dropbox workaround
+.PHONY: dropbox_workaround
+dropbox_workaround:
+	gpg --keyserver hkp://pgp.mit.edu --recv-keys FC918B335044912E
 
