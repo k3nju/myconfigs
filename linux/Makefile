@@ -39,7 +39,7 @@ endef
 # init
 
 define ensure_su
-if ! which su; then \
+if [[ ! -f /usr/bin/su ]]; then \
 	echo "install su first" && \
 	exit 1; \
 fi
