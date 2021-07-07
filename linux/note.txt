@@ -8,5 +8,5 @@ its good that download and install it from github release binary.
 2020/12/28: ratslap 0.4.1 available from aur.
 
 * dropbox
-2021/07/07: needed to import gpg key manually. added "dropbox_workaround" target.
+2021/07/07: needed to import gpg key manually. temporary? removed dropbox from aurs.txt
 

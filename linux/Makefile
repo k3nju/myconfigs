@@ -119,7 +119,7 @@ pkg_yay:
 
 PKG_AURS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)aurs.txt))
 .PHONY: pkg_aur
-pkg_aur: dropbox_workaround
+pkg_aur:
 	$(foreach	v,$(PKG_AURS),yay -Su --needed --noconfirm -- $(v);)
 
 PKG_DESKTOPS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)desktops.txt))
@@ -137,10 +137,4 @@ PKG_UNINSTALLS?=$(filter $(installeds),$(shell cat $(pkgs_dir)uninstalls.txt))
 pkg_uninstalls:
 	$(foreach v,$(PKG_UNINSTALLS),sudo pacman -Rsn --noconfirm -- $(v);)
 
-
-#------------------------------------------------------------------------------#
-# dropbox workaround
-.PHONY: dropbox_workaround
-dropbox_workaround:
-	gpg --keyserver hkp://pgp.mit.edu --recv-keys FC918B335044912E
 
