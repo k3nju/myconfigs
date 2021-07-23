@@ -252,8 +252,9 @@
 				 ("C-p" . company-select-previous)
 				 ("C-j" . company-complete-selection)
 				 ("C-h" . nil))
-	:config
+	:init
 	(global-company-mode)
+	:config
 	(setq company-idle-delay 0)
 	(setq company-show-numbers nil)
 	(setq company-tooltip-limit 20)
