@@ -1,5 +1,8 @@
 ;;(profiler-start 'cpu)
 
+;; workaround
+(setq byte-compile-warnings '(cl-functions))
+
 ;; need to insert non-graphic chars?
 (global-unset-key (kbd "C-q"))
 
@@ -333,8 +336,7 @@
 	:commands lsp-deferred
 	:hook ((prog-mode . lsp-deferred))
 	:custom
-	(lsp-log-io nil) ; t when debug
-	(lsp-prefer-flymake nil)
+	;;(lsp-log-io t) ;; for debug
 	(lsp-keymap-prefix "C-q l")
 	(lsp-signature-auto-activate nil)
 	(lsp-completion-provider :capf)
