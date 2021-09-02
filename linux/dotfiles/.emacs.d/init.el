@@ -341,6 +341,7 @@
 	(lsp-signature-auto-activate nil)
 	(lsp-completion-provider :capf)
 	:config
+	;; set log=verbose for debug
 	(setq lsp-clients-clangd-args '("-j=2" "--background-index" "--log=error"))
 	
 	;; lsp-ui
