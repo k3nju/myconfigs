@@ -2,7 +2,6 @@
 Language:	Cpp
 BasedOnStyle: Google
 MaxEmptyLinesToKeep: 2
-UseTab: Always
 AllowShortBlocksOnASingleLine: Empty
 AllowShortFunctionsOnASingleLine: Empty
 
