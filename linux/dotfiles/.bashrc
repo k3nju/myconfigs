@@ -16,10 +16,10 @@ if [[ -e /usr/local/bin/emacs_launcher.sh  ]]; then
 fi
 
 
-if [[ -e $HOME/go ]]; then
-		export GOPATH=$HOME/go
-		export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
-fi
+#if [[ -e $HOME/go ]]; then
+#		export GOPATH=$HOME/go
+#		export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
+#fi
 
 if [[ -e $HOME/home2/vagrant.d ]]; then
 		export VAGRANT_HOME=$HOME/home2/vagrant.d
