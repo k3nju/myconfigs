@@ -16,10 +16,10 @@ if [[ -e /usr/local/bin/emacs_launcher.sh  ]]; then
 fi
 
 
-#if [[ -e $HOME/go ]]; then
-#		export GOPATH=$HOME/go
-#		export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
-#fi
+if [[ ! -z $(command -v go) ]]; then
+		export PATH=$(go env GOROOT)/bin:$(go env GOPATH)/bin:$PATH
+fi
+
 
 if [[ -e $HOME/home2/vagrant.d ]]; then
 		export VAGRANT_HOME=$HOME/home2/vagrant.d
@@ -29,7 +29,6 @@ fi
 function wttr {
 		curl -s wttr.in/tokyo | less -R
 }
-
 
 
 export http_proxy=''
