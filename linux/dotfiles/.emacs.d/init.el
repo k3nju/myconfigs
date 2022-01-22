@@ -111,8 +111,6 @@
 ;; use regexp search as default
 (global-set-key (kbd "C-s") 'isearch-forward-regexp)
 (global-set-key (kbd "C-r") 'isearch-backward-regexp)
-;;(global-set-key (kbd "C-M-s") 'isearch-forward)
-;;(global-set-key (kbd "C-M-r") 'isearch-backward)
 
 
 ;;
@@ -245,6 +243,21 @@
 	:ensure t
 	:bind (("C-q p" . goto-last-change)
 				 ("C-q n" . goto-last-change-reverse)))
+
+
+;; vterm
+;; NOTE: need external configuration to .bashrc 
+(use-package vterm
+	:ensure t
+	:bind (:map vterm-mode-map
+							("M-p" . nil)
+							("M-n" . nil)
+							("C-t" . nil))
+	:config
+	(use-package vterm-toggle
+		:ensure t
+		:bind (("C-t" . vterm-toggle)
+					 ("C-c C-t" . vterm-toggle-cd))))
 
 ;; company
 (use-package company
@@ -451,9 +464,9 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-	 '("76bfa9318742342233d8b0b42e824130b3a50dcc732866ff8e47366aed69de11" "a3b6a3708c6692674196266aad1cb19188a6da7b4f961e1369a68f06577afa16" "f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" "4bca89c1004e24981c840d3a32755bf859a6910c65b829d9441814000cf6c3d0" "9b01a258b57067426cc3c8155330b0381ae0d8dd41d5345b5eddac69f40d409b" default))
+	 '("7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "cba5ebfabc6456e4bbd68e0394d176161e1db063c6ca24c23b9828af0bdd7411" "13880fa28757754bc40c85b05689c801ddaa877f2fe65abf1779f37776281ef1" "0e2a7e1e632dd38a8e0227d2227cb8849f877dd878afb8219cb6bcdd02068a52" "e6ff132edb1bfa0645e2ba032c44ce94a3bd3c15e3929cdf6c049802cf059a2a" "95d0ed21bb0e919be7687a25ad59a1c2c8df78cbe98c9e369d44e65bfd65b167" "990e24b406787568c592db2b853aa65ecc2dcd08146c0d22293259d400174e37" "76bfa9318742342233d8b0b42e824130b3a50dcc732866ff8e47366aed69de11" "a3b6a3708c6692674196266aad1cb19188a6da7b4f961e1369a68f06577afa16" "f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" "4bca89c1004e24981c840d3a32755bf859a6910c65b829d9441814000cf6c3d0" "9b01a258b57067426cc3c8155330b0381ae0d8dd41d5345b5eddac69f40d409b" default))
  '(package-selected-packages
-	 '(yasnippet-snippets gnu-elpa-keyring-update csharp-mode treemacs-projectile amx powershell hcl-mode yasnippet window-number which-key wgrep use-package treemacs projectile lsp-ui ido-vertical-mode ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes clang-format anzu)))
+	 '(vterm-toggle vterm lab-themes yasnippet-snippets gnu-elpa-keyring-update csharp-mode treemacs-projectile powershell hcl-mode yasnippet window-number which-key wgrep treemacs projectile lsp-ui ido-completing-read+ google-c-style go-mode ggtags flycheck doom-themes clang-format anzu)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
