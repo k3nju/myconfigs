@@ -5,6 +5,8 @@
 
 ;; need to insert non-graphic chars?
 (global-unset-key (kbd "C-q"))
+;; keep on coding
+(global-unset-key (kbd "C-z"))
 
 
 ;;
