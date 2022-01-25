@@ -189,7 +189,7 @@
 	;; amx
 	(use-package amx
 		:ensure t
-		:bind (("M-x" . amx))
+		:bind ("M-x" . amx)
 		:config (amx-mode)
 		:custom
 		(amx-backend 'ido)))
@@ -258,6 +258,7 @@
 							("M-p" . nil)
 							("M-n" . nil)
 							("C-t" . nil))
+	:hook (vterm-mode . (lambda () (setq-local global-hl-line-mode nil)))
 	:config
 	(setq vterm-max-scrollback 10000)
 	(use-package vterm-toggle
@@ -309,7 +310,7 @@
 ;; ggtags
 (use-package ggtags
 	:ensure t
-	:bind (("C-q g" . 'ggtags-mode))
+	:bind ("C-q g" . 'ggtags-mode)
 	;:hook (c-mode-common . (lambda ()
 	;(when (derived-mode-p 'c-mode 'c++-mode)
 	;(ggtags-mode 1)))))
@@ -353,7 +354,7 @@
 (use-package lsp-mode
 	:ensure t
 	:commands lsp-deferred
-	:hook ((prog-mode . lsp-deferred))
+	:hook (prog-mode . lsp-deferred)
 	:custom
 	;;(lsp-log-io t) ;; for debug
 	(lsp-keymap-prefix "C-q l")
@@ -367,7 +368,7 @@
 	(use-package lsp-ui
 		:ensure t
 		:commands lsp-ui-mode
-		:hook ((lsp-mode . lsp-ui-mode))
+		:hook (lsp-mode . lsp-ui-mode)
 		:bind (:map lsp-ui-mode-map
 								([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
 								([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
@@ -393,9 +394,10 @@
 		(lsp-ui-peek-always-show t)
 
 		:custom-face
-		(lsp-ui-sideline-symbol-info ((t (:background "default"))))
+		;;(lsp-ui-sideline-symbol-info ((t (:background "default"))))
 		;; background face of sideline and doc
-		(markdown-code-face ((t (:background "grey10"))))))
+		;;(markdown-code-face ((t (:background "grey10"))))
+		))
 
 ;; cc-mode(builtin)
 (use-package cc-mode
@@ -441,13 +443,20 @@
 (when (and (file-exists-p (expand-file-name "themes" user-emacs-directory))
 					 (boundp 'custom-theme-load-path))
 	(add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory)))
+
+;;	(use-package modus-themes
+;;		:ensure t
+;;		:config
+;;		(load-theme 'modus-vivendi t)
+;;		;; disable line highlight
+;;		(global-hl-line-mode -1)))
+
 (when window-system
-	(use-package modus-themes
+	(use-package alect-themes
 		:ensure t
 		:config
-		(load-theme 'modus-vivendi t)
-		;; disable line highlight
-		(global-hl-line-mode -1)))
+		(load-theme 'alect-black t)
+))
 
 
 ;;
@@ -475,7 +484,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-	 '(doom-themes vterm-toggle vterm yasnippet-snippets gnu-elpa-keyring-update csharp-mode treemacs-projectile powershell hcl-mode yasnippet window-number which-key wgrep treemacs projectile lsp-ui ido-completing-read+ google-c-style go-mode ggtags flycheck clang-format anzu)))
+	 '(alect-themes doom-themes vterm-toggle vterm yasnippet-snippets gnu-elpa-keyring-update csharp-mode treemacs-projectile powershell hcl-mode yasnippet window-number which-key wgrep treemacs projectile lsp-ui ido-completing-read+ google-c-style go-mode ggtags flycheck clang-format anzu)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
