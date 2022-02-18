@@ -10,6 +10,11 @@ alias grep='grep --color=always'
 alias uncolor='sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"'
 alias emacscs='/usr/bin/emacs -nw'
 
+#
+# user-site PATH
+#
+export PATH=~/.local/bin:$PATH
+
 
 #
 # python relateds
