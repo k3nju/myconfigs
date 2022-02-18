@@ -11,20 +11,31 @@ alias uncolor='sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"'
 alias emacscs='/usr/bin/emacs -nw'
 
 
-if [[ -e /usr/local/bin/emacs_launcher.sh  ]]; then
-		alias emacs='/usr/local/bin/emacs_launcher.sh'
-fi
+#
+# python relateds
+#
+export PIPENV_VENV_IN_PROJECT=1
 
-
+#
+# go relateds
+#
 if [[ ! -z $(command -v go) ]]; then
 		export PATH=$(go env GOROOT)/bin:$(go env GOPATH)/bin:$PATH
 fi
 
-
+#
+# vagrant relateds
+#
 if [[ -e $HOME/home2/vagrant.d ]]; then
 		export VAGRANT_HOME=$HOME/home2/vagrant.d
 fi
 
+#
+# emacs relateds
+#
+if [[ -e /usr/local/bin/emacs_launcher.sh  ]]; then
+		alias emacs='/usr/local/bin/emacs_launcher.sh'
+fi
 
 # for emacs-libvterm 
 vterm_printf(){

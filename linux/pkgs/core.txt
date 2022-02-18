@@ -15,4 +15,5 @@ git
 rsync
 mlocate
 iotop
+ripgrep
 
