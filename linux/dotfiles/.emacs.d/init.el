@@ -203,6 +203,11 @@
 	:custom
 	(org-display-custom-times t) ;; or use setq-default in config
 	(org-time-stamp-custom-formats '("<%Y/%m/%d>" . "<%Y/%m/%d %H:%M:%S>"))
+
+	:custom-face
+	(org-level-1 ((t (:extend nil :underline t  :weight extra-bold :height 1.7 :foreground "firebrick"))))
+	(org-level-2 ((t (:extend nil :underline t  :weight extra-bold :height 1.3 :foreground "steelblue"))))
+	(org-level-3 ((t (:extend nil :underline t  :weight extra-bold :height 1.0 :foreground "darkseagreen" ))))
 	
 	:config
 	(setq org-directory (expand-file-name "org" user-emacs-directory))
@@ -214,9 +219,11 @@
 	(setq org-hide-leading-stars t)
 	(setq org-adapt-indentation t)
 	(setq org-return-follows-link t)
+	(setq org-hide-emphasis-markers t)
 	(setq org-blank-before-new-entry
 				'((heading . always)
 					(plain-list-item . nil)))
+	(setq org-cycle-separator-lines 1)
 
 	(setq org-todo-keywords
 				'((sequence "TODO(t)" "|" "DONE(d)" "CANCELED(c)")))
@@ -253,6 +260,7 @@
 ;; vterm
 ;; NOTE: need external configuration to .bashrc 
 (use-package vterm
+	:if (eq system-type 'gnu/linux)
 	:ensure t
 	:bind (:map vterm-mode-map
 							("M-p" . nil)
@@ -376,7 +384,7 @@
 								("C-q C-u f i" . lsp-ui-find-implementation))
 		:custom
 		(lsp-lens-enable t)
-		
+
 		;; lsp-ui-doc
 		(lsp-ui-doc-enable nil)
 		(lsp-ui-doc-header t)
@@ -392,11 +400,11 @@
 
 		;; lsp-ui-peek
 		(lsp-ui-peek-always-show t)
-
+		
 		:custom-face
-		;;(lsp-ui-sideline-symbol-info ((t (:background "default"))))
+		(lsp-ui-sideline-symbol-info ((t (:background "default"))))
 		;; background face of sideline and doc
-		;;(markdown-code-face ((t (:background "grey10"))))
+		(markdown-code-face ((t (:background "grey10"))))
 		))
 
 ;; cc-mode(builtin)
@@ -484,16 +492,9 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-	 '("7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" default))
+	 '("f6665ce2f7f56c5ed5d91ed5e7f6acb66ce44d0ef4acfaa3a42c7cfe9e9a9013" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" default))
  '(package-selected-packages
-	 '(alect-themes doom-themes vterm-toggle vterm yasnippet-snippets gnu-elpa-keyring-update csharp-mode treemacs-projectile powershell hcl-mode yasnippet window-number which-key wgrep treemacs projectile lsp-ui ido-completing-read+ google-c-style go-mode ggtags flycheck clang-format anzu)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(lsp-ui-sideline-symbol-info ((t (:background "default"))))
- '(markdown-code-face ((t (:background "grey10")))))
+	 '(csv-mode alect-themes doom-themes vterm-toggle vterm yasnippet-snippets gnu-elpa-keyring-update csharp-mode treemacs-projectile powershell hcl-mode yasnippet window-number which-key wgrep treemacs projectile lsp-ui ido-completing-read+ google-c-style go-mode ggtags flycheck clang-format anzu)))
 
 
 ;;(profiler-report)
