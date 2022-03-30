@@ -83,8 +83,38 @@
 ;; yes or no
 (fset 'yes-or-no-p 'y-or-n-p)
 
-;; font & color
-(set-frame-font "Office Code Pro 11")
+;; font & frame
+;;(set-frame-font "Input 12" nil t)
+;;(set-frame-font "Office Code Pro 11")
+;;(set-frame-font "Noto Sans Mono CJK JP 10" nil t)
+(when window-system
+	;; create fontset and assign fonts 
+	(when (find-font (font-spec :name "input mono condensed"))
+		(create-fontset-from-fontset-spec
+		 (font-xlfd-name
+			(font-spec :name "input mono condensed"
+								 :size 15
+								 :registry "fontset-myfs")))
+		
+		(add-to-list 'default-frame-alist '(font . "fontset-myfs"))
+		
+		(when (find-font (font-spec :name "ipaexgothic"))
+			(set-fontset-font
+			 "fontset-myfs"
+			 'japanese-jisx0213.2004-1
+			 (font-spec :name "ipaexgothic")
+			 nil
+			 'append)))
+
+	;; frame configs
+	(let* ((vals '((width . 160)
+								 (height . 50)
+								 (test . 10)
+								 (vertical-scroll-bars)))
+				 (v))
+		(dolist (v vals)
+			(add-to-list 'default-frame-alist v))))
+
 
 ;; disable electric-indent-mode always
 (add-hook 'after-change-major-mode-hook (lambda() (electric-indent-mode -1)))
@@ -205,9 +235,14 @@
 	(org-time-stamp-custom-formats '("<%Y/%m/%d>" . "<%Y/%m/%d %H:%M:%S>"))
 
 	:custom-face
-	(org-level-1 ((t (:extend nil :underline t  :weight extra-bold :height 1.7 :foreground "firebrick"))))
-	(org-level-2 ((t (:extend nil :underline t  :weight extra-bold :height 1.3 :foreground "steelblue"))))
-	(org-level-3 ((t (:extend nil :underline t  :weight extra-bold :height 1.0 :foreground "darkseagreen" ))))
+	;(org-level-1 ((t (:extend nil :underline t  :weight extra-bold :height 1.7 :foreground "firebrick"))))
+	(org-level-1 ((t (:extend nil :underline t  :weight extra-bold :height 1.7 :foreground "#00cd00"))))
+	
+	;(org-level-2 ((t (:extend nil :underline t  :weight extra-bold :height 1.3 :foreground "steelblue"))))
+	(org-level-2 ((t (:extend nil :underline t  :weight extra-bold :height 1.3 :foreground "#0087ff"))))
+	
+	;(org-level-3 ((t (:extend nil :underline t  :weight extra-bold :height 1.0 :foreground "darkseagreen" ))))
+	(org-level-3 ((t (:extend nil :underline t  :weight extra-bold :height 1.0 :foreground "#d70000" ))))
 	
 	:config
 	(setq org-directory (expand-file-name "org" user-emacs-directory))
@@ -258,7 +293,7 @@
 				 ("C-q n" . goto-last-change-reverse)))
 
 ;; vterm
-;; NOTE: need external configuration to .bashrc 
+;; NOTE: need external configuration to .bashrc
 (use-package vterm
 	:if (eq system-type 'gnu/linux)
 	:ensure t
@@ -458,13 +493,11 @@
 ;;		(load-theme 'modus-vivendi t)
 ;;		;; disable line highlight
 ;;		(global-hl-line-mode -1)))
-
 (when window-system
 	(use-package alect-themes
 		:ensure t
 		:config
-		(load-theme 'alect-black t)
-))
+		(load-theme 'alect-black t)))
 
 
 ;;
