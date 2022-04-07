@@ -50,6 +50,9 @@
 (show-paren-mode t)
 (setq show-trailing-whitespace t)
 
+;; find-file
+(setq find-file-visit-truename t)
+
 ;; copy & paste
 (setq select-enable-clipboard t)
 (setq select-enable-primary t)
@@ -479,6 +482,11 @@
 												(lsp-format-buffer)
 												(lsp-organize-imports))))))
 
+;; rust-mode
+(use-package rust-mode
+	:ensure t
+	:after lsp-mode)
+
 ;; csharp-mode
 ;;(use-package csharp-mode
 ;;	:ensure nil
@@ -535,7 +543,7 @@
  '(custom-safe-themes
 	 '("f6665ce2f7f56c5ed5d91ed5e7f6acb66ce44d0ef4acfaa3a42c7cfe9e9a9013" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" default))
  '(package-selected-packages
-	 '(csv-mode alect-themes doom-themes vterm-toggle vterm yasnippet-snippets gnu-elpa-keyring-update csharp-mode treemacs-projectile powershell hcl-mode yasnippet window-number which-key wgrep treemacs projectile lsp-ui ido-completing-read+ google-c-style go-mode ggtags flycheck clang-format anzu)))
+	 '(rust-mode csv-mode alect-themes doom-themes vterm-toggle vterm yasnippet-snippets gnu-elpa-keyring-update csharp-mode treemacs-projectile powershell hcl-mode yasnippet window-number which-key wgrep treemacs projectile lsp-ui ido-completing-read+ google-c-style go-mode ggtags flycheck clang-format anzu)))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -544,7 +552,9 @@
  ;; If there is more than one, they won't work right.
  '(lsp-ui-sideline-symbol-info ((t (:background "default"))))
  '(markdown-code-face ((t (:background "grey10"))))
- )
+ '(org-level-1 ((t (:extend nil :underline t :weight extra-bold :height 1.3 :foreground "#00cd00"))))
+ '(org-level-2 ((t (:extend nil :underline t :weight extra-bold :height 1.2 :foreground "#0087ff"))))
+ '(org-level-3 ((t (:extend nil :underline t :weight extra-bold :height 1.0 :foreground "#d70000")))))
 
 
 ;;(profiler-report)
