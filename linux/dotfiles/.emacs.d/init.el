@@ -71,7 +71,7 @@
 (setq-default truncate-lines t)
 (setq-default truncate-partial-width-windows nil)
 
-;; path
+;; load path
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
 ;; backup
@@ -163,9 +163,9 @@
 (when (require 'package nil t)
 	(package-initialize)
 	(setq package-archives
-				'(("gnu" . "http://elpa.gnu.org/packages/")
-					("melpa" . "http://melpa.org/packages/")
-					("org" . "http://orgmode.org/elpa/"))))
+				'(("gnu" . "https://elpa.gnu.org/packages/")
+					("melpa" . "https://melpa.org/packages/")
+					("org" . "https://orgmode.org/elpa/"))))
 
 ;; use-package
 (unless (package-installed-p 'use-package)
