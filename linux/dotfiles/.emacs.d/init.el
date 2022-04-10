@@ -200,6 +200,9 @@
 	)
 
 ;; ido(builtin)
+;; NOTE: emacs28 has fido-vertical-mode.
+;;       https://www.manueluberti.eu/emacs/2021/08/06/fido/
+;;       consider this insted ido.
 (use-package ido
 	:config
 	(ido-mode t)
@@ -207,6 +210,7 @@
 	(setq ido-enable-flex-matching t)
 	(setq ido-use-virtual-buffers t)
 	(setq ido-use-filename-at-point 'guess)
+	(setq ido-enable-regexp t)
 	;; ido-vertical-mode
 	(use-package ido-vertical-mode
 		:ensure t
@@ -300,8 +304,40 @@
 ;; hl-line-mode
 (use-package hl-line
 	:ensure t
-	:config
-	(global-hl-line-mode t))
+	:init
+	(global-hl-line-mode))
+
+;; hl-todo
+(use-package hl-todo
+	:ensure t
+	:init
+	(global-hl-todo-mode)
+	
+	:custom
+	(hl-todo-keyword-faces
+	 '(("XXX" . "firebrick")
+		 ("TODO" . "firebrick")
+		 ("DONE" . "firebrick")
+		 ("HACK" . "firebrick")
+		 ("NOTE" . "firebrick")
+		 ("FIXME" . "firebrick")))
+	(hl-todo-highlight-punctuation ":")
+	(hl-todo-require-punctuation t))
+
+;; simple-modeline
+(use-package simple-modeline
+	:ensure t
+	:init
+	(simple-modeline-mode)
+	:custom
+	(simple-modeline-segments
+	 '((simple-modeline-segment-position
+			simple-modeline-segment-modified
+			simple-modeline-segment-buffer-name
+			simple-modeline-segment-vc)
+		 (simple-modeline-segment-major-mode
+			simple-modeline-segment-eol
+			simple-modeline-segment-encoding))))
 
 ;; vterm
 ;; NOTE: need external configuration to .bashrc
@@ -543,7 +579,8 @@
  '(custom-safe-themes
 	 '("f6665ce2f7f56c5ed5d91ed5e7f6acb66ce44d0ef4acfaa3a42c7cfe9e9a9013" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" default))
  '(package-selected-packages
-	 '(rust-mode csv-mode alect-themes doom-themes vterm-toggle vterm yasnippet-snippets gnu-elpa-keyring-update csharp-mode treemacs-projectile powershell hcl-mode yasnippet window-number which-key wgrep treemacs projectile lsp-ui ido-completing-read+ google-c-style go-mode ggtags flycheck clang-format anzu)))
+	 '(simple-modeline mood-line rust-mode csv-mode alect-themes doom-themes vterm-toggle vterm yasnippet-snippets gnu-elpa-keyring-update csharp-mode treemacs-projectile powershell hcl-mode yasnippet window-number which-key wgrep treemacs projectile lsp-ui ido-completing-read+ google-c-style go-mode ggtags flycheck clang-format anzu))
+ )
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
