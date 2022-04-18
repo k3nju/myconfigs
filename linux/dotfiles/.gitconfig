@@ -3,3 +3,6 @@
 	email = kenjutakano+git@gmail.com
 [core]
 	editor=emacs
+[alias]
+	l=log --name-status --oneline --decorate --graph
+
