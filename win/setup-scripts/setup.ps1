@@ -36,6 +36,13 @@ class PathLayout{
 Define-Global PL ([PathLayout]::New())
 
 
+enum LogSeverity{
+		INFO
+		ERROR
+		EXCEPTION
+}
+
+
 # logger
 class Logger{
 		hidden [string]$filePath_
@@ -50,32 +57,47 @@ class Logger{
 				$this.name_ = $name
 		}
 
-		[Logger] Clone($name){
+		[Logger] Clone([string]$name){
 				return [Logger]::New($this.filePath_, $name)
 		}
 
-		[void] Write([string]$msg, [string]$color){
+		hidden [string]GetColorBySeverity([LogSeverity]$severity){
+				switch($severity){
+						([LogSeverity]::INFO){
+								return "green"
+						}
+						([LogSeverity]::ERROR){
+								return "red"
+						}
+						([LogSeverity]::EXCEPTION){
+								return "red"
+						}
+				}
+				throw "unexpected log severity was passed: $severity"
+		}
+
+		[void] Write([string]$msg, [LogSeverity]$severity){
 				$now = Get-Date -Format "yyyy-MM-dd hh:mm:ss|"
-				$prefix = $now + ("{0}|" -f $this.name_)
+				$prefix = $now + "$severity|$($this.name_)|"
 				($prefix + $msg) | Add-Content -Path $this.filePath_ -Encoding UTF8
 				
 				Write-Host $prefix -NoNewLine
-				Write-Host $msg -Foreground $color
+				Write-Host $msg -Foreground $this.GetColorBySeverity($severity)
 		}
 
 		[void] Info([string]$msg){
-				$this.Write($msg, "green")
+				$this.Write($msg, [LogSeverity]::INFO)
 		}
 
 		[void] Error([string]$msg){
-				$this.Write($msg, "red")
+				$this.Write($msg, [LogSeverity]::ERROR)
 		}
 
 		[void] Exception([string]$msg){
 				$this.Write($msg + "`n" +
 										$PSItem.Exception.Message + "`n" +
 										$PSItem.ScriptStackTrace + "`n",
-										"red")
+										[LogSeverity]::EXCEPTION)
 		}
 }
 Define-Global Logger ([Logger]::new($global:PL.LogFilePath))
