@@ -10,6 +10,22 @@ function Define-Global($name, $value){
 		Set-Variable -Name $name -Value $value -Option ReadOnly -Scope global -Force
 }
 
+Define-Global ChocoEssentialPackages @(
+		"sysinternals"
+		,"hxd"
+		,"stirling-jp"
+		,"x64dbg.portable"
+		,"PeStudio"
+)
+
+Define-Global WingetEssentialPackages @(
+		"GNU.Emacs"
+		,"voidtools.Everything"
+		,"Google.Chrome"
+		,"MSYS2"
+)
+
+
 
 # path aggregation
 class PathLayout{
@@ -606,13 +622,14 @@ class EnableOpenSSH : TaskBase{
 				}
 
 				$this.logger.Info("setting default shell to bash")
+
 				New-ItemProperty `
 					-Path HKLM:\SOFTWARE\OpenSSH `
 					-Name DefaultShell `
 					-Value c:\windows\system32\bash.exe `
 					-PropertyType String `
 					-Force
-				
+
 				$this.logger.Info("enabling OpenSSH")
 				$sshd = Get-Service -Name sshd
 				Set-Service -Name $sshd.Name -StartupType automatic
@@ -629,6 +646,14 @@ class PackageInstallerBase : TaskBase{
 		# override below from deriveds
 		hidden [string[]] $installPackages = @()
 		hidden [string[]] $uninstallPackages = @()
+
+		hidden [string[]] ListInstallPackages(){
+				return @()
+		}
+
+		hidden [string[]] ListUninstallPackages(){
+				return @()
+		}
 
 		hidden [string] FormatInstallCommand($pkgName){
 				throw "unimplemented"
@@ -663,7 +688,7 @@ class PackageInstallerBase : TaskBase{
 		}
 		
 		[TaskResult] RunImpl($taskArgs){
-				foreach($pkgName in $this.uninstallPackages){
+				foreach($pkgName in $this.ListUninstallPackages()){
 						$this.logger.Info("uninstalling: $pkgName")
 						$status = $this.Uninstall($pkgName)
 						if(-not $status.Ok()){
@@ -674,7 +699,7 @@ class PackageInstallerBase : TaskBase{
 						}
 				}
 
-				foreach($pkgName in $this.installPackages){
+				foreach($pkgName in $this.ListInstallPackages()){
 						$this.logger.Info("installing: $pkgName")
 						$status = $this.Install($pkgName)
 						if(-not $status.Ok()){
@@ -723,6 +748,7 @@ class ChocoBase : PackageInstallerBase{
 }
 
 class ChocoEssentials : ChocoBase{
+<#
 		hidden [string[]] $installPackages = @(
 				"sysinternals"
 				,"hxd"
@@ -731,7 +757,11 @@ class ChocoEssentials : ChocoBase{
 				,"PeStudio"
 				#,"ghidra"
 		)
-		hidden [string[]] $uninstallPackages = @()
+#>
+
+		hidden [string[]] ListInstallPackages(){
+				return $global:ChocoEssentialPackages
+		}
 }
 
 
@@ -760,6 +790,7 @@ class WingetBase : PackageInstallerBase{
 
 
 class WingetEssentials : WingetBase{
+<#
 		[string[]] $installPackages = @(
 				"GNU.Emacs"
 				,"voidtools.Everything"
@@ -769,6 +800,17 @@ class WingetEssentials : WingetBase{
 				"Cortana"
 				,"Microsoft OneDrive"
 		)
+#>
+		hidden [string[]] ListInstallPackages(){
+				return $global:WingetEssentialPackages
+		}
+
+		hidden [string[]] ListUninstallPackages(){
+				return @(
+						"Cortana"
+						,"Microsoft OneDrive"
+				)
+		}
 }
 
 
@@ -1013,7 +1055,6 @@ function Main{
 				Task CleanTaskbar
 				Task EnableRDP
 				Task EnableOpenSSH
-				#Task InstallPackages
 				Task InstallWSL
 				Task ChocoEssentials
 				Task WingetEssentials
@@ -1046,7 +1087,6 @@ function Main{
 				Restart-Computer -Force
 				return
 		}
-		$global:ExecCtx.CancelRerun()
 		
 
 		$global:Logger.Info("all task executed")
