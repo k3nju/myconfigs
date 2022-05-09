@@ -258,8 +258,14 @@
 	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
 
 	;;(setq org-use-speed-commands t)
-	(setq org-hide-leading-stars t)
-	(setq org-adapt-indentation t)
+
+	
+	(setq org-startup-folded 'all)
+	(setq org-startup-indented t)
+	(setq org-indent-indentation-per-level 1)
+	;;(setq org-hide-leading-stars t)
+	;;(setq org-adapt-indentation t) ;; hard indentation
+	
 	(setq org-return-follows-link t)
 	(setq org-hide-emphasis-markers t)
 	(setq org-blank-before-new-entry
@@ -275,7 +281,8 @@
 				'(("n" "Note" entry (file+headline "notes.org" "notes") "* %?\n %U\n %i\n %a")
 					("t" "Task" entry (file+headline "tasks.org" "tasks") "* TODO %?\n")))
 
-	(setq org-src-tab-acts-natively t))
+	(setq org-src-tab-acts-natively t)
+	(setq org-src-preserve-indentation t))
 
 ;; winner(builtin)
 (use-package winner
@@ -427,7 +434,9 @@
 ;; flycheck
 (use-package flycheck
 	:ensure t
-	:config (global-flycheck-mode))
+	:config (global-flycheck-mode)
+	:custom
+	(flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
 
 ; flymake(builtin)
 (use-package flymake
@@ -578,6 +587,7 @@
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
 	 '("f6665ce2f7f56c5ed5d91ed5e7f6acb66ce44d0ef4acfaa3a42c7cfe9e9a9013" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" default))
+ '(global-flycheck-mode t)
  '(package-selected-packages
 	 '(yasnippet-snippets window-number which-key wgrep vterm-toggle use-package treemacs-projectile simple-modeline rust-mode powershell mood-line lsp-ui ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode gnu-elpa-keyring-update ggtags flycheck doom-themes csv-mode csharp-mode company clang-format anzu amx alect-themes)))
 
