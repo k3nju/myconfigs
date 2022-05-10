@@ -284,6 +284,15 @@
 	(setq org-src-tab-acts-natively t)
 	(setq org-src-preserve-indentation t))
 
+;; window(builtin)
+(use-package window
+	:custom
+	(display-buffer-alist
+	 '(("\\*Warnings\\*"
+			(display-buffer-reuse-mode-window display-buffer-below-selected))
+		 ("\\*vterm\\*"
+			(display-buffer-reuse-window display-buffer-below-selected)))))
+
 ;; winner(builtin)
 (use-package winner
 	:config (winner-mode 1)
