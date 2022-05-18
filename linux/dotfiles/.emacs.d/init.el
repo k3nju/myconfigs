@@ -422,6 +422,14 @@
 	;(ggtags-mode 1)))))
 )
 
+;; dumb-jump
+(use-package dumb-jump
+	:ensure t
+	:bind ("C-q M-." . dumb-jump-go-other-window)
+	:config
+	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+	(setq xref-show-definitions-function #'xref-show-definitions-completing-read))
+
 ;; projectile
 (use-package projectile
 	:ensure t
@@ -598,7 +606,7 @@
 	 '("f6665ce2f7f56c5ed5d91ed5e7f6acb66ce44d0ef4acfaa3a42c7cfe9e9a9013" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" default))
  '(global-flycheck-mode t)
  '(package-selected-packages
-	 '(yasnippet-snippets window-number which-key wgrep vterm-toggle use-package treemacs-projectile simple-modeline rust-mode powershell mood-line lsp-ui ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode gnu-elpa-keyring-update ggtags flycheck doom-themes csv-mode csharp-mode company clang-format anzu amx alect-themes)))
+	 '(dumb-jump yasnippet-snippets window-number which-key wgrep vterm-toggle use-package treemacs-projectile simple-modeline rust-mode powershell mood-line lsp-ui ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode gnu-elpa-keyring-update ggtags flycheck doom-themes csv-mode csharp-mode company clang-format anzu amx alect-themes)))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
