@@ -15,7 +15,6 @@ Define-Global ChocoEssentialPackages @(
 		,"hxd"
 		,"stirling-jp"
 		,"x64dbg.portable"
-		,"PeStudio"
 )
 
 Define-Global WingetEssentialPackages @(
@@ -23,6 +22,7 @@ Define-Global WingetEssentialPackages @(
 		,"voidtools.Everything"
 		,"Google.Chrome"
 		,"MSYS2"
+		,"7zip.7zip"
 )
 
 
