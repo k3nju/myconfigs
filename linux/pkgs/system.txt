@@ -3,6 +3,4 @@ sysstat
 smartmontools
 lm_sensors
 nvme-cli
-clang
 wireshark-cli
-

@@ -1,4 +1,0 @@
-office-code-pro
-global
-systemd-boot-pacman-hook
-ratslap

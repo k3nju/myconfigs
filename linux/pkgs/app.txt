@@ -1,0 +1,14 @@
+libreoffice-fresh
+keepass
+ghex
+wireshark-qt
+virtualbox
+jre-openjdk
+ghidra
+rdesktop
+chromium
+firefox
+thunderbird
+hexchat
+cawbird
+

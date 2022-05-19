@@ -4,7 +4,7 @@ here:=$(dir $(me))
 
 
 .PHONY: all
-all: init pkg_all dotfiles configs
+all: init env_all dotfiles configs
 
 
 .PHONY: help
@@ -83,26 +83,47 @@ dotfiles:
 
 
 #------------------------------------------------------------------------------#
-# pkgs
+# envs and pkgs
+
+.PHONY: env_all
+pkg_all: pkg_update pkg_core pkg_system pkg_desktop pkg_app pkg_aur pkg_uninstalls
+
+.PHONY: env_min
+pkg_min: pkg_update pkg_core pkg_uninstalls
+
+
+.PHONY: env_min_desktop
+pkg_min: pkg_update pkg_desktop pkg_uninstalls
+
 
 # install and uninstall packages
 installeds:=$(shell pacman -Q|awk '{print $$1}')
 installeds+=$(shell pacman -Qg|awk '{print $$1}')
 pkgs_dir:=$(here)pkgs/
-.PHONY: pkg_all
-pkg_all: pkg_update pkg_core pkg_opts pkg_desktop pkg_yay pkg_aur pkg_uninstalls
 
-.PHONY: pkg_min
-pkg_min: pkg_update pkg_core pkg_uninstalls
 
 .PHONY: pkg_update
 pkg_update:
 	sudo pacman -Syu --noconfirm
 
-PKG_CORES?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)core.txt))
+
+PKG_CORE?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)core.txt))
 .PHONY: pkg_core
 pkg_core:
-	$(foreach v,$(PKG_CORES),sudo pacman -Su --needed --noconfirm -- $(v);)
+	$(foreach v,$(PKG_CORE),sudo pacman -Su --needed --noconfirm -- $(v);)
+
+
+PKG_SYSTEM?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)system.txt))
+.PHONY: pkg_system
+pkg_system: pkg_core
+	$(foreach v,$(PKG_SYSTEM),sudo pacman -Su --needed --noconfirm -- $(v);)
+
+
+PKG_DESKTOP?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)desktop.txt))
+.PHONY: pkg_desktop
+pkg_desktop: pkg_core
+	$(foreach v,$(PKG_DESKTOP),sudo pacman -Su --needed --noconfirm -- $(v);)
+
 
 define install_yay
 if ! pacman -Qs yay; then \
@@ -118,20 +139,17 @@ endef
 pkg_yay:
 	$(call install_yay)
 
-PKG_AURS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)aurs.txt))
+PKG_AUR?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)aur.txt))
 .PHONY: pkg_aur
-pkg_aur:
-	$(foreach	v,$(PKG_AURS),yay -Su --needed --noconfirm -- $(v);)
+pkg_aur: pkg_core pkg_yay
+	$(foreach	v,$(PKG_AUR),yay -Su --needed --noconfirm -- $(v);)
 
-PKG_DESKTOPS?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)desktops.txt))
-.PHONY: pkg_desktop
-pkg_desktop:
-	$(foreach v,$(PKG_DESKTOPS),sudo pacman -Su --needed --noconfirm -- $(v);)
 
-PKG_OPTS?:=$(filter-out $(installeds),$(shell cat $(pkgs_dir)opts.txt))
-.PHONY: pkg_opts
-pkg_opts:
-	$(foreach v,$(PKG_OPTS),sudo pacman -Su --needed --noconfirm -- $(v);)
+PKG_APP?:=$(filter-out $(installeds),$(shell cat $(pkgs_dir)app.txt))
+.PHONY: pkg_app
+pkg_app: pkg_desktop
+	$(foreach v,$(PKG_APP),sudo pacman -Su --needed --noconfirm -- $(v);)
+
 
 PKG_UNINSTALLS?=$(filter $(installeds),$(shell cat $(pkgs_dir)uninstalls.txt))
 .PHONY: pkg_uninstalls
