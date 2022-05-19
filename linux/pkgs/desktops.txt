@@ -13,10 +13,9 @@ virtualbox
 keepass
 jre-openjdk
 wireshark-qt
-fcitx
-fcitx-mozc
-fcitx-im
-fcitx-configtool
+fcitx5
+fcitx5-im
+fcitx5-mozc
 ghex
 libreoffice-fresh
 ghidra
