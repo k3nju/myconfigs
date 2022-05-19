@@ -5,7 +5,7 @@ here:=$(dir $(me))
 
 .PHONY: all
 all: init env_all dotfiles configs
-
+#[tab]pid=`lsof -i:8000|tail -n 1|awk '{print $$2}'`; [[ ! -z "$$pid" ]] && kill $$pid; true
 
 .PHONY: help
 help:
