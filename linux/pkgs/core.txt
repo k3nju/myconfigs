@@ -17,3 +17,4 @@ rsync
 iotop
 ripgrep
 clang
+cmake
