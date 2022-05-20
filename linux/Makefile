@@ -29,7 +29,6 @@ help:
 	@grep .PHONY $(MAKEFILE_LIST) | grep -v grep | awk '{print $$2}'
 
 
-
 #------------------------------------------------------------------------------#
 # init
 
@@ -64,10 +63,14 @@ fi
 
 endef
 
+# XXX: removed --needed when installing archlinux-keyring.
+#      even if archlinux-keyring is up-to-date,
+#      some package installations fail because of key import error.
+#      but reinstalling archlinux-keyring works.
 .PHONY: init
 init:
 	$(call ensure_su)
-	su -c "pacman -Sy && pacman -S --needed --noconfirm archlinux-keyring && pacman -S --needed --noconfirm base-devel && echo 'kj ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/kj"
+	su -c "pacman -Sy && pacman -S --noconfirm archlinux-keyring && pacman -S --needed --noconfirm base-devel && echo 'kj ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/kj"
 	$(call add_archlinuxfr,/etc/pacman.conf)
 	$(call create_emacs_launcher,/usr/local/bin/emacs_launcher.sh)
 
