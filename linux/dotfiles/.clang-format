@@ -2,7 +2,11 @@
 Language:	Cpp
 BasedOnStyle: Google
 MaxEmptyLinesToKeep: 2
-AllowShortBlocksOnASingleLine: Empty
-AllowShortFunctionsOnASingleLine: Empty
+ShortNamespaceLines: 1
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+
 
 ...
