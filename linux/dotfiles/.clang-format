@@ -3,10 +3,9 @@ Language:	Cpp
 BasedOnStyle: Google
 MaxEmptyLinesToKeep: 2
 ShortNamespaceLines: 1
-AllowShortBlocksOnASingleLine: Never
-AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: Empty
 AllowShortEnumsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: None
 
 
 ...
