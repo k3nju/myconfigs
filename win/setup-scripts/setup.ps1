@@ -1003,7 +1003,7 @@ class ExecutionContext{
 				$trigger = New-ScheduledTaskTrigger -AtLogon -User $env:UserName
 				$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $this.ActionArgs()
 				$settings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1)
-				Register-ScheduledTask -TaskName "setup-script" -Trigger $trigger -Action $action -Settings $settings
+				Register-ScheduledTask -TaskName "setup-script" -Trigger $trigger -Action $action -Settings $settings -RunLevel Highest
 				$this.rerunRequired_ = $true
 		}
 
