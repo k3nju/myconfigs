@@ -90,32 +90,30 @@
 ;;(set-frame-font "Office Code Pro 11")
 ;;(set-frame-font "Noto Sans Mono CJK JP 10" nil t)
 (when window-system
-	;; create fontset and assign fonts 
-	(when (find-font (font-spec :name "input mono condensed"))
-		(create-fontset-from-fontset-spec
-		 (font-xlfd-name
-			(font-spec :name "input mono condensed"
-								 :size 15
-								 :registry "fontset-myfs")))
-		
-		(add-to-list 'default-frame-alist '(font . "fontset-myfs"))
-		
+	(let* ((name (if (eq system-type 'windows-nt) "InputMonoCondensed" "input mono condensed")))
+		;; create fontset
+		(when (find-font (font-spec :name name))
+			(create-fontset-from-fontset-spec
+			 (font-xlfd-name
+				(font-spec :name name
+									 :size 15
+									 :registry "fontset-myfs")))
+			(add-to-list 'default-frame-alist '(font . "fontset-myfs")))
+		;; set font for jp lang to fontset
 		(when (find-font (font-spec :name "ipaexgothic"))
 			(set-fontset-font
 			 "fontset-myfs"
 			 'japanese-jisx0213.2004-1
 			 (font-spec :name "ipaexgothic")
 			 nil
-			 'append)))
-
+			 'append))))
+(when window-system
 	;; frame configs
-	(let* ((vals '((width . 160)
-								 (height . 50)
-								 (test . 10)
-								 (vertical-scroll-bars)))
-				 (v))
-		(dolist (v vals)
-			(add-to-list 'default-frame-alist v))))
+	(dolist (v '((width . 160)
+							 (height . 50)
+							 (test . 10)
+							 (vertical-scroll-bars)))
+		(add-to-list 'default-frame-alist v)))
 
 
 ;; disable electric-indent-mode always
@@ -465,7 +463,7 @@
 ;; lsp-mode
 ;; NOTE: Resuires language servers individually.
 ;;			 C/C++: pacman -S clang
-;;			 python: pip install python-language-server (install pyls system wide)
+;;			 python: install python-lsp-server for each project
 ;;			 golang: go get golang.org./x/tools/gopls@latest
 (use-package lsp-mode
 	:ensure t
