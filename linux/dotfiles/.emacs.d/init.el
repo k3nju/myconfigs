@@ -89,7 +89,7 @@
 ;;(set-frame-font "Input 12" nil t)
 ;;(set-frame-font "Office Code Pro 11")
 ;;(set-frame-font "Noto Sans Mono CJK JP 10" nil t)
-(when window-system
+(when (and window-system (eq system-type 'gnu/linux))
 	(let* ((name (if (eq system-type 'windows-nt) "InputMonoCondensed" "input mono condensed")))
 		;; create fontset
 		(when (find-font (font-spec :name name))
@@ -107,6 +107,8 @@
 			 (font-spec :name "ipaexgothic")
 			 nil
 			 'append))))
+(when (and window-system (eq system-type 'windows-nt))
+	(set-frame-font "MS Gothic 12" nil t))
 (when window-system
 	;; frame configs
 	(dolist (v '((width . 160)
