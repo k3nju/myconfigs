@@ -23,6 +23,8 @@ Define-Global WingetEssentialPackages @(
 		,"Google.Chrome"
 		,"MSYS2"
 		,"7zip.7zip"
+		,"WinMerge"
+		,"teraterm"
 )
 
 
@@ -767,6 +769,7 @@ class ChocoEssentials : ChocoBase{
 
 # winget base
 # NOTE: msstore sources requires store account.
+#       alternatively, use installer from github.
 class WingetBase : PackageInstallerBase{
 		hidden [string] FormatInstallCommand($pkgName){
 				return "winget install `"$pkgName`" --accept-source-agreements --accept-package-agreements --force"

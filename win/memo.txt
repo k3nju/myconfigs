@@ -18,3 +18,7 @@ hxd
 stiring
 
 
+
+https://www.msys2.org/wiki/Setting-up-SSHd/
+
+
