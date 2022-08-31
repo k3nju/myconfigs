@@ -775,7 +775,7 @@ class WingetBase : PackageInstallerBase{
 				return "winget install `"$pkgName`" --accept-source-agreements --accept-package-agreements --force"
 		}
 		hidden [string] FormatUninstallCommand($pkgName){
-				return "winget uninstall `"$pkgName`" --force"
+				return "winget uninstall `"$pkgName`" --accept-source-agreements --force"
 		}
 		
 		[bool] Runnable(){
