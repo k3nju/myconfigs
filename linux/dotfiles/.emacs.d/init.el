@@ -477,8 +477,14 @@
 	(lsp-signature-auto-activate nil)
 	(lsp-completion-provider :capf)
 	:config
+
+	;; clangd args
 	;; set log=verbose for debug
 	(setq lsp-clients-clangd-args '("-j=2" "--background-index" "--log=error"))
+
+	;; settings per langs
+	(lsp-register-custom-settings
+	 '(("gopls.experimentalWorkspaceModule" t t)))
 	
 	;; lsp-ui
 	(use-package lsp-ui
