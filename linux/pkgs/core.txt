@@ -17,4 +17,4 @@ rsync
 iotop
 ripgrep
 clang
-cmake
+pacman-contrib
