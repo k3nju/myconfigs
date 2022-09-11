@@ -495,7 +495,6 @@
 								([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
 								([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
 								("C-q C-u m" . lsp-ui-imenu)
-								("C-q C-u f i" . lsp-ui-find-implementation))
 		:custom
 		(lsp-lens-enable t)
 
