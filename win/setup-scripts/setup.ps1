@@ -21,10 +21,10 @@ Define-Global WingetEssentialPackages @(
 		"GNU.Emacs"
 		,"voidtools.Everything"
 		,"Google.Chrome"
-		,"MSYS2"
+		,"msys2.msys2"
 		,"7zip.7zip"
-		,"WinMerge"
-		,"teraterm"
+		,"WinMerge.WinMerge"
+		,"Python3"
 )
 
 
@@ -623,14 +623,17 @@ class EnableOpenSSH : TaskBase{
 						return [TaskResult]::RERUN
 				}
 
+				<# disabled. use cmd as a default shell and change to msys2 by msys2shell.bat
 				$this.logger.Info("setting default shell to bash")
-
+				
 				New-ItemProperty `
 					-Path HKLM:\SOFTWARE\OpenSSH `
 					-Name DefaultShell `
 					-Value c:\windows\system32\bash.exe `
 					-PropertyType String `
 					-Force
+				#>
+				
 
 				$this.logger.Info("enabling OpenSSH")
 				$sshd = Get-Service -Name sshd
