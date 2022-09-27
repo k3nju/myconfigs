@@ -25,6 +25,7 @@ Define-Global WingetEssentialPackages @(
 		,"7zip.7zip"
 		,"WinMerge.WinMerge"
 		,"Python3"
+		,"Microsoft.WindowsTerminal"
 )
 
 
