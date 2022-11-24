@@ -137,7 +137,7 @@ pkg_min_desktop: pkg_update pkg_desktop pkg_uninstall
 
 # install and uninstall packages
 installeds:=$(shell pacman -Q|awk '{print $$1}')
-installeds+=$(shell pacman -Qg|awk '{print $$1}')
+installeds+=$(shell pacman -Qg|awk '{print $$1}'|sort|uniq)
 pkgs_dir:=$(here)pkgs/
 
 
@@ -184,7 +184,7 @@ pkg_aur: pkg_core pkg_yay
 	$(foreach	v,$(PKG_AUR),yay -Su --needed --noconfirm -- $(v);)
 
 
-PKG_APP?:=$(filter-out $(installeds),$(shell cat $(pkgs_dir)app.txt))
+PKG_APP?=$(filter-out $(installeds),$(shell cat $(pkgs_dir)app.txt))
 .PHONY: pkg_app
 pkg_app: pkg_desktop
 	$(foreach v,$(PKG_APP),sudo pacman -Su --needed --noconfirm -- $(v);)
