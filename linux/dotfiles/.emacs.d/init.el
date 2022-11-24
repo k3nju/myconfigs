@@ -506,10 +506,10 @@
 
 		;; lsp-ui-sideline
 		(lsp-ui-sideline-enable t)
-		(lsp-ui-sideline-show-code-actions nil)
+		(lsp-ui-sideline-show-code-actions t)
 		(lsp-ui-sideline-show-hover nil)
 		(lsp-ui-sideline-delay 0.2)
-		(lsp-ui-sideline-update-mode 'line)
+		;;(lsp-ui-sideline-update-mode 'line)
 		(lsp-ui-sideline-show-diagnostics t)
 		(lsp-ui-sideline-diagnostic-max-lines 10)
 		(lsp-ui-sideline-diagnostic-max-line-length 150)
