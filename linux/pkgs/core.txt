@@ -9,7 +9,7 @@ mlocate
 tmux
 emacs
 git
-bind-tools
+bind
 curl
 gnu-netcat
 openssh
