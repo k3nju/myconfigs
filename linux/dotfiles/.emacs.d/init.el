@@ -32,6 +32,9 @@
 (when (fboundp 'scroll-bar-mode)
 	(scroll-bar-mode -1))
 
+;; for resizing *Completions* buffer size
+(temp-buffer-resize-mode)
+
 ;; disable bell & screen flashes
 (setq ring-bell-function 'ignore)
 
@@ -137,10 +140,8 @@
 ;; set "C-h" as delete-backward-char, use F1 to see helps(default keybinding)
 (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
 ;; enable cursor to move with M-p and M-p among windows
-(global-set-key (kbd "M-n") 'other-window)
-(global-set-key (kbd "M-p") '(lambda ()
-						 (interactive)
-						 (other-window -1)))
+(global-set-key (kbd "M-n") #'other-window)
+(global-set-key (kbd "M-p") #'(lambda () (interactive) (other-window -1)))
 
 ;; use regexp search as default
 (global-set-key (kbd "C-s") 'isearch-forward-regexp)
@@ -183,11 +184,11 @@
 
 ;; hexl-mode(builtin)
 (use-package hexl
-	:custom (hexl-bits 8))
+	:custom	(hexl-bits 8))
 
 ;; uniquify(builtin)
 (use-package uniquify
-	:config (setq uniquify-buffer-name-style 'forward))
+	:config	(setq uniquify-buffer-name-style 'forward))
 
 ;; recentf(builtin)
 (use-package recentf
@@ -211,6 +212,7 @@
 	(setq ido-use-virtual-buffers t)
 	(setq ido-use-filename-at-point 'guess)
 	(setq ido-enable-regexp t)
+
 	;; ido-vertical-mode
 	(use-package ido-vertical-mode
 		:ensure t
@@ -218,24 +220,28 @@
 		(ido-vertical-mode t)
 		(setq ido-vertical-show-count t)
 		(setq ido-vertical-define-keys 'C-n-and-C-p-only))
+
 	;; ido-completing-read+(ido-ubiquitous)
 	(use-package ido-completing-read+
 		:ensure t
 		:config (ido-ubiquitous-mode t))
+
 	;; amx
 	(use-package amx
 		:ensure t
 		:bind ("M-x" . amx)
-		:config (amx-mode)
-		:custom
-		(amx-backend 'ido)))
+		:config	(amx-mode)
+		;; unworked :init (amx-backend 'ido) and :config (amx-backend 'ido)
+		:custom	(amx-backend 'ido)))
 
 ;; org(builtin)
 (use-package org
 	:ensure t
-	:bind (("C-c c" . org-capture)
-				 ("C-c a" . org-agenda)
-				 ("C-c l" . org-store-link))
+	:bind
+	(("C-c c" . org-capture)
+	 ("C-c a" . org-agenda)
+	 ("C-c l" . org-store-link))
+
 	:custom
 	(org-display-custom-times t) ;; or use setq-default in config
 	(org-time-stamp-custom-formats '("<%Y/%m/%d>" . "<%Y/%m/%d %H:%M:%S>"))
@@ -250,7 +256,7 @@
 	;(org-level-3 ((t (:extend nil :underline t  :weight extra-bold :height 1.0 :foreground "darkseagreen" ))))
 	(org-level-3 ((t (:extend nil :underline t
 														:weight extra-bold :height 1.0 :foreground "#d70000" ))))
-	
+
 	:config
 	(setq org-directory (expand-file-name "org" user-emacs-directory))
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
@@ -258,7 +264,6 @@
 	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
 
 	;;(setq org-use-speed-commands t)
-
 	
 	(setq org-startup-folded 'all)
 	(setq org-startup-indented t)
@@ -297,13 +302,14 @@
 (use-package winner
 	:config (winner-mode 1)
 	:custom (winner-dont-bind-my-keys t)
-	:bind (("C-x p" . 'winner-undo)
-				 ("C-x n" . 'winner-redo)))
+	:bind
+	(("C-x p" . 'winner-undo)
+	 ("C-x n" . 'winner-redo)))
 
 ;; window-number
 (use-package window-number
 	:ensure t
-	;; *not work* :init (window-number-meta-mode)
+	;; unworked :init (window-number-meta-mode)
 	:config (window-number-meta-mode))
 
 ;; which-key
@@ -314,21 +320,19 @@
 ;; goto-chg
 (use-package goto-chg
 	:ensure t
-	:bind (("C-q p" . goto-last-change)
-				 ("C-q n" . goto-last-change-reverse)))
+	:bind
+	(("C-q p" . goto-last-change)
+	 ("C-q n" . goto-last-change-reverse)))
 
 ;; hl-line-mode
 (use-package hl-line
 	:ensure t
-	:init
-	(global-hl-line-mode))
+	:config (global-hl-line-mode))
 
 ;; hl-todo
 (use-package hl-todo
 	:ensure t
-	:init
-	(global-hl-todo-mode)
-	
+	:config (global-hl-todo-mode)
 	:custom
 	(hl-todo-keyword-faces
 	 '(("XXX" . "firebrick")
@@ -343,8 +347,7 @@
 ;; simple-modeline
 (use-package simple-modeline
 	:ensure t
-	:init
-	(simple-modeline-mode)
+	:config (simple-modeline-mode)
 	:custom
 	(simple-modeline-segments
 	 '((simple-modeline-segment-position
@@ -360,40 +363,47 @@
 (use-package vterm
 	:if (eq system-type 'gnu/linux)
 	:ensure t
-	:bind (:map vterm-mode-map
-							("M-p" . nil)
-							("M-n" . nil)
-							("C-t" . nil))
 	:hook (vterm-mode . (lambda () (setq-local global-hl-line-mode nil)))
+	:bind
+	(:map vterm-mode-map
+				("M-p" . nil)
+				("M-n" . nil)
+				("C-t" . nil))
+
 	:config
 	(setq vterm-max-scrollback 10000)
 	(use-package vterm-toggle
 		:ensure t
-		:bind (("C-t" . vterm-toggle)
-					 ("C-c C-t" . vterm-toggle-cd))))
+		:bind
+		(("C-t" . vterm-toggle)
+		 ("C-c C-t" . vterm-toggle-cd))))
 
 ;; company
 (use-package company
 	:ensure t
-	:bind (("C-M-i" . company-complete)
-				 :map company-active-map
-				 ("C-n" . company-select-next)
-				 ("C-p" . company-select-previous)
-				 ("C-j" . company-complete-selection)
-				 ("C-h" . nil))
-	:init
-	(global-company-mode)
+	:hook (prog-mode . global-company-mode)
+	:bind
+	(("C-M-i" . company-complete)
+	 :map company-active-map
+	 ("C-n" . company-select-next)
+	 ("C-p" . company-select-previous)
+	 ("C-j" . company-complete-selection)
+	 ("C-h" . nil))
+	
+	;;:init
+	;;(global-company-mode)
 	:config
 	(setq company-idle-delay 0)
-	(setq company-show-numbers nil)
-	(setq company-tooltip-limit 20)
+	(setq company-tooltip-limit 15)
 	(setq company-selection-wrap-around t))
 
 ;; anzu
 (use-package anzu
 	:ensure t
-	:bind (("M-%" . anzu-isearch-query-replace)
-				 ("C-M-%" . anzu-isearch-query-replace-regexp))
+	:bind
+	(("M-%" . anzu-isearch-query-replace)
+	 ("C-M-%" . anzu-isearch-query-replace-regexp))
+	
 	:config
 	(global-anzu-mode +1)
 	(setq anzu-search-threshold 999))
@@ -416,11 +426,7 @@
 ;; ggtags
 (use-package ggtags
 	:ensure t
-	:bind ("C-q g" . 'ggtags-mode)
-	;:hook (c-mode-common . (lambda ()
-	;(when (derived-mode-p 'c-mode 'c++-mode)
-	;(ggtags-mode 1)))))
-)
+	:bind ("C-q g" . 'ggtags-mode))
 
 ;; dumb-jump
 (use-package dumb-jump
@@ -433,10 +439,11 @@
 ;; projectile
 (use-package projectile
 	:ensure t
-	:init
-	(projectile-mode +1)
-	:bind (:map projectile-mode-map
-							("C-c p" . projectile-command-map)))
+	;; unwork :config (projectile-mode +1)
+	:init (projectile-mode +1)
+	:bind
+	(:map projectile-mode-map
+				("C-c p" . projectile-command-map)))
 
 ;; treemacs
 (use-package treemacs
@@ -452,32 +459,32 @@
 (use-package flycheck
 	:ensure t
 	:config (global-flycheck-mode)
-	:custom
-	(flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
+	:custom (flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
 
 ; flymake(builtin)
 (use-package flymake
 	:disabled
-	:bind (:map flymake-mode-map
-							("C-q C-p" . flymake-goto-prev-error)
-							("C-q C-n" . flymake-goto-next-error)))
+	:bind
+	(:map flymake-mode-map
+				("C-q C-p" . flymake-goto-prev-error)
+				("C-q C-n" . flymake-goto-next-error)))
 
 ;; lsp-mode
 ;; NOTE: Resuires language servers individually.
 ;;			 C/C++: pacman -S clang
-;;			 python: install python-lsp-server for each project
+;;			 python: install python-lsp-server[all] for each project
 ;;			 golang: go get golang.org./x/tools/gopls@latest
 (use-package lsp-mode
 	:ensure t
-	:commands lsp-deferred
+	;;:commands lsp-deferred
 	:hook (prog-mode . lsp-deferred)
 	:custom
 	;;(lsp-log-io t) ;; for debug
 	(lsp-keymap-prefix "C-q l")
 	(lsp-signature-auto-activate nil)
 	(lsp-completion-provider :capf)
+	
 	:config
-
 	;; clangd args
 	;; set log=verbose for debug
 	(setq lsp-clients-clangd-args '("-j=2" "--background-index" "--log=error"))
@@ -491,10 +498,12 @@
 		:ensure t
 		:commands lsp-ui-mode
 		:hook (lsp-mode . lsp-ui-mode)
-		:bind (:map lsp-ui-mode-map
-								([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
-								([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
-								("C-q C-u m" . lsp-ui-imenu))
+		:bind
+		(:map lsp-ui-mode-map
+					([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
+					([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
+					("C-q C-u m" . lsp-ui-imenu))
+		
 		:custom
 		(lsp-lens-enable t)
 
@@ -535,9 +544,13 @@
 	;; clang-format
 	(use-package clang-format
 		:ensure t
-		:bind (("C-q f b" . clang-format-buffer)
-					 ("C-q f r" . clang-format-region))
-		:hook (c-mode-common . (lambda () (add-before-save-hook 'clang-format-buffer)))
+		:bind
+		(("C-q f b" . clang-format-buffer)
+		 ("C-q f r" . clang-format-region))
+		:hook
+		(c-mode-common . (lambda ()
+											 (add-before-save-hook 'clang-format-buffer)))
+		
 		:custom
 		(clang-format-style "file")
 		(clang-format-fallback-style "google")))
@@ -546,11 +559,12 @@
 (use-package go-mode
 	:ensure t
 	:after lsp-mode
-	:hook (go-mode . (lambda ()
-										 (add-before-save-hook
-											(lambda ()
-												(lsp-format-buffer)
-												(lsp-organize-imports))))))
+	:hook
+	(go-mode . (lambda ()
+							 (add-before-save-hook
+								(lambda ()
+									(lsp-organize-imports)
+									(lsp-format-buffer))))))
 
 ;; rust-mode
 (use-package rust-mode
@@ -565,6 +579,16 @@
 ;;	(setq-default c-basic-offset 4)
 ;;	(setq tab-stop-list (number-sequence 4 120 4)))
 	
+
+;; python-mode
+(use-package python
+	:ensure t
+	:after lsp-mode
+	:custom	(lsp-pylsp-plugins-yapf-enabled t)
+	:hook
+	(python-mode . (lambda ()
+									 (add-before-save-hook 'lsp-format-buffer))))
+
 
 ;;
 ;; theme config
