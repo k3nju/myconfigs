@@ -3,11 +3,6 @@
 ;; workaround
 (setq byte-compile-warnings '(cl-functions))
 
-;; need to insert non-graphic chars?
-(global-unset-key (kbd "C-q"))
-;; keep on coding
-(global-unset-key (kbd "C-z"))
-
 
 ;;
 ;; coding system
@@ -137,15 +132,26 @@
 ;; basic key bindings
 ;;
 
+;; need to insert non-graphic chars?
+(global-unset-key (kbd "C-q"))
+;; keep on coding
+(global-unset-key (kbd "C-z"))
+;; zenkaku hankaku
+(setq default-input-method "japanese")
+(global-unset-key (kbd "C-\\"))
+(global-set-key (kbd "<zenkaku-hankaku>") #'toggle-input-method)
+
 ;; set "C-h" as delete-backward-char, use F1 to see helps(default keybinding)
 (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
 ;; enable cursor to move with M-p and M-p among windows
 (global-set-key (kbd "M-n") #'other-window)
 (global-set-key (kbd "M-p") #'(lambda () (interactive) (other-window -1)))
 
-;; use regexp search as default
-(global-set-key (kbd "C-s") 'isearch-forward-regexp)
-(global-set-key (kbd "C-r") 'isearch-backward-regexp)
+;; swap search key bindings
+(global-set-key (kbd "C-s") #'isearch-forward-regexp)
+(global-set-key (kbd "C-r") #'isearch-backward-regexp)
+(global-set-key (kbd "C-M-s") #'isearch-forward)
+(global-set-key (kbd "C-M-r") #'isearch-backward)
 
 
 ;;
@@ -153,7 +159,7 @@
 ;;
 
 (defun add-before-save-hook (f)
-	(add-hook 'before-save-hook f nil 'local))
+	(add-hook #'before-save-hook f nil 'local))
 
 
 ;;
@@ -247,21 +253,33 @@
 	(org-time-stamp-custom-formats '("<%Y/%m/%d>" . "<%Y/%m/%d %H:%M:%S>"))
 
 	:custom-face
-	;(org-level-1 ((t (:extend nil :underline t  :weight extra-bold :height 1.7 :foreground "firebrick"))))
 	(org-level-1 ((t (:extend nil :underline t
-														:weight extra-bold :height 1.3 :foreground "#00cd00"))))
-	;(org-level-2 ((t (:extend nil :underline t  :weight extra-bold :height 1.3 :foreground "steelblue"))))
+														:weight extra-bold :height 1.3 :foreground "#00cd50"))))
 	(org-level-2 ((t (:extend nil :underline t
-														:weight extra-bold :height 1.2 :foreground "#0087ff"))))
-	;(org-level-3 ((t (:extend nil :underline t  :weight extra-bold :height 1.0 :foreground "darkseagreen" ))))
+														:weight extra-bold :height 1.2 :foreground "#d72050"))))
 	(org-level-3 ((t (:extend nil :underline t
-														:weight extra-bold :height 1.0 :foreground "#d70000" ))))
+														:weight extra-bold :height 1.0 :foreground "#00cdcd"))))
+	(org-level-4 ((t (:extend nil :underline t
+														:weight extra-bold :height 1.0 :foreground "#ff8c00"))))
 
 	:config
-	(setq org-directory (expand-file-name "org" user-emacs-directory))
+	;; org-directory precedence
+	;; 1) ~/Dropbox/org/
+	;; 2) ~/.emacs.d/org/
+	;; 3) ~/org/ (org-directory default)
+	(mapc (lambda (v)
+					(let* ((d (expand-file-name "org/" v)))
+						(if (file-exists-p d) (setq org-directory d))))
+				;; priority in reverse order
+				'(user-emacs-directory "~/Dropbox/"))
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
 	(setq org-agenda-files (list org-directory))
 	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
+	(setq org-refile-use-outline-path 'full-file-path)
+	(setq org-outline-path-complete-in-steps nil)
+	(setq org-refile-allow-creating-parent-nodes 'confirm)
+
+	(setq org-archive-location (format "%s/%%s_archive::" (expand-file-name "archive" org-directory)))
 
 	;;(setq org-use-speed-commands t)
 	
@@ -384,18 +402,33 @@
 	:hook (prog-mode . global-company-mode)
 	:bind
 	(("C-M-i" . company-complete)
+	 ;("TAB" . company-indent-or-complete-common)
 	 :map company-active-map
 	 ("C-n" . company-select-next)
 	 ("C-p" . company-select-previous)
 	 ("C-j" . company-complete-selection)
 	 ("C-h" . nil))
 	
-	;;:init
-	;;(global-company-mode)
 	:config
+	(setq company-search-regexp-function #'company-search-flex-regexp)
+	(setq company-minimum-prefix-length 1)
 	(setq company-idle-delay 0)
-	(setq company-tooltip-limit 15)
+	(setq company-tooltip-limit 20)
 	(setq company-selection-wrap-around t))
+
+;; migemo
+(use-package migemo
+	:if (executable-find "cmigemo")
+	;; supress lsp warnings
+	:commands migemo-init
+	:hook (after-init . migemo-init)
+	:ensure t
+	:config
+	(setq migemo-options '("-q" "--emacs"))
+	(setq migemo-dictionary "/usr/share/migemo/utf-8/migemo-dict")
+	(setq migemo-user-dictionary nil)
+	(setq migemo-regex-dictionary nil)
+	(setq migemo-coding-system 'utf-8-unix))
 
 ;; anzu
 (use-package anzu
@@ -629,6 +662,8 @@
 		(setq lsp-clients-python-command '("c:\\python27\\scripts\\pyls.exe"))))
 
 
+;;(profiler-report)
+;;(profiler-stop)
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -638,19 +673,14 @@
 	 '("f6665ce2f7f56c5ed5d91ed5e7f6acb66ce44d0ef4acfaa3a42c7cfe9e9a9013" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" default))
  '(global-flycheck-mode t)
  '(package-selected-packages
-	 '(dumb-jump yasnippet-snippets window-number which-key wgrep vterm-toggle use-package treemacs-projectile simple-modeline rust-mode powershell mood-line lsp-ui ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode gnu-elpa-keyring-update ggtags flycheck doom-themes csv-mode csharp-mode company clang-format anzu amx alect-themes)))
-
+	 '(migemo dumb-jump yasnippet-snippets window-number which-key wgrep vterm-toggle use-package treemacs-projectile simple-modeline rust-mode powershell mood-line lsp-ui ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode gnu-elpa-keyring-update ggtags flycheck doom-themes csv-mode csharp-mode company clang-format anzu amx alect-themes)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(lsp-ui-sideline-symbol-info ((t (:background "default"))))
+ '(lsp-ui-sideline-symbol-info ((t (:background "default"))) t)
  '(markdown-code-face ((t (:background "grey10"))))
- '(org-level-1 ((t (:extend nil :underline t :weight extra-bold :height 1.3 :foreground "#00cd00"))))
- '(org-level-2 ((t (:extend nil :underline t :weight extra-bold :height 1.2 :foreground "#0087ff"))))
- '(org-level-3 ((t (:extend nil :underline t :weight extra-bold :height 1.0 :foreground "#d70000")))))
-
-
-;;(profiler-report)
-;;(profiler-stop)
+ '(org-level-1 ((t (:extend nil :underline t :weight extra-bold :height 1.3 :foreground "#00cd00"))) t)
+ '(org-level-2 ((t (:extend nil :underline t :weight extra-bold :height 1.2 :foreground "#0087ff"))) t)
+ '(org-level-3 ((t (:extend nil :underline t :weight extra-bold :height 1.0 :foreground "#d70000"))) t))

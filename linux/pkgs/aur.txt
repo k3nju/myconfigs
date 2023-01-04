@@ -4,3 +4,4 @@ nvidia-470xx-utils
 office-code-pro
 global
 ratslap
+cmigemo-git
