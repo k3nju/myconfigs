@@ -419,10 +419,10 @@
 ;; migemo
 (use-package migemo
 	:if (executable-find "cmigemo")
+	:ensure t
 	;; supress lsp warnings
 	:commands migemo-init
 	:hook (after-init . migemo-init)
-	:ensure t
 	:config
 	(setq migemo-options '("-q" "--emacs"))
 	(setq migemo-dictionary "/usr/share/migemo/utf-8/migemo-dict")
