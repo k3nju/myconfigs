@@ -305,7 +305,16 @@
 					("t" "Task" entry (file+headline "tasks.org" "tasks") "* TODO %?\n")))
 
 	(setq org-src-tab-acts-natively t)
-	(setq org-src-preserve-indentation t))
+	(setq org-src-preserve-indentation t)
+
+	;; org-sidebar
+	(use-package org-sidebar
+		:ensure t
+		:bind ("C-q o s" . org-sidebar-toggle)
+		:config
+		(setq org-sidebar-side 'left)
+		(setq org-sidebar-default-fns '(org-sidebar-tree-view-buffer
+																		org-sidebar--todo-items))))
 
 ;; window(builtin)
 (use-package window
@@ -402,7 +411,7 @@
 	:hook (prog-mode . global-company-mode)
 	:bind
 	(("C-M-i" . company-complete)
-	 ;("TAB" . company-indent-or-complete-common)
+	 ;;("TAB" . company-indent-or-complete-common)
 	 :map company-active-map
 	 ("C-n" . company-select-next)
 	 ("C-p" . company-select-previous)
@@ -673,7 +682,7 @@
 	 '("f6665ce2f7f56c5ed5d91ed5e7f6acb66ce44d0ef4acfaa3a42c7cfe9e9a9013" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" default))
  '(global-flycheck-mode t)
  '(package-selected-packages
-	 '(migemo dumb-jump yasnippet-snippets window-number which-key wgrep vterm-toggle use-package treemacs-projectile simple-modeline rust-mode powershell mood-line lsp-ui ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode gnu-elpa-keyring-update ggtags flycheck doom-themes csv-mode csharp-mode company clang-format anzu amx alect-themes)))
+	 '(org-sidebar migemo dumb-jump yasnippet-snippets window-number which-key wgrep vterm-toggle use-package treemacs-projectile simple-modeline rust-mode powershell mood-line lsp-ui ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode gnu-elpa-keyring-update ggtags flycheck doom-themes csv-mode csharp-mode company clang-format anzu amx alect-themes)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -681,6 +690,6 @@
  ;; If there is more than one, they won't work right.
  '(lsp-ui-sideline-symbol-info ((t (:background "default"))) t)
  '(markdown-code-face ((t (:background "grey10"))))
- '(org-level-1 ((t (:extend nil :underline t :weight extra-bold :height 1.3 :foreground "#00cd00"))) t)
- '(org-level-2 ((t (:extend nil :underline t :weight extra-bold :height 1.2 :foreground "#0087ff"))) t)
- '(org-level-3 ((t (:extend nil :underline t :weight extra-bold :height 1.0 :foreground "#d70000"))) t))
+ '(org-level-1 ((t (:extend nil :underline t :weight extra-bold :height 1.3 :foreground "#00cd00"))))
+ '(org-level-2 ((t (:extend nil :underline t :weight extra-bold :height 1.2 :foreground "#0087ff"))))
+ '(org-level-3 ((t (:extend nil :underline t :weight extra-bold :height 1.0 :foreground "#d70000")))))
