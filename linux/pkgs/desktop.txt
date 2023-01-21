@@ -2,7 +2,6 @@ xfce4
 xorg-server
 fcitx5
 fcitx5-im
-fcitx5-mozc
 pavucontrol-qt
 noto-fonts
 noto-fonts-cjk

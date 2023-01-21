@@ -1,3 +1,4 @@
+! followings are old configs. currently font is configured in init.el
 !Emacs.geometry:180x50
 !Emacs.font: AnonymousPro-13
 !Emacs.font: Monaco-10
@@ -6,3 +7,5 @@
 !Emacs.font: SourceHanCodeJP-11
 !Emacs.font: OfficeCodePro-10
 
+! disable XIM/fcitx on emacs
+Emacs*UseXIM: false

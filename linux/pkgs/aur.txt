@@ -4,4 +4,7 @@ nvidia-470xx-utils
 office-code-pro
 global
 ratslap
+fcitx5-mozc-ut
+emacs-mozc
 cmigemo-git
+
