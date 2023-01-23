@@ -83,36 +83,58 @@
 ;; yes or no
 (fset 'yes-or-no-p 'y-or-n-p)
 
-;; font & frame
+;; font
 ;;(set-frame-font "Input 12" nil t)
 ;;(set-frame-font "Office Code Pro 11")
 ;;(set-frame-font "Noto Sans Mono CJK JP 10" nil t)
-(when (and window-system (eq system-type 'gnu/linux))
-	(let* ((name (if (eq system-type 'windows-nt) "InputMonoCondensed" "input mono condensed")))
-		;; create fontset
-		(when (find-font (font-spec :name name))
-			(create-fontset-from-fontset-spec
-			 (font-xlfd-name
-				(font-spec :name name
-									 :size 15
-									 :registry "fontset-myfs")))
-			(add-to-list 'default-frame-alist '(font . "fontset-myfs")))
-		;; set font for jp lang to fontset
-		(when (find-font (font-spec :name "ipaexgothic"))
-			(set-fontset-font
-			 "fontset-myfs"
-			 'japanese-jisx0213.2004-1
-			 (font-spec :name "ipaexgothic")
-			 nil
-			 'append))))
-(when (and window-system (eq system-type 'windows-nt))
-	(set-frame-font "MS Gothic 12" nil t))
+(when (and (eq window-system 'x) (eq system-type 'gnu/linux))
+	(let* ((mappings '((:font "input mono condensed"
+											:charset ascii)
+										 (:font "ipaexgothic"
+											:charset japanese-jisx0213.2004-1
+											;; to supress flicking
+											:rescale 0.999)))
+				 ;; which should I use?
+				 ;;(_myfontset (create-fontset-from-ascii-font
+				 ;;							(format "%s-%d:weight=normal:slant=normal" "input mono condensed" 15) nil "myfontset"))
+				 (myfontset (create-fontset-from-fontset-spec
+										 (font-xlfd-name
+											(font-spec :name "myfontset"
+																 :weight 'normal
+																 :slant 'normal
+																 :width 'condensed
+																 :size 13.0 ;; use floating point for point size.
+																 :spacing 'M
+																 :registry "fontset-myfontset")))))
+		(mapc
+		 (lambda (m)
+			 (let* ((font (plist-get m :font))
+							(charset (plist-get m :charset))
+							(rescale (plist-get m :rescale))
+							(fspec (font-spec :name font)))
+				 (when (find-font fspec)
+					 (set-fontset-font myfontset charset fspec nil 'append))
+				 (when rescale
+					 (add-to-list 'face-font-rescale-alist (cons (format ".*%s.*" font) rescale)))))
+		 mappings)
+		
+		(add-to-list 'default-frame-alist '(font . "fontset-myfontset"))))
+		
+		;;(add-to-list 'face-font-rescale-alist '(".*ipaexgothic.*" . 0.999))))
+		
+
+(when (and (eq window-system 'w32) (eq system-type 'windows-nt))
+	;; in windows, not "input mono condensed", use CamelCase
+	;;(set-frame-font "InputMonoCondensed")
+	(set-frame-font "MS Gothic 12" nil t)) ;; workaround
+
+;; frame sizing and positioning
 (when window-system
-	;; frame configs
 	(dolist (v '((width . 160)
 							 (height . 50)
-							 (test . 10)
-							 (vertical-scroll-bars)))
+							 (top . 0)
+							 ;;(left . (- 1000)) worked but doen't make mush sense
+							 ))
 		(add-to-list 'default-frame-alist v)))
 
 
@@ -139,7 +161,14 @@
 ;; zenkaku hankaku
 (setq default-input-method "japanese")
 (global-unset-key (kbd "C-\\"))
-(global-set-key (kbd "<zenkaku-hankaku>") #'toggle-input-method)
+(global-set-key
+ (kbd "<zenkaku-hankaku>")
+ #'(lambda ()
+		 (interactive)
+		 ;; to enable mozc overlay candidate drawing
+		 (toggle-truncate-lines)
+		 (toggle-input-method)))
+	 
 
 ;; set "C-h" as delete-backward-char, use F1 to see helps(default keybinding)
 (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
@@ -190,7 +219,8 @@
 
 ;; hexl-mode(builtin)
 (use-package hexl
-	:custom	(hexl-bits 8))
+	:config
+	(setq hexl-bits 8))
 
 ;; uniquify(builtin)
 (use-package uniquify
@@ -246,21 +276,18 @@
 	:bind
 	(("C-c c" . org-capture)
 	 ("C-c a" . org-agenda)
-	 ("C-c l" . org-store-link))
-
-	:custom
-	(org-display-custom-times t) ;; or use setq-default in config
-	(org-time-stamp-custom-formats '("<%Y/%m/%d>" . "<%Y/%m/%d %H:%M:%S>"))
+	 ("C-c l" . org-store-link)
+	 :map org-mode-map
+	 ;; on terminal, "C-," is recognized to ",". on GUI works well.
+	 ;; "C-c ," is default bound to org-priority, but change it to org-insert-structure-template
+	 ;; for usability terminal and GUI
+	 ("C-c ," . org-insert-structure-template))
 
 	:custom-face
-	(org-level-1 ((t (:extend nil :underline t
-														:weight extra-bold :height 1.3 :foreground "#00cd50"))))
-	(org-level-2 ((t (:extend nil :underline t
-														:weight extra-bold :height 1.2 :foreground "#d72050"))))
-	(org-level-3 ((t (:extend nil :underline t
-														:weight extra-bold :height 1.0 :foreground "#00cdcd"))))
-	(org-level-4 ((t (:extend nil :underline t
-														:weight extra-bold :height 1.0 :foreground "#ff8c00"))))
+	;; :extend uneffected?
+	(org-level-1 ((t (:extend t :underline t :weight ultra-bold :height 1.5))))
+	(org-level-2 ((t (:weight bold :height 1.3))))
+	(org-level-3 ((t (:weight normal :height 1.1))))
 
 	:config
 	;; org-directory precedence
@@ -307,6 +334,12 @@
 	(setq org-src-tab-acts-natively t)
 	(setq org-src-preserve-indentation t)
 
+	(setq org-display-custom-times t) ;; or use setq-default in config
+	(setq org-time-stamp-custom-formats '("<%Y/%m/%d>" . "<%Y/%m/%d %H:%M:%S>"))
+	
+	;; enable underline to EOL on headings
+	(setq org-fontify-whole-heading-line t)
+
 	;; org-sidebar
 	(use-package org-sidebar
 		:ensure t
@@ -318,20 +351,22 @@
 
 ;; window(builtin)
 (use-package window
-	:custom
-	(display-buffer-alist
-	 '(("\\*Warnings\\*"
-			(display-buffer-reuse-mode-window display-buffer-below-selected))
-		 ("\\*vterm\\*"
-			(display-buffer-reuse-window display-buffer-below-selected)))))
+	:config
+	(setq display-buffer-alist
+				'(
+					("\\*Warnings\\*"
+					 (display-buffer-reuse-mode-window display-buffer-below-selected))
+					("\\*vterm\\*"
+					 (display-buffer-reuse-window display-buffer-below-selected)))))
 
 ;; winner(builtin)
 (use-package winner
 	:config (winner-mode 1)
-	:custom (winner-dont-bind-my-keys t)
 	:bind
 	(("C-x p" . 'winner-undo)
-	 ("C-x n" . 'winner-redo)))
+	 ("C-x n" . 'winner-redo))
+	:config
+	(setq winner-dont-bind-my-keys t))
 
 ;; window-number
 (use-package window-number
@@ -353,37 +388,38 @@
 
 ;; hl-line-mode
 (use-package hl-line
+	:disabled
 	:ensure t
 	:config (global-hl-line-mode))
 
 ;; hl-todo
 (use-package hl-todo
 	:ensure t
-	:config (global-hl-todo-mode)
-	:custom
-	(hl-todo-keyword-faces
-	 '(("XXX" . "firebrick")
-		 ("TODO" . "firebrick")
-		 ("DONE" . "firebrick")
-		 ("HACK" . "firebrick")
-		 ("NOTE" . "firebrick")
-		 ("FIXME" . "firebrick")))
-	(hl-todo-highlight-punctuation ":")
-	(hl-todo-require-punctuation t))
+	:config
+	(setq hl-todo-keyword-faces
+				'(("XXX" . "firebrick")
+					("TODO" . "firebrick")
+					("DONE" . "firebrick")
+					("HACK" . "firebrick")
+					("NOTE" . "firebrick")
+					("FIXME" . "firebrick")))
+	(setq hl-todo-highlight-punctuation ":")
+	(setq hl-todo-require-punctuation t)
+	(global-hl-todo-mode))
 
 ;; simple-modeline
 (use-package simple-modeline
 	:ensure t
-	:config (simple-modeline-mode)
-	:custom
-	(simple-modeline-segments
-	 '((simple-modeline-segment-position
-			simple-modeline-segment-modified
-			simple-modeline-segment-buffer-name
-			simple-modeline-segment-vc)
-		 (simple-modeline-segment-major-mode
-			simple-modeline-segment-eol
-			simple-modeline-segment-encoding))))
+	:config 
+	(setq simple-modeline-segments
+				'((simple-modeline-segment-position
+					 simple-modeline-segment-modified
+					 simple-modeline-segment-buffer-name
+					 simple-modeline-segment-vc)
+					(simple-modeline-segment-major-mode
+					 simple-modeline-segment-eol
+					 simple-modeline-segment-encoding)))
+	(simple-modeline-mode))
 
 ;; vterm
 ;; NOTE: need external configuration to .bashrc
@@ -425,6 +461,23 @@
 	(setq company-tooltip-limit 20)
 	(setq company-selection-wrap-around t))
 
+;; mozc.el
+(use-package mozc
+	:ensure t
+	:config
+	(setq default-input-method "japanese-mozc")
+	;; unwork if truncate-lines != nil
+	;;(setq mozc-candidate-style 'overlay))
+
+	(use-package mozc-cand-posframe
+		:ensure t
+		:after mozc
+		:custom-face
+		(mozc-cand-posframe-normal-face ((t (:foreground nil :background nil))))
+		(mozc-cand-posframe-focused-face ((t (:inherit link :foreground nil :background nil))))
+		:config
+		(setq mozc-candidate-style 'posframe)))
+	
 ;; migemo
 (use-package migemo
 	:if (executable-find "cmigemo")
@@ -490,7 +543,9 @@
 ;; treemacs
 (use-package treemacs
 	:ensure t
-	:bind ("C-q t" . treemacs))
+	:bind ("C-q t" . treemacs)
+	:config
+	(setq treemacs-no-png-images t))
 
 ;; treemacs-projectile
 (use-package treemacs-projectile
@@ -500,8 +555,9 @@
 ;; flycheck
 (use-package flycheck
 	:ensure t
-	:config (global-flycheck-mode)
-	:custom (flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
+	:config
+	(setq flycheck-disabled-checkers '(emacs-lisp-checkdoc))
+	(global-flycheck-mode))
 
 ; flymake(builtin)
 (use-package flymake
@@ -520,19 +576,20 @@
 	:ensure t
 	;;:commands lsp-deferred
 	:hook (prog-mode . lsp-deferred)
-	:custom
-	;;(lsp-log-io t) ;; for debug
-	(lsp-keymap-prefix "C-q l")
-	(lsp-signature-auto-activate nil)
-	(lsp-completion-provider :capf)
 	
 	:config
+	;;(setq lsp-log-io t) ;; for debug
+	(setq lsp-keymap-prefix "C-q l")
+	(setq lsp-warn-no-matched-clients nil)
+	(setq lsp-signature-auto-activate nil)
+	(setq lsp-completion-provider :capf)
+	
 	;; clangd args
 	;; set log=verbose for debug
 	(setq lsp-clients-clangd-args '("-j=2" "--background-index" "--log=error"))
 
 	;; settings per langs
-	(lsp-register-custom-settings
+	(setq lsp-register-custom-settings
 	 '(("gopls.experimentalWorkspaceModule" t t)))
 	
 	;; lsp-ui
@@ -546,33 +603,32 @@
 					([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
 					("C-q C-u m" . lsp-ui-imenu))
 		
-		:custom
-		(lsp-lens-enable t)
-
-		;; lsp-ui-doc
-		(lsp-ui-doc-enable nil)
-		(lsp-ui-doc-header t)
-		(lsp-ui-doc-include-signature t)
-		(lsp-ui-doc-delay 2)
-
-		;; lsp-ui-sideline
-		(lsp-ui-sideline-enable t)
-		(lsp-ui-sideline-show-code-actions t)
-		(lsp-ui-sideline-show-hover nil)
-		(lsp-ui-sideline-delay 0.2)
-		;;(lsp-ui-sideline-update-mode 'line)
-		(lsp-ui-sideline-show-diagnostics t)
-		(lsp-ui-sideline-diagnostic-max-lines 10)
-		(lsp-ui-sideline-diagnostic-max-line-length 150)
-
-		;; lsp-ui-peek
-		(lsp-ui-peek-always-show t)
-		
 		:custom-face
 		(lsp-ui-sideline-symbol-info ((t (:background "default"))))
 		;; background face of sideline and doc
 		(markdown-code-face ((t (:background "grey10"))))
-		))
+
+		:config
+		(setq lsp-lens-enable t)
+
+		;; lsp-ui-doc
+		(setq lsp-ui-doc-enable nil)
+		(setq lsp-ui-doc-header t)
+		(setq lsp-ui-doc-include-signature t)
+		(setq lsp-ui-doc-delay 2)
+
+		;; lsp-ui-sideline
+		(setq lsp-ui-sideline-enable t)
+		(setq lsp-ui-sideline-show-code-actions t)
+		(setq lsp-ui-sideline-show-hover nil)
+		(setq lsp-ui-sideline-delay 0.2)
+		;;(lsp-ui-sideline-update-mode 'line)
+		(setq lsp-ui-sideline-show-diagnostics t)
+		(setq lsp-ui-sideline-diagnostic-max-lines 10)
+		(setq lsp-ui-sideline-diagnostic-max-line-length 150)
+
+		;; lsp-ui-peek
+		(setq lsp-ui-peek-always-show t)))
 
 ;; cc-mode(builtin)
 (use-package cc-mode
@@ -593,9 +649,9 @@
 		(c-mode-common . (lambda ()
 											 (add-before-save-hook 'clang-format-buffer)))
 		
-		:custom
-		(clang-format-style "file")
-		(clang-format-fallback-style "google")))
+		:config
+		(setq clang-format-style "file")
+		(setq clang-format-fallback-style "google")))
 
 ;; go-mode
 (use-package go-mode
@@ -626,10 +682,11 @@
 (use-package python
 	:ensure t
 	:after lsp-mode
-	:custom	(lsp-pylsp-plugins-yapf-enabled t)
 	:hook
 	(python-mode . (lambda ()
-									 (add-before-save-hook 'lsp-format-buffer))))
+									 (add-before-save-hook 'lsp-format-buffer)))
+	:config
+	(setq lsp-pylsp-plugins-yapf-enabled t))
 
 
 ;;
@@ -639,19 +696,33 @@
 					 (boundp 'custom-theme-load-path))
 	(add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory)))
 
-;;	(use-package modus-themes
+;;(use-package modus-themes
+;;	:ensure t
+;;	:config
+;;	(load-theme 'modus-vivendi t)
+;;	;; disable line highlight
+;;	(global-hl-line-mode -1)))
+;;(when window-system
+;;	(use-package alect-themes
 ;;		:ensure t
 ;;		:config
-;;		(load-theme 'modus-vivendi t)
-;;		;; disable line highlight
-;;		(global-hl-line-mode -1)))
-(when window-system
-	(use-package alect-themes
-		:ensure t
-		:config
-		(load-theme 'alect-black t)))
+;;		(load-theme 'alect-black t)))
 
+(use-package doom-themes
+	:ensure t
+	:config
+	(setq doom-themes-enable-bold t)
+	(setq doom-themes-treemacs-theme "doom-one")
+	;; treemacs integration requires icons
+	;;(doom-themes-treemacs-config)
+	(doom-themes-org-config)
 
+	(load-theme
+	 (if window-system
+			 'doom-tokyo-night
+		 'doom-badger) t))
+
+	
 ;;
 ;; windows customize
 ;;
@@ -673,13 +744,18 @@
 
 ;;(profiler-report)
 ;;(profiler-stop)
+
+;;
+;; end of origin
+;;
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-	 '("f6665ce2f7f56c5ed5d91ed5e7f6acb66ce44d0ef4acfaa3a42c7cfe9e9a9013" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" default))
+	 '("a44e2d1636a0114c5e407a748841f6723ed442dc3a0ed086542dc71b92a87aee" "631c52620e2953e744f2b56d102eae503017047fb43d65ce028e88ef5846ea3b" "2dd4951e967990396142ec54d376cced3f135810b2b69920e77103e0bcedfba9" "6945dadc749ac5cbd47012cad836f92aea9ebec9f504d32fe89a956260773ca4" "443e2c3c4dd44510f0ea8247b438e834188dc1c6fb80785d83ad3628eadf9294" "60ada0ff6b91687f1a04cc17ad04119e59a7542644c7c59fc135909499400ab8" "1a1ac598737d0fcdc4dfab3af3d6f46ab2d5048b8e72bc22f50271fd6d393a00" "7e068da4ba88162324d9773ec066d93c447c76e9f4ae711ddd0c5d3863489c52" "7ea883b13485f175d3075c72fceab701b5bf76b2076f024da50dff4107d0db25" "a9abd706a4183711ffcca0d6da3808ec0f59be0e8336868669dc3b10381afb6f" "e3daa8f18440301f3e54f2093fe15f4fe951986a8628e98dcd781efbec7a46f2" "944d52450c57b7cbba08f9b3d08095eb7a5541b0ecfb3a0a9ecd4a18f3c28948" "7a424478cb77a96af2c0f50cfb4e2a88647b3ccca225f8c650ed45b7f50d9525" "7153b82e50b6f7452b4519097f880d968a6eaf6f6ef38cc45a144958e553fbc6" "a0feb1322de9e26a4d209d1cfa236deaf64662bb604fa513cca6a057ddf0ef64" "ab04c00a7e48ad784b52f34aa6bfa1e80d0c3fcacc50e1189af3651013eb0d58" "04dd0236a367865e591927a3810f178e8d33c372ad5bfef48b5ce90d4b476481" "f6665ce2f7f56c5ed5d91ed5e7f6acb66ce44d0ef4acfaa3a42c7cfe9e9a9013" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" default))
  '(global-flycheck-mode t)
  '(package-selected-packages
 	 '(org-sidebar migemo dumb-jump yasnippet-snippets window-number which-key wgrep vterm-toggle use-package treemacs-projectile simple-modeline rust-mode powershell mood-line lsp-ui ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode gnu-elpa-keyring-update ggtags flycheck doom-themes csv-mode csharp-mode company clang-format anzu amx alect-themes)))
@@ -688,8 +764,4 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(lsp-ui-sideline-symbol-info ((t (:background "default"))) t)
- '(markdown-code-face ((t (:background "grey10"))))
- '(org-level-1 ((t (:extend nil :underline t :weight extra-bold :height 1.3 :foreground "#00cd00"))))
- '(org-level-2 ((t (:extend nil :underline t :weight extra-bold :height 1.2 :foreground "#0087ff"))))
- '(org-level-3 ((t (:extend nil :underline t :weight extra-bold :height 1.0 :foreground "#d70000")))))
+ )
