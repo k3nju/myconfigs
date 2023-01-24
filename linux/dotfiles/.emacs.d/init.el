@@ -165,8 +165,9 @@
  (kbd "<zenkaku-hankaku>")
  #'(lambda ()
 		 (interactive)
-		 ;; to enable mozc overlay candidate drawing
-		 (toggle-truncate-lines)
+		 ;; to enable mozc overlay candidate drawing,
+		 ;; truncate-lines must be enabled.
+		 ;;(toggle-truncate-lines)
 		 (toggle-input-method)))
 	 
 
