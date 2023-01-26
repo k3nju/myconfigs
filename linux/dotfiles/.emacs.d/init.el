@@ -464,6 +464,7 @@
 
 ;; mozc.el
 (use-package mozc
+	:if window-system
 	:ensure t
 	:config
 	(setq default-input-method "japanese-mozc")
