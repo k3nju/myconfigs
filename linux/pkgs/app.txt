@@ -10,5 +10,4 @@ chromium
 firefox
 thunderbird
 hexchat
-cawbird
 
