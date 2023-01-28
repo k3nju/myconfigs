@@ -299,7 +299,7 @@
 					(let* ((d (expand-file-name "org/" v)))
 						(if (file-exists-p d) (setq org-directory d))))
 				;; priority in reverse order
-				'(user-emacs-directory "~/Dropbox/"))
+				(list user-emacs-directory "~/Dropbox/"))
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
 	(setq org-agenda-files (list org-directory))
 	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
