@@ -302,6 +302,8 @@
 				(list user-emacs-directory "~/Dropbox/"))
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
 	(setq org-agenda-files (list org-directory))
+	(setq org-agenda-custom-commands
+				'(("1" "all level 1 headings" tags "LEVEL=1")))
 	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
 	(setq org-refile-use-outline-path 'full-file-path)
 	(setq org-outline-path-complete-in-steps nil)
@@ -688,7 +690,13 @@
 	(python-mode . (lambda ()
 									 (add-before-save-hook 'lsp-format-buffer)))
 	:config
-	(setq lsp-pylsp-plugins-yapf-enabled t))
+	(let* ((cands '((lsp-pylsp-plugins-black-enabled . "black")
+									(lsp-pylsp-plugins-yapf-enabled . "yapf"))))
+		(dolist (c cands)
+			(if (executable-find (cdr c))
+					(progn
+						(set (car c) t)
+						(return))))))
 
 
 ;;
