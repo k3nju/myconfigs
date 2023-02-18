@@ -274,6 +274,7 @@
 ;; org(builtin)
 (use-package org
 	:ensure t
+	:init (setq org-display-custom-times t) ;; must be in :init
 	:bind
 	(("C-c c" . org-capture)
 	 ("C-c a" . org-agenda)
@@ -326,19 +327,19 @@
 					(plain-list-item . nil)))
 	(setq org-cycle-separator-lines 1)
 
+	;; to enable time stamp overlay, set org-display-custom-times is t in :init
+	(setq org-time-stamp-custom-formats '("<%Y/%m/%d>" . "<%Y/%m/%d %H:%M:%S>"))
+	
 	(setq org-todo-keywords
 				'((sequence "TODO(t)" "|" "DONE(d)" "CANCELED(c)")))
 	(setq org-log-done 'time)
-	
+
 	(setq org-capture-templates
-				'(("n" "Note" entry (file+headline "notes.org" "notes") "* %?\n %U\n %i\n %a")
-					("t" "Task" entry (file+headline "tasks.org" "tasks") "* TODO %?\n")))
+				'(("n" "Notes" entry (file+headline "notes.org" "notes") "* %?\n%T\n" :empty-lines 1)
+					("t" "Tasks" entry (file+headline "tasks.org" "tasks") "* TODO %?\n")))
 
 	(setq org-src-tab-acts-natively t)
 	(setq org-src-preserve-indentation t)
-
-	(setq org-display-custom-times t) ;; or use setq-default in config
-	(setq org-time-stamp-custom-formats '("<%Y/%m/%d>" . "<%Y/%m/%d %H:%M:%S>"))
 	
 	;; enable underline to EOL on headings
 	(setq org-fontify-whole-heading-line t)
@@ -690,13 +691,9 @@
 	(python-mode . (lambda ()
 									 (add-before-save-hook 'lsp-format-buffer)))
 	:config
-	(let* ((cands '((lsp-pylsp-plugins-black-enabled . "black")
-									(lsp-pylsp-plugins-yapf-enabled . "yapf"))))
-		(dolist (c cands)
-			(if (executable-find (cdr c))
-					(progn
-						(set (car c) t)
-						(return))))))
+	(if (executable-find "black")
+			(setq lsp-pylsp-plugins-black-enabled t)))
+
 
 
 ;;
