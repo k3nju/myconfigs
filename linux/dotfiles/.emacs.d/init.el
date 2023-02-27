@@ -317,7 +317,8 @@
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
 	(setq org-agenda-files (list org-directory))
 	(setq org-agenda-custom-commands
-				'(("1" "all level 1 headings" tags "LEVEL=1")))
+				'(("1" "All level 1 headings" tags "LEVEL=1")
+					("p" "List projects" tags "+LEVEL=1&+project")))
 	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
 	(setq org-refile-use-outline-path 'full-file-path)
 	(setq org-refile-allow-creating-parent-nodes 'confirm)
