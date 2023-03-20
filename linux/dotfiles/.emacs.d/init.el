@@ -779,13 +779,9 @@
 ;;	(load-theme 'modus-vivendi t)
 ;;	;; disable line highlight
 ;;	(global-hl-line-mode -1)))
-;;(when window-system
-;;	(use-package alect-themes
-;;		:ensure t
-;;		:config
-;;		(load-theme 'alect-black t)))
 
 (use-package doom-themes
+	:if (eq system-type 'gnu/linux)
 	:ensure t
 	:config
 	(setq doom-themes-enable-bold t)
@@ -798,6 +794,13 @@
 	 (if window-system
 			 'doom-tokyo-night
 		 'doom-badger) t))
+
+;; theme for windows
+(use-package alect-themes
+	:if (and (eq window-system 'w32) (eq system-type 'window-nt))
+	:ensure t
+	:config
+	(load-theme 'alect-black t))
 
 	
 ;;
