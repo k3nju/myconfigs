@@ -797,7 +797,7 @@
 
 ;; theme for windows
 (use-package alect-themes
-	:if (and (eq window-system 'w32) (eq system-type 'window-nt))
+	:if (and (eq window-system 'w32) (eq system-type 'windows-nt))
 	:ensure t
 	:config
 	(load-theme 'alect-black t))
