@@ -324,8 +324,10 @@
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
 	(setq org-agenda-files (list org-directory misc-notes-directory))
 	(setq org-agenda-custom-commands
-				'(("1" "All level 1 headings" tags "LEVEL=1")
-					("p" "List projects" tags "+LEVEL=1&+project")))
+				'(("j" "[J]ournals" tags "+journal&+LEVEL=2&+TIMESTAMP>=\"<-1m>\""
+					 ((org-agenda-files (list org-default-notes-file))))
+					("1" "all level [1] headings" tags "LEVEL=1")
+					("p" "[P]rojects" tags "+project&+LEVEL=1")))
 	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
 	(setq org-refile-use-outline-path 'full-file-path)
 	(setq org-refile-allow-creating-parent-nodes 'confirm)
@@ -373,12 +375,13 @@
 
 	(setq org-capture-templates
 				'(;;("n" "Notes" entry (file+headline "notes.org" "notes") "* %?\n%T\n" :empty-lines 1)
-					("n" "Primary notes" entry (file "notes.org") "* %?\n%T\n" :empty-lines 1 :kill-buffer t :prepend t)
-					("d" "Diary" entry (file "diary.org") "* %T\n%?\n" :empty-lines 1 :kill-buffer t :prepend t )
+					("n" "[N]otes" entry (file "notes.org") "* %?\n%T\n" :empty-lines 1 :kill-buffer 1)
 					;; NOTE: plain cant refile to other org files
-					("m" "Misc notes" plain (file create-misc-note-file) "* %?\n%T\n"
-					 :misc-note t :empty-lines 1 :kill-buffer t)))
-
+					("m" "[M]isc notes" plain (file create-misc-note-file) "* %?\n%T\n"
+					 :misc-note t :empty-lines 1 :kill-buffer t)
+					("j" "[J]ournals" entry (file+headline "notes.org" "journals") "* %T %?\n" :empty-lines 1 :kill-buffer t :prepend t)
+					("d" "[D]iary" entry (file "diary.org") "* %T\n%?\n" :empty-lines 1 :kill-buffer t :prepend t )))
+	
 	(setq org-src-tab-acts-natively t)
 	(setq org-src-preserve-indentation t)
 	
