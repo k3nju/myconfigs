@@ -299,24 +299,13 @@
 	(org-level-3 ((t (:weight bold :height 1.1))))
 
 	:hook
-	(org-capture-prepare-finalize . (lambda ()
-																		;; HACK: don't save if capture aborted.
-																		(if org-note-abort
-																				(org-capture-put :no-save t))))
-
 	(org-capture-after-finalize . (lambda ()
-																	;; HACK: save or ignore note buffer without confirmation
-																	(let* ((note-buffer (org-capture-get :buffer))
-																				 (note-file-name (buffer-file-name note-buffer)))
-																		;; to clear modified, ignore or save modifications
-																		(with-current-buffer note-buffer
-																			(if org-note-abort
-																					(set-buffer-modified-p nil)
-																				(save-buffer)))
-																		;; kill buffer without confirmation because of cleared modified.
-																		(kill-buffer note-buffer)
-																		(if (and org-note-abort (file-exists-p note-file-name))
-																				;; delete if the note is aborted
+																	;; HACK: if misc template invoked and that is aborted, delete a note file
+																	(let* ((is-misc (org-capture-get :misc-note))
+																				 (note-file-name (buffer-file-name (org-capture-get :buffer))))
+																		(if (and is-misc
+																						 org-note-abort
+																						 (file-exists-p note-file-name))
 																				(delete-file note-file-name)))))
 
 	:config
@@ -333,7 +322,7 @@
 	(setq misc-notes-directory (expand-file-name "misc" org-directory))
 	
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
-	(setq org-agenda-files (list org-directory))
+	(setq org-agenda-files (list org-directory misc-notes-directory))
 	(setq org-agenda-custom-commands
 				'(("1" "All level 1 headings" tags "LEVEL=1")
 					("p" "List projects" tags "+LEVEL=1&+project")))
@@ -368,7 +357,7 @@
 
 
 	;; file target: create a note file
-	(defun create-note-file ()
+	(defun create-misc-note-file ()
 		(interactive)
 		(mkdir misc-notes-directory t)
 		(let* ((get-filename (lambda ()
@@ -382,23 +371,13 @@
 				(setq filename (funcall get-filename)))
 			filename))
 
-	;; function target sample
-	;;(defun tnote-test ()
-	;;	(let ((ymd (format-time-string "%Y-%m-%d"))
-	;;				 (title nil)
-	;;				 (filename nil))
-	;;		(setq title (read-string "filename: "))
-	;;		(setq filename (expand-file-name
-	;;										(format "%s_%s.org" ymd title)
-	;;										tnotes-directory))
-	;;		(find-file filename)
-	;;		(goto-char (point-min))))
 	(setq org-capture-templates
 				'(;;("n" "Notes" entry (file+headline "notes.org" "notes") "* %?\n%T\n" :empty-lines 1)
-					("n" "Primary notes" entry (file "notes.org") "* %?\n%T\n" :empty-lines 1)
-					("d" "Diary" entry (file "diary.org") "* %T\n%?\n" :empty-lines 1 :prepend t)
-					;;("t" "Tech notes" plain (function tnote-test) "1st line")
-					("m" "Misc notes" plain (file create-note-file) "#+date: %T\n\n* %?\n")))
+					("n" "Primary notes" entry (file "notes.org") "* %?\n%T\n" :empty-lines 1 :kill-buffer t :prepend t)
+					("d" "Diary" entry (file "diary.org") "* %T\n%?\n" :empty-lines 1 :kill-buffer t :prepend t )
+					;; NOTE: plain cant refile to other org files
+					("m" "Misc notes" plain (file create-misc-note-file) "* %?\n%T\n"
+					 :misc-note t :empty-lines 1 :kill-buffer t)))
 
 	(setq org-src-tab-acts-natively t)
 	(setq org-src-preserve-indentation t)
