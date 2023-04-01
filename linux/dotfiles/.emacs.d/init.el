@@ -337,7 +337,7 @@
 
 	;;(setq org-use-speed-commands t)
 	
-	(setq org-startup-folded 'all)
+	(setq org-startup-folded nil)
 	(setq org-startup-indented t)
 	(setq org-indent-indentation-per-level 1)
 	;;(setq org-hide-leading-stars t)
@@ -515,7 +515,9 @@
 	(setq company-minimum-prefix-length 1)
 	(setq company-idle-delay 0)
 	(setq company-tooltip-limit 20)
-	(setq company-selection-wrap-around t))
+	(setq company-selection-wrap-around t)
+	;; disable icons
+	(setq company-format-margin-function nil))
 
 ;; mozc.el
 (use-package mozc
@@ -810,14 +812,6 @@
 ;;
 ;; experiments
 ;;
-(use-package howm
-	:disabled
-	:after org
-	:hook (org-mode . howm-mode)
-	:init
-	(setq howm-menu-lang 'ja)
-	(setq howm-directory (expand-file-name "howm" org-directory))
-	(setq howm-file-name-format "%Y%m%d_%H%M%S.org"))
 
 
 
