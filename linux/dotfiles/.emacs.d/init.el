@@ -325,7 +325,10 @@
 	(setq org-agenda-files (list org-directory misc-notes-directory))
 	(setq org-agenda-custom-commands
 				'(("j" "[J]ournals" tags "+journal&+LEVEL=2&+TIMESTAMP>=\"<-1m>\""
+					 ;; limit the files to be searched to org-default-notes-file
 					 ((org-agenda-files (list org-default-notes-file))))
+					("m" "[M]isc notes" tags "+misc"
+					 ((org-agenda-files (list misc-notes-directory))))
 					("1" "all level [1] headings" tags "LEVEL=1")
 					("p" "[P]rojects" tags "+project&+LEVEL=1")))
 	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
@@ -377,7 +380,7 @@
 				'(;;("n" "Notes" entry (file+headline "notes.org" "notes") "* %?\n%T\n" :empty-lines 1)
 					("n" "[N]otes" entry (file "notes.org") "* %?\n%T\n" :empty-lines 1 :kill-buffer 1)
 					;; NOTE: plain cant refile to other org files
-					("m" "[M]isc notes" plain (file create-misc-note-file) "* %?\n%T\n"
+					("m" "[M]isc notes" plain (file create-misc-note-file) "* %?  :misc:\n%T\n"
 					 :misc-note t :empty-lines 1 :kill-buffer t)
 					("j" "[J]ournals" entry (file+headline "notes.org" "journals") "* %T %?\n" :empty-lines 1 :kill-buffer t :prepend t)
 					("d" "[D]iary" entry (file "diary.org") "* %T\n%?\n" :empty-lines 1 :kill-buffer t :prepend t )))
