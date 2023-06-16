@@ -29,6 +29,14 @@ Windows Registry Editor Version 5.00
 "KeyboardDelay"="0"
 "KeyboardSpeed"="31"
 
+## enable RDP
+#[HKEY_LOCAL_MACHINE\CurrentControlSet\Control\Terminal Server]
+#"fDenyTSConnections"=dword:00000000
+#
+## disable NLA
+#[HKEY_LOCAL_MACHINE\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp]
+#"SecurityLayer"=dword:00000000
+#"UserAuthentication"=dword:00000000
 
 
 #---------------------------------------------------------------------
