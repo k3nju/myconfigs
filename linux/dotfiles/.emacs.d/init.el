@@ -542,14 +542,21 @@
 	
 ;; migemo
 (use-package migemo
-	:if (executable-find "cmigemo")
+	:if (let* ((exec-path (cons (expand-file-name "cmigemo-default-win64" user-emacs-directory) exec-path)))
+				(executable-find "cmigemo"))
 	:ensure t
 	;; supress lsp warnings
 	:commands migemo-init
 	:hook (after-init . migemo-init)
 	:config
+	(setq migemo-command
+				(let* ((exec-path (cons (expand-file-name "cmigemo-default-win64" user-emacs-directory) exec-path)))
+					(executable-find "cmigemo")))
 	(setq migemo-options '("-q" "--emacs"))
-	(setq migemo-dictionary "/usr/share/migemo/utf-8/migemo-dict")
+	(setq migemo-dictionary
+				(if (eq system-type 'windows-nt)
+						(expand-file-name "cmigemo-default-win64/dict/utf-8/migemo-dict" user-emacs-directory)
+					"/usr/share/migemo/utf-8/migemo-dict"))
 	(setq migemo-user-dictionary nil)
 	(setq migemo-regex-dictionary nil)
 	(setq migemo-coding-system 'utf-8-unix))
