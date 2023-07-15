@@ -7,766 +7,771 @@ Set-Alias -Name pp -Value Write-Host
 
 
 function Define-Global($name, $value){
-		Set-Variable -Name $name -Value $value -Option ReadOnly -Scope global -Force
+	Set-Variable -Name $name -Value $value -Option ReadOnly -Scope global -Force
 }
 
 
 function New-PathLayout{
-		param([string]$baseDir)
-		
-		$pl = [PSCustomObject]@{
-				BaseDir = $baseDir
-				LogFilePath = Join-Path $baseDir "log.txt"
-				ArgsFilePath = Join-Path $baseDir "args.json"
-				StateFilePath = Join-Path $baseDir "states.json"
+	param([string]$baseDir)
+	
+	$pl = [PSCustomObject]@{
+		BaseDir = $baseDir
+		LogFilePath = Join-Path $baseDir "log.txt"
+		ArgsFilePath = Join-Path $baseDir "args.json"
+		StateFilePath = Join-Path $baseDir "states.json"
+	}
+
+	foreach($m in $pl | Get-Member){
+		if(-not $m.MemberType -eq "NoteProperty"){
+			continue
+		}
+		if(-not $m.Name.EndsWith("Dir")){
+			continue
 		}
 
-		foreach($m in $pl | Get-Member){
-				if(-not $m.MemberType -eq "NoteProperty"){
-						continue
-				}
-				if(-not $m.Name.EndsWith("Dir")){
-						continue
-				}
+		New-Item -Path $pl.($m.Name) -ItemType directory -Force | Out-Null
+	}
 
-				New-Item -Path $pl.($m.Name) -ItemType directory -Force | Out-Null
-		}
-
-		return $pl
+	return $pl
 }
 
 
 function Init-LibSetup{
-		param([string]$baseDir,
-					[Credential]$userCred)
-		
-		Define-Global PL (New-PathLayout $baseDir)
-		Define-Global Logger ([Logger]::new($global:PL.LogFilePath))
-		Define-Global UserCred $userCred
-		
-		Define-Global ExecCtx ([ExecutionContext]::new())
-		Define-Global Opts ([OptionParser]::new($global:Args))
-		Define-Global ArgsFile ([DataStore]::new($global:PL.ArgsFilePath))
+	param([string]$baseDir,
+			[Credential]$userCred)
+	
+	Define-Global PL (New-PathLayout $baseDir)
+	Define-Global Logger ([Logger]::new($global:PL.LogFilePath))
+	Define-Global UserCred $userCred
+	
+	Define-Global ExecCtx ([ExecutionContext]::new())
+	Define-Global Opts ([OptionParser]::new($global:Args))
+	Define-Global ArgsFile ([DataStore]::new($global:PL.ArgsFilePath))
 
-		if($global:ExecCtx.RunMode() -eq [RunMode]::SHELL){
-				$global:ArgsFile.SetRaw("initialArgs", $global:Args)
-				$global:ArgsFile.Save()
-		}else{
-				# NOTE: overwrite initial(first kick) args for cascading execution
-				# e.g: initial: -a b -c d
-				#      2nd: -a B -d e
-				#      2nd result: -a B -c d -d e
-				$initialArgs = $global:ArgsFile.GetRaw("initialArgs")
-				$global:Opts.ParseOverride($initialArgs)
-		}
-		
-		Define-Global StateFile ([DataStore]::new($global:PL.StateFilePath))
-		Define-Global TaskExecutor ([TaskExecutor]::new())
+	if($global:ExecCtx.RunMode() -eq [RunMode]::SHELL){
+		$global:ArgsFile.SetRaw("initialArgs", $global:Args)
+		$global:ArgsFile.Save()
+	}else{
+		# NOTE: overwrite initial(first kick) args for cascading execution
+		# e.g: initial: -a b -c d
+		#      2nd: -a B -d e
+		#      2nd result: -a B -c d -d e
+		$initialArgs = $global:ArgsFile.GetRaw("initialArgs")
+		$global:Opts.ParseOverride($initialArgs)
+	}
+	
+	Define-Global StateFile ([DataStore]::new($global:PL.StateFilePath))
+	Define-Global TaskExecutor ([TaskExecutor]::new())
 }
 
 class Credential{
-		# TODO: use WindowsIdentity
-		hidden [string]$username_
-		hidden [string]$password_ = ""
+	# TODO: use WindowsIdentity
+	hidden [string]$username_
+	hidden [string]$password_ = ""
 
-		hidden [string] NormalizeUsername([string]$name){
-				$name = $name.ToLower()
-				if($name -in ("nt authority\system", "system")){
-						return "system"
-				}
-				if($name.Contains("\")){
-						return $name
-				}
-
-				return "$($env:USERDOMAIN.ToLower())\$name"
+	hidden [string] NormalizeUsername([string]$name){
+		$name = $name.ToLower()
+		if($name -in ("nt authority\system", "system")){
+			return "system"
+		}
+		if($name.Contains("\")){
+			return $name
 		}
 
-		Credential([string]$username){
-				$this.username_ = $this.NormalizeUsername($username)
-		}
+		return "$($env:USERDOMAIN.ToLower())\$name"
+	}
 
-		Credential([string]$username, [string]$password){
-				$this.username_ = $this.NormalizeUsername($username)
-				$this.password_ = $password
-		}
+	Credential([string]$username){
+		$this.username_ = $this.NormalizeUsername($username)
+	}
 
-		Credential([System.Management.Automation.PSCredential]$cred){
-				$this.username_ = $cred.UserName
-				$this.password_ = $cred.GetNetworkCredential().Password
-		}
+	Credential([string]$username, [string]$password){
+		$this.username_ = $this.NormalizeUsername($username)
+		$this.password_ = $password
+	}
 
-		[string] Username(){return $this.username_}
-		[string] Password(){return $this.password_}
-		[bool] IsSystem(){return $this.username_ -eq "system"}
+	Credential([System.Management.Automation.PSCredential]$cred){
+		$this.username_ = $cred.UserName
+		$this.password_ = $cred.GetNetworkCredential().Password
+	}
+
+	[string] Username(){return $this.username_}
+	[string] Password(){return $this.password_}
+	[bool] IsSystem(){return $this.username_ -eq "system"}
 }
 
 
 
 enum LogSeverity{
-		INFO
-		ERROR
-		EXCEPTION
+	INFO
+	ERROR
+	EXCEPTION
 }
 
 class Logger{
-		hidden [string]$filePath_
-		hidden [string]$name_ = "Default"
+	hidden [string]$filePath_
+	hidden [string]$name_ = "Default"
+	
+	Logger([string]$logFilePath){
+		$this.filePath_ = $logFilePath
+	}
+
+	Logger([string]$logFilePath, [string]$name){
+		$this.filePath_ = $logFilePath
+		$this.name_ = $name
+	}
+
+	[Logger] Clone([string]$name){
+		return [Logger]::new($this.filePath_, $name)
+	}
+
+	hidden [string] GetColorBySeverity([LogSeverity]$severity){
+		switch($severity){
+			([LogSeverity]::INFO){
+				return "green"
+			}
+			([LogSeverity]::ERROR){
+				return "red"
+			}
+			([LogSeverity]::EXCEPTION){
+				return "red"
+			}
+		}
+		throw "unexpected log severity was passed: $severity"
+	}
+
+	[void] Write([string]$msg, [LogSeverity]$severity){
+		$now = Get-Date -Format "yyyy-MM-dd hh:mm:ss|"
+		$prefix = $now + "$severity|$($this.name_)|"
+		($prefix + $msg) | Add-Content -Path $this.filePath_ -Encoding UTF8
 		
-		Logger([string]$logFilePath){
-				$this.filePath_ = $logFilePath
-		}
+		Write-Host $prefix -NoNewLine
+		Write-Host $msg -Foreground $this.GetColorBySeverity($severity)
+	}
 
-		Logger([string]$logFilePath, [string]$name){
-				$this.filePath_ = $logFilePath
-				$this.name_ = $name
-		}
+	[void] Info([string]$msg){
+		$this.Write($msg, [LogSeverity]::INFO)
+	}
 
-		[Logger] Clone([string]$name){
-				return [Logger]::new($this.filePath_, $name)
-		}
+	[void] Error([string]$msg){
+		$this.Write($msg, [LogSeverity]::ERROR)
+	}
 
-		hidden [string] GetColorBySeverity([LogSeverity]$severity){
-				switch($severity){
-						([LogSeverity]::INFO){
-								return "green"
-						}
-						([LogSeverity]::ERROR){
-								return "red"
-						}
-						([LogSeverity]::EXCEPTION){
-								return "red"
-						}
-				}
-				throw "unexpected log severity was passed: $severity"
+	[void] Exception([string]$msg, $e){
+		if($e){
+			$msg = $msg + "`n" + $e.Exception.Message + "`n" + $e.ScriptStackTrace
 		}
+		$this.Write($msg, [LogSeverity]::EXCEPTION)
+	}
 
-		[void] Write([string]$msg, [LogSeverity]$severity){
-				$now = Get-Date -Format "yyyy-MM-dd hh:mm:ss|"
-				$prefix = $now + "$severity|$($this.name_)|"
-				($prefix + $msg) | Add-Content -Path $this.filePath_ -Encoding UTF8
-				
-				Write-Host $prefix -NoNewLine
-				Write-Host $msg -Foreground $this.GetColorBySeverity($severity)
-		}
-
-		[void] Info([string]$msg){
-				$this.Write($msg, [LogSeverity]::INFO)
-		}
-
-		[void] Error([string]$msg){
-				$this.Write($msg, [LogSeverity]::ERROR)
-		}
-
-		[void] Exception([string]$msg){
-				if($PSItem){
-						$msg = $msg + "`n" + $PSItem.Exception.Message + "`n" + $PSItem.ScriptStackTrace
-				}
-				$this.Write($msg, [LogSeverity]::EXCEPTION)
-		}
+	[void] Exception([string]$msg){
+		$this.Exception($msg, (Get-Variable PSItem -ValueOnly -ErrorAction SilentlyContinue))
+	}
 }
 
 
 enum ExecutionControl{
-		CONTINUE
-		REBOOT
+	CONTINUE
+	REBOOT
 }
 
 enum RunMode{
-		SHELL # first kick by user
-		IMMEDIATE # continuation
-		STARTUP # run on startup
-		LOGON # run on user logged on
+	SHELL # first kick by user
+	IMMEDIATE # continuation
+	STARTUP # run on startup
+	LOGON # run on user logged on
 }
 
 class RerunRequest{
-		[RunMode]$mode_
-		[Credential]$cred_
+	[RunMode]$mode_
+	[Credential]$cred_
 
-		RerunRequest([RunMode]$mode, [Credential]$cred){
-				if($mode -notin ([RunMode]::STARTUP, [RunMode]::LOGON, [RunMode]::IMMEDIATE)){
-						throw "invalid RunMode was passed: $mode"
-				}
-				
-				$this.mode_ = $mode
-				$this.cred_ = $cred
-		}
-
-		[RunMode] RunMode(){
-				return $this.mode_
+	RerunRequest([RunMode]$mode, [Credential]$cred){
+		if($mode -notin ([RunMode]::STARTUP, [RunMode]::LOGON, [RunMode]::IMMEDIATE)){
+			throw "invalid RunMode was passed: $mode"
 		}
 		
-		[Credential] Credential(){
-				return $this.cred_
-		}
+		$this.mode_ = $mode
+		$this.cred_ = $cred
+	}
+
+	[RunMode] RunMode(){
+		return $this.mode_
+	}
+	
+	[Credential] Credential(){
+		return $this.cred_
+	}
 }
 
 
 class ExecutionContext{
-		hidden [Logger]$logger_
-		hidden [RerunRequest]$rerunReq_ = $null
-		hidden [bool]$rebootRequired_ = $false
-		hidden [bool]$allTaskFinished_ = $false
+	hidden [Logger]$logger_
+	hidden [RerunRequest]$rerunReq_ = $null
+	hidden [bool]$rebootRequired_ = $false
+	hidden [bool]$allTaskFinished_ = $false
+	
+	ExecutionContext(){
+		$this.logger_ = $global:Logger.Clone("ExecutionContext")
+		$this.CancelRerun()
+	}
+
+	[RunMode] RunMode(){
+		$mode = $global:Opts.GetOption("runmode", [RunMode]::SHELL)
+		return [RunMode]$mode
+	}
+
+	# define Creredential for future work
+	[Credential] Credential(){
+		$name = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+		return [Credential]::new($name)
+	}
+
+	[void] RequireRerun($rerunReq){
+		$this.rerunReq_ = $rerunReq
+	}
+	
+	[bool] IsRerunRequired(){
+		return $this.rerunReq_ -ne $null
+	}
+
+	[void] RequireReboot(){
+		$this.rebootRequired_ = $true
+	}
+
+	[bool] IsRebootRequired(){
+		return $this.rebootRequired_
+	}
+
+	[void] hidden debugLogSchduling(){
+		$reboot = $this.IsRebootRequired()
+		$rerun = $this.IsRerunRequired()
+		$mode = $this.rerunReq_.RunMode()
+		$user = $this.rerunReq_.Credential().Username()
+		$this.logger_.Info("scheduling rerun: reboot=$reboot rerun=$rerun mode=$mode user=$user")
+	}
+
+	[Status] ScheduleRerun(){
+		if((-not $this.IsRerunRequired()) -and (-not $this.IsRebootRequired())){
+			return Ng "no need to rerun" "not required neither reboot or rerun"
+		}
+		$this.debugLogSchduling()
 		
-		ExecutionContext(){
-				$this.logger_ = $global:Logger.Clone("ExecutionContext")
-				$this.CancelRerun()
-		}
+		$action = New-ScheduledTaskAction -Execute "powershell.exe" `
+			-Argument "-ep bypass -file $($MyInvocation.PSCommandPath) -runmode $($this.rerunReq_.RunMode())"
+		$settings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1)
 
-		[RunMode] RunMode(){
-				$mode = $global:Opts.GetOption("runmode", [RunMode]::SHELL)
-				return [RunMode]$mode
-		}
-
-		# define Creredential for future work
-		[Credential] Credential(){
-				$name = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-				return [Credential]::new($name)
-		}
-
-		[void] RequireRerun($rerunReq){
-				$this.rerunReq_ = $rerunReq
-		}
-		
-		[bool] IsRerunRequired(){
-				return $this.rerunReq_ -ne $null
-		}
-
-		[void] RequireReboot(){
-				$this.rebootRequired_ = $true
-		}
-
-		[bool] IsRebootRequired(){
-				return $this.rebootRequired_
-		}
-
-		[void] hidden debugLogSchduling(){
-				$reboot = $this.IsRebootRequired()
-				$rerun = $this.IsRerunRequired()
-				$mode = $this.rerunReq_.RunMode()
-				$user = $this.rerunReq_.Credential().Username()
-				$this.logger_.Info("scheduling rerun: reboot=$reboot rerun=$rerun mode=$mode user=$user")
-		}
-
-		[Status] ScheduleRerun(){
-				if((-not $this.IsRerunRequired()) -and (-not $this.IsRebootRequired())){
-						return Ng "no need to rerun" "not required neither reboot or rerun"
+		$rerunCred = $this.rerunReq_.Credential()
+		if($this.IsRebootRequired()){
+			if($this.rerunReq_.RunMode() -eq [RunMode]::STARTUP){
+				if(-not $rerunCred.IsSystem()){
+					throw "using non-system account for startup task is unsupported"
 				}
-				$this.debugLogSchduling()
-				
-				$action = New-ScheduledTaskAction -Execute "powershell.exe" `
-					-Argument "-ep bypass -file $($MyInvocation.PSCommandPath) -runmode $($this.rerunReq_.RunMode())"
-				$settings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1)
-
-				$rerunCred = $this.rerunReq_.Credential()
-				if($this.IsRebootRequired()){
-						if($this.rerunReq_.RunMode() -eq [RunMode]::STARTUP){
-								if(-not $rerunCred.IsSystem()){
-										throw "using non-system account for startup task is unsupported"
-								}
-								$trigger = New-ScheduledTaskTrigger -AtStartup
-						}else{
-								$trigger = New-ScheduledTaskTrigger -AtLogOn -User $rerunCred.Username()
-						}
-				
-						if($rerunCred.IsSystem()){
-								$principal = New-ScheduledTaskPrincipal -UserId SYSTEM -RunLevel Highest
-								Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings `
-									-Trigger $trigger -Principal $principal
-						}else{
-								if($rerunCred.Password() -eq ""){
-										$principal = New-ScheduledTaskPrincipal -UserId $rerunCred.Username() -RunLevel Highest -LogonType S4U
-										Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings `
-											-Trigger $trigger -Principal $principal
-								}else{
-										Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings `
-											-Trigger $trigger -User $rerunCred.Username() -Password $rerunCred.Password()
-								}
-						}
+				$trigger = New-ScheduledTaskTrigger -AtStartup
+			}else{
+				$trigger = New-ScheduledTaskTrigger -AtLogOn -User $rerunCred.Username()
+			}
+		
+			if($rerunCred.IsSystem()){
+				$principal = New-ScheduledTaskPrincipal -UserId SYSTEM -RunLevel Highest
+				Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings `
+					-Trigger $trigger -Principal $principal
+			}else{
+				if($rerunCred.Password() -eq ""){
+					$principal = New-ScheduledTaskPrincipal -UserId $rerunCred.Username() -RunLevel Highest -LogonType S4U
+					Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings `
+						-Trigger $trigger -Principal $principal
 				}else{
-						if($this.rerunReq_.RunMode() -ne [RunMode]::IMMEDIATE){
-								throw "invalid condition: required rerun mode is not IMMEDIATE: $($this.rerunReq_.RunMode())"
-						}
-
-						if($rerunCred.Password() -eq ""){
-								$principal = New-ScheduledTaskPrincipal -UserId $rerunCred.Username() -RunLevel Highest -LogonType S4U
-								Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings -Principal $principal
-						}else{
-								Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings -User $rerunCred.Username() -Password $rerunCred.Password()
-						}
+					Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings `
+						-Trigger $trigger -User $rerunCred.Username() -Password $rerunCred.Password()
 				}
+			}
+		}else{
+			if($this.rerunReq_.RunMode() -ne [RunMode]::IMMEDIATE){
+				throw "invalid condition: required rerun mode is not IMMEDIATE: $($this.rerunReq_.RunMode())"
+			}
 
-				return Ok
+			if($rerunCred.Password() -eq ""){
+				$principal = New-ScheduledTaskPrincipal -UserId $rerunCred.Username() -RunLevel Highest -LogonType S4U
+				Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings -Principal $principal
+			}else{
+				Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings -User $rerunCred.Username() -Password $rerunCred.Password()
+			}
+		}
+
+		return Ok
+	}
+	
+	[void] CancelRerun(){
+		foreach($name in @("libsetup", "libsetup_reboot")){
+			Unregister-ScheduledTask -TaskName $name -Confirm:$false -ErrorAction SilentlyContinue
+		}
+	}
+
+	[void] Rerun(){
+		if($this.IsRebootRequired()){
+			$at = (Get-Date).AddSeconds(10)
+			$this.logger_.Info("reboot at $at")
+			
+			$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-c Restart-Computer -Force"
+			$trigger = New-ScheduledTaskTrigger -Once -At $at
+			$principal = New-ScheduledTaskPrincipal -UserId SYSTEM -RunLevel Highest
+			$settings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable
+			Register-ScheduledTask -TaskName libsetup_reboot -Action $action `
+				-Trigger $trigger -Principal $principal -Settings $settings
+			
+			return
 		}
 		
-		[void] CancelRerun(){
-				foreach($name in @("libsetup", "libsetup_reboot")){
-						Unregister-ScheduledTask -TaskName $name -Confirm:$false -ErrorAction SilentlyContinue
-				}
-		}
-
-		[void] Rerun(){
-				if($this.IsRebootRequired()){
-						$at = (Get-Date).AddSeconds(10)
-						$this.logger_.Info("reboot at $at")
-						
-						$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-c Restart-Computer -Force"
-						$trigger = New-ScheduledTaskTrigger -Once -At $at
-						$principal = New-ScheduledTaskPrincipal -UserId SYSTEM -RunLevel Highest
-						$settings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable
-						Register-ScheduledTask -TaskName libsetup_reboot -Action $action `
-							-Trigger $trigger -Principal $principal -Settings $settings
-						
-						return
-				}
-				
-				$this.logger_.Info("starting new task")
-				Start-ScheduledTask -TaskName libsetup
-		}
+		$this.logger_.Info("starting new task")
+		Start-ScheduledTask -TaskName libsetup
+	}
 }
 
 
 class DataStore{
-		hidden [string]$filePath_
-		hidden [System.Collections.Specialized.OrderedDictionary]$data_ = @{}
+	hidden [string]$filePath_
+	hidden [System.Collections.Specialized.OrderedDictionary]$data_ = @{}
 
-		DataStore([string]$filePath){
-				$this.filePath_ = $filePath
-				if(Test-Path $this.filePath_){
-						$this.Load()
-				}
+	DataStore([string]$filePath){
+		$this.filePath_ = $filePath
+		if(Test-Path $this.filePath_){
+			$this.Load()
+		}
+	}
+
+	[void] Load(){
+		$pso = Get-Content -Path $this.filePath_ | ConvertFrom-Json
+		[System.Collections.Specialized.OrderedDictionary]$tmp = @{}
+		foreach($prop in $pso.PSObject.Properties){
+			$tmp[$prop.Name] = $prop.Value
+		}
+		$this.data_ = $tmp
+	}
+
+	[void] Save(){
+		$this.data_ | ConvertTo-Json | Out-File -FilePath $this.filePath_
+	}
+
+	[string] Get([string]$key){
+		if(-not $this.data_.Contains($key)){
+			throw "key $key not contained"
 		}
 
-		[void] Load(){
-				$pso = Get-Content -Path $this.filePath_ | ConvertFrom-Json
-				[System.Collections.Specialized.OrderedDictionary]$tmp = @{}
-				foreach($prop in $pso.PSObject.Properties){
-						$tmp[$prop.Name] = $prop.Value
-				}
-				$this.data_ = $tmp
-		}
+		return $this.data_[$key]
+	}
 
-		[void] Save(){
-				$this.data_ | ConvertTo-Json | Out-File -FilePath $this.filePath_
+	[string] Get([string]$key, [string]$alt){
+		try{
+			return $this.Get($key)
 		}
-
-		[string] Get([string]$key){
-				if(-not $this.data_.Contains($key)){
-						throw "key $key not contained"
-				}
-
-				return $this.data_[$key]
+		catch{
+			return $alt
 		}
+	}
 
-		[string] Get([string]$key, [string]$alt){
-				try{
-						return $this.Get($key)
-				}
-				catch{
-						return $alt
-				}
-		}
+	[void] Set([string]$key, [string]$value){
+		$this.data_[$key] = $value
+	}
 
-		[void] Set([string]$key, [string]$value){
-				$this.data_[$key] = $value
-		}
+	[object] GetRaw([string]$key){
+		return $this.data_[$key]
+	}
 
-		[object] GetRaw([string]$key){
-				return $this.data_[$key]
-		}
+	[void] SetRaw([string]$key, [object]$value){
+		$this.data_[$key] = $value
+	}
 
-		[void] SetRaw([string]$key, [object]$value){
-				$this.data_[$key] = $value
+	[void] Remove([string]$key){
+		if($this.data_.Contains($key)){
+			$this.data_.Remove($key)
 		}
+	}
 
-		[void] Remove([string]$key){
-				if($this.data_.Contains($key)){
-						$this.data_.Remove($key)
-				}
-		}
-
-		[void] Clear(){
-				$this.data_ = @{}
-		}
+	[void] Clear(){
+		$this.data_ = @{}
+	}
 }
 
 class Status{
-		hidden [bool]$result_
-		hidden [object]$retval_
-		hidden [string]$errMsg_
-		hidden [string]$reason_
+	hidden [bool]$result_
+	hidden [object]$retval_
+	hidden [string]$errMsg_
+	hidden [string]$reason_
 
-		Status([bool]$result, [object]$retval, [string]$errmsg, [string]$reason){
-				$this.result_ = $result
-				$this.retval_ = $retval
-				$this.errMsg_ = $errmsg
-				$this.reason_ = $reason
-		}
+	Status([bool]$result, [object]$retval, [string]$errmsg, [string]$reason){
+		$this.result_ = $result
+		$this.retval_ = $retval
+		$this.errMsg_ = $errmsg
+		$this.reason_ = $reason
+	}
 
-		[bool] Ok(){return $this.result_}
-		[object] RetVal(){return $this.retval_}
-		[string] Error(){
-				if($this.result_){
-						return ""
-				}
-				return "ERROR: $($this.errMsg_): $($this.reason_)"
+	[bool] Ok(){return $this.result_}
+	[object] RetVal(){return $this.retval_}
+	[string] Error(){
+		if($this.result_){
+			return ""
 		}
+		return "ERROR: $($this.errMsg_): $($this.reason_)"
+	}
 }
 
 function Ok{
-		param([object]$retval = $null)
-		return [Status]::new($true, $retval, "", "")
+	param([object]$retval = $null)
+	return [Status]::new($true, $retval, "", "")
 }
 
 function Ng{
-		param(
-				[string]$errmsg,
-				[string]$reason = ""
-		)
-		return [Status]::new($false, $null, $errmsg, $reason)
+	param(
+		[string]$errmsg,
+		[string]$reason = ""
+	)
+	return [Status]::new($false, $null, $errmsg, $reason)
 }
 
 
 #NOTE: order by preceding
 enum TaskState{
-		FAILED
-		EXECUTED
-		RERUN
-		UNEXECUTED
+	FAILED
+	EXECUTED
+	RERUN
+	UNEXECUTED
 }
 
 # responsible to CRUD task states per tasks
 class TaskStateMarker{
-		hidden [string]$taskName_
-		
-		TaskStateMarker([string]$taskName){
-				$this.taskName_ = $taskName
-		}
+	hidden [string]$taskName_
+	
+	TaskStateMarker([string]$taskName){
+		$this.taskName_ = $taskName
+	}
 
-		[TaskState] CurrentState(){
-				return $global:StateFile.Get($this.taskName_, [TaskState]::UNEXECUTED)
-		}
+	[TaskState] CurrentState(){
+		return $global:StateFile.Get($this.taskName_, [TaskState]::UNEXECUTED)
+	}
 
-		[void] Mark([TaskState] $state){
-				$global:StateFile.Set($this.taskName_, $state.ToString())
-				$global:StateFile.Save()
-		}
+	[void] Mark([TaskState] $state){
+		$global:StateFile.Set($this.taskName_, $state.ToString())
+		$global:StateFile.Save()
+	}
 
-		[void] Clear(){
-				$global:StateFile.Remove($this.taskName_)
-				$global:StateFile.Save()
-		}
+	[void] Clear(){
+		$global:StateFile.Remove($this.taskName_)
+		$global:StateFile.Save()
+	}
 }
 
 
 enum TaskResult{
-		ERROR
-		OK
-		REBOOT
-		# from a perspective of a task, RERUN always involves a reboot
-		RERUN
+	ERROR
+	OK
+	REBOOT
+	# from a perspective of a task, RERUN always involves a reboot
+	RERUN
 }
 
 class TaskBase{
-		hidden [string]$name_
-		hidden [Credential]$cred_
-		hidden [TaskStateMarker]$state_
-		# without trailing _ means, logger is a protected member
-		hidden [Logger]$logger
+	hidden [string]$name_
+	hidden [Credential]$cred_
+	hidden [TaskStateMarker]$state_
+	# without trailing _ means, logger is a protected member
+	hidden [Logger]$logger
+	
+	
+	TaskBase(){
+		$this.Init($this.ToString(), $null)
+	}
+
+	TaskBase([string]$name){
+		$this.Init($name, $null)
+	}
+
+	TaskBase([string]$name, [Credential]$execCred){
+		$this.Init($name, $execCred)
+	}
+	
+	hidden [void]Init([string]$name, [Credential]$execCred){
+		if($execCred -eq $null){
+			$execCred = [Credential]::new([System.Security.Principal.WindowsIdentity]::GetCurrent().Name, "")
+		}
 		
-		
-		TaskBase(){
-				$this.Init($this.ToString(), $null)
-		}
+		$this.name_ = $name
+		$this.cred_ = $execCred
+		$this.state_ = [TaskStateMarker]::new($this.name_)
+		$this.logger = $global:Logger.Clone($this.name_)
+	}
 
-		TaskBase([string]$name){
-				$this.Init($name, $null)
-		}
+	[string] Name(){return $this.name_}
+	[Credential] Credential(){return $this.cred_}
+	[bool] IsRunnable(){return $true}
 
-		TaskBase([string]$name, [Credential]$execCred){
-				$this.Init($name, $execCred)
-		}
-		
-		hidden [void]Init([string]$name, [Credential]$execCred){
-				if($execCred -eq $null){
-						$execCred = [Credential]::new([System.Security.Principal.WindowsIdentity]::GetCurrent().Name, "")
+	[TaskState] State(){return $this.state_.CurrentState()}
+	[void] ResetState(){$this.state_.Clear()}
+
+
+	[TaskResult] RunImpl($taskArgs){
+		throw "unimplemented"
+	}
+
+	[Status] Run(){
+		return $this.Run($null)
+	}
+
+	[Status] Run($taskArgs){
+		try{
+			$result = $this.RunImpl($taskArgs)
+			# TODO: ensure retval is status
+			if($result -is [array] -and $result.Length -gt 0){
+				$result = $result[-1]
+			}
+			if($result -isnot [TaskResult]){
+				throw "invalid return type: expected TaskResult, but $result"
+			}
+			switch($result){
+				([TaskResult]::ERROR){
+					$this.state_.Mark([TaskState]::FAILED)
+					return Ng "task failed: $($this.Name())" "task returned ERROR"
 				}
-				
-				$this.name_ = $name
-				$this.cred_ = $execCred
-				$this.state_ = [TaskStateMarker]::new($this.name_)
-				$this.logger = $global:Logger.Clone($this.name_)
-		}
-
-		[string] Name(){return $this.name_}
-		[Credential] Credential(){return $this.cred_}
-		[bool] IsRunnable(){return $true}
-
-		[TaskState] State(){return $this.state_.CurrentState()}
-		[void] ResetState(){$this.state_.Clear()}
-
-
-		[TaskResult] RunImpl($taskArgs){
-				throw "unimplemented"
-		}
-
-		[Status] Run(){
-				return $this.Run($null)
-		}
-
-		[Status] Run($taskArgs){
-				try{
-						$result = $this.RunImpl($taskArgs)
-						if($result -is [array]){
-								$result = $result[-1]
-						}
-						if($result -isnot [TaskResult]){
-								throw "invalid return type: expected TaskResult, but $result"
-						}
-						switch($result){
-								([TaskResult]::ERROR){
-										$this.state_.Mark([TaskState]::FAILED)
-										return Ng "task failed: $($this.Name())" "task returned ERROR"
-								}
-								([TaskResult]::OK){
-										$this.state_.Mark([TaskState]::EXECUTED)
-										return Ok ([ExecutionControl]::CONTINUE)
-								}
-								([TaskResult]::REBOOT){
-										$this.state_.Mark([TaskState]::EXECUTED)
-										return Ok ([ExecutionControl]::REBOOT)
-								}
-								([TaskResult]::RERUN){
-										$this.state_.Mark([TaskState]::RERUN)
-										return Ok ([ExecutionControl]::REBOOT)
-								}
-						}
-						throw "unexpected task state: $result"
+				([TaskResult]::OK){
+					$this.state_.Mark([TaskState]::EXECUTED)
+					return Ok ([ExecutionControl]::CONTINUE)
 				}
-				catch{
-						$this.logger.Exception("exception caught: task $($this.Name())")
-						$this.state_.Mark([TaskState]::FAILED)
-						return Ng "task failed: $($this.Name())" $PSItem.Exception.Message
+				([TaskResult]::REBOOT){
+					$this.state_.Mark([TaskState]::EXECUTED)
+					return Ok ([ExecutionControl]::REBOOT)
 				}
+				([TaskResult]::RERUN){
+					$this.state_.Mark([TaskState]::RERUN)
+					return Ok ([ExecutionControl]::REBOOT)
+				}
+			}
+			throw "unexpected task state: $result"
 		}
+		catch{
+			$this.logger.Exception("exception caught: task $($this.Name())")
+			$this.state_.Mark([TaskState]::FAILED)
+			return Ng "task failed: $($this.Name())" $PSItem.Exception.Message
+		}
+	}
 }
 
 
 class AdhocTask : TaskBase{
-		hidden [ScriptBlock]$script_
-		
-		AdhocTask([string]$name, [string]$username, [ScriptBlock]$script)
-		:base($name, [Credential]::new($username)){
-				Add-Member -InputObject $this -MemberType ScriptMethod -Name Script -value $script 
-		}
-		
-		[TaskResult] RunImpl($taskArgs){
-				try{
-						$rv = $this.Script()
-						if($rv -is [array]){
-								$rv = $rv[-1]
-						}
-						if($rv -eq $null){
-								$rv = [TaskResult]::OK
-						}
-						if($rv -isnot [TaskResult]){
-								throw "invalid return type: expected TaskResult, but $rv"
-						}
+	hidden [ScriptBlock]$script_
+	
+	AdhocTask([string]$name, [string]$username, [ScriptBlock]$script)
+	:base($name, [Credential]::new($username)){
+		Add-Member -InputObject $this -MemberType ScriptMethod -Name Script -value $script 
+	}
+	
+	[TaskResult] RunImpl($taskArgs){
+		try{
+			$rv = $this.Script()
+			if($rv -is [array]){
+				$rv = $rv[-1]
+			}
+			if($rv -eq $null){
+				$rv = [TaskResult]::OK
+			}
+			if($rv -isnot [TaskResult]){
+				throw "invalid return type: expected TaskResult, but $rv"
+			}
 
-						return $rv
-				}
-				catch{
-						$this.logger.Exception("exception caught: task $($this.Name())")
-						return [TaskResult]::ERROR
-				}
-
-				throw "never reach here"
+			return $rv
 		}
+		catch{
+			$this.logger.Exception("exception caught: adhoc task $($this.Name())")
+			return [TaskResult]::ERROR
+		}
+
+		throw "never reach here"
+	}
 }
 
 # helper
 function Task {
-		param(
-				[string]$name,
-				[ScriptBlock]$script
-		)
+	param(
+		[string]$name,
+		[ScriptBlock]$script
+	)
 
-		$cred = $global:ExecCtx.Credential()
-		$global:TaskExecutor.AddTask([AdhocTask]::new($name, $cred.Username(), $script))
+	$cred = $global:ExecCtx.Credential()
+	$global:TaskExecutor.AddTask([AdhocTask]::new($name, $cred.Username(), $script))
 }
 
 function UserTask {
-		param(
-				[string]$name,
-				[ScriptBlock]$script
-		)
+	param(
+		[string]$name,
+		[ScriptBlock]$script
+	)
 
-		$global:TaskExecutor.AddTask([AdhocTask]::new($name, $global:UserCred.Username(), $script))
+	$global:TaskExecutor.AddTask([AdhocTask]::new($name, $global:UserCred.Username(), $script))
 }
 
 function SystemTask {
-		param(
-				[string]$name,
-				[ScriptBlock]$script
-		)
+	param(
+		[string]$name,
+		[ScriptBlock]$script
+	)
 
-		$global:TaskExecutor.AddTask([AdhocTask]::new($name, "system", $script))
+	$global:TaskExecutor.AddTask([AdhocTask]::new($name, "system", $script))
 }
 
 
 class TaskExecutor{
-		hidden [System.Collections.Generic.List[TaskBase]]$tasks_ = @()
-		hidden [Logger]$logger_
-		hidden [int]$nextIndex_
+	hidden [System.Collections.Generic.List[TaskBase]]$tasks_ = @()
+	hidden [Logger]$logger_
+	hidden [int]$nextIndex_
 
-		TaskExecutor(){
-				$this.logger_ = $global:Logger.Clone("TaskExecutor")
-				$this.nextIndex_ = 0
+	TaskExecutor(){
+		$this.logger_ = $global:Logger.Clone("TaskExecutor")
+		$this.nextIndex_ = 0
+	}
+
+	[void] AddTask($task){
+		$run = $global:Opts.GetOptions("run", $null)
+		if(($run -ne $null) -and ($task.Name() -notin $run)){
+			$this.logger_.Info("not listed in run options. ignoring: $($task.Name())")
+			return
+		}
+		
+		$reset = $global:Opts.GetOption("reset", $null)
+		if(($reset -eq $true) -or ($reset -eq $task.Name())){
+			$task.ResetState()
+			$this.logger_.Info("task state reset: $($task.Name())")
+		}
+		
+		$this.tasks_.Add($task)
+	}
+
+	[void] ResetState(){
+		foreach($task in $this.tasks_){
+			$task.ResetState()
+			$this.logger_.Info("task state reset: $($task.Name())")
+		}
+	}
+
+	[Status] IsAllTaskRunnable(){
+		foreach($task in $this.tasks_){
+			if(($task.State() -in [TaskState]::RERUN, [TaskState]::UNEXECUTED) -and (-not $task.IsRunnable())){
+				return Ng "$($task.Name()) is not runnable"
+			}
+		}
+		return Ok
+	}
+
+	[int] Remains(){
+		$finished = 0
+		foreach($task in $this.tasks_){
+			$state = $task.State()
+			if($state -in ([TaskState]::FAILED, [TaskState]::EXECUTED)){
+				$finished += 1
+			}
 		}
 
-		[void] AddTask($task){
-				$run = $global:Opts.GetOptions("run", $null)
-				if(($run -ne $null) -and ($task.Name() -notin $run)){
-						$this.logger_.Info("not listed in run options. ignoring: $($task.Name())")
-						return
+		return $this.tasks_.Count - $finished
+	}
+
+	hidden [Status] NextTask(){
+		if($this.nextIndex_ -ge $this.tasks_.Count){
+			return Ng "out of tasks" ""
+		}
+		return Ok ($this.tasks_[$this.nextIndex_++])
+	}
+
+	hidden [Status] PeekNextTask(){
+		$rv = $this.NextTask()
+		--$this.nextIndex_
+		return $rv
+	}
+
+	[void] Run($taskArgs){
+		$curCred = $global:ExecCtx.Credential()
+
+		:taskloop while($true){
+			$rv = $this.NextTask()
+			if(-not $rv.Ok()){
+				$this.logger_.Info("no remaining tasks")
+				return
+			}
+
+			$task = $rv.RetVal()
+			$name = $task.Name()
+			try{
+				switch($task.State()){
+					([TaskState]::FAILED){
+						$this.logger_.Info("${name}: state is FAILED. skipping")
+						continue taskloop
+					}
+					([TaskState]::EXECUTED){
+						$this.logger_.Info("${name}: state is EXECUTED. skipping")
+						continue taskloop
+					}
+					([TaskState]::RERUN){
+						$this.logger_.Info("${name}: state is RERUN. re-executing")
+					}
+					([TaskState]::UNEXECUTED){
+						$this.logger_.Info("${name}: state is UNEXECUTED. executing")
+					}
+					default{
+						throw "unexpected task state found: $name"
+					}
+				}
+
+				if($curCred.Username() -ne $task.Credential().Username()){
+					$cu = $curCred.Username()
+					$tu = $task.Credential().Username()
+					$this.logger_.Info("${name}: required context is not matched: required=$tu current=$cu")
+					$rerunReq = [RerunRequest]::new([RunMode]::IMMEDIATE, $task.Credential())
+					$global:ExecCtx.RequireRerun($rerunReq)
+					return
 				}
 				
-				$reset = $global:Opts.GetOption("reset", $null)
-				if(($reset -eq $true) -or ($reset -eq $task.Name())){
-						$task.ResetState()
-						$this.logger_.Info("task state reset: $($task.Name())")
+				if(-not $task.IsRunnable()){
+					$this.logger_.Info("$name is not runnable. skipping")
+					continue
+				}
+
+				$this.logger_.Info("${name}: executing")
+				$status = $task.Run($taskArgs)
+				if(-not $status.Ok()){
+					$this.logger_.Error("${name}: failed. state is changed to $($task.State())")
+					$this.logger_.Error($status.Error())
+					continue
+				}
+				$this.logger_.Info("${name}: executed. state is changed to $($task.State())")
+				if($status.RetVal() -ne [ExecutionControl]::REBOOT){
+					continue
+				}
+
+				
+				$this.logger_.Info("${name}: required reboot")
+				# NOTE: using non-system cred for startup will be unstable. sometime it will fail.
+
+				$status = $this.PeekNextTask()
+				if(-not $status.Ok()){
+					# exhausted tasks. actually no need to rerun
+					$global:ExecCtx.RequireRerun([RerunRequest]::new([RunMode]::STARTUP, "system"))
+					$global:ExecCtx.RequireReboot()
+				}else{
+					$nextTask = $status.RetVal()
+					$this.logger_.Info("next task: $($nextTask.Name()) $($nextTask.Credential().Username())")
+				
+					if($nextTask.Credential().IsSystem()){
+						$global:ExecCtx.RequireRerun([RerunRequest]::new([RunMode]::STARTUP, $nextTask.Credential()))
+					}else{
+						$global:ExecCtx.RequireRerun([RerunRequest]::new([RunMode]::LOGON, $nextTask.Credential()))
+					}
+					$global:ExecCtx.RequireReboot()
 				}
 				
-				$this.tasks_.Add($task)
+				return
+			}
+			catch{
+				$this.logger_.Exception("fatal. exception caught: $name")
+			}
 		}
-
-		[void] ResetState(){
-				foreach($task in $this.tasks_){
-						$task.ResetState()
-						$this.logger_.Info("task state reset: $($task.Name())")
-				}
-		}
-
-		[Status] IsAllTaskRunnable(){
-				foreach($task in $this.tasks_){
-						if(($task.State() -in [TaskState]::RERUN, [TaskState]::UNEXECUTED) -and (-not $task.IsRunnable())){
-								return Ng "$($task.Name()) is not runnable"
-						}
-				}
-				return Ok
-		}
-
-		[int] Remains(){
-				$finished = 0
-				foreach($task in $this.tasks_){
-						$state = $task.State()
-						if($state -in ([TaskState]::FAILED, [TaskState]::EXECUTED)){
-								$finished += 1
-						}
-				}
-
-				return $this.tasks_.Count - $finished
-		}
-
-		hidden [Status] NextTask(){
-				if($this.nextIndex_ -ge $this.tasks_.Count){
-						return Ng "out of tasks" ""
-				}
-				return Ok ($this.tasks_[$this.nextIndex_++])
-		}
-
-		hidden [Status] PeekNextTask(){
-				$rv = $this.NextTask()
-				--$this.nextIndex_
-				return $rv
-		}
-
-		[void] Run($taskArgs){
-				$curCred = $global:ExecCtx.Credential()
-
-				:taskloop while($true){
-						$rv = $this.NextTask()
-						if(-not $rv.Ok()){
-								$this.logger_.Info("no remaining tasks")
-								return
-						}
-
-						$task = $rv.RetVal()
-						$name = $task.Name()
-						try{
-								switch($task.State()){
-										([TaskState]::FAILED){
-												$this.logger_.Info("${name}: state is FAILED. skipping")
-												continue taskloop
-										}
-										([TaskState]::EXECUTED){
-												$this.logger_.Info("${name}: state is EXECUTED. skipping")
-												continue taskloop
-										}
-										([TaskState]::RERUN){
-												$this.logger_.Info("${name}: state is RERUN. re-executing")
-										}
-										([TaskState]::UNEXECUTED){
-												$this.logger_.Info("${name}: state is UNEXECUTED. executing")
-										}
-										default{
-												throw "unexpected task state found: $name"
-										}
-								}
-
-								if($curCred.Username() -ne $task.Credential().Username()){
-										$cu = $curCred.Username()
-										$tu = $task.Credential().Username()
-										$this.logger_.Info("${name}: required context is not matched: required=$tu current=$cu")
-										$rerunReq = [RerunRequest]::new([RunMode]::IMMEDIATE, $task.Credential())
-										$global:ExecCtx.RequireRerun($rerunReq)
-										return
-								}
-								
-								if(-not $task.IsRunnable()){
-										$this.logger_.Info("$name is not runnable. skipping")
-										continue
-								}
-
-								$this.logger_.Info("${name}: executing")
-								$status = $task.Run($taskArgs)
-								if(-not $status.Ok()){
-										$this.logger_.Error("${name}: failed. state is changed to $($task.State())")
-										$this.logger_.Error($status.Error())
-										continue
-								}
-								$this.logger_.Info("${name}: executed. state is changed to $($task.State())")
-								if($status.RetVal() -ne [ExecutionControl]::REBOOT){
-										continue
-								}
-
-								
-								$this.logger_.Info("${name}: required reboot")
-								# NOTE: using non-system cred for startup will be unstable. sometime it will fail.
-
-								$status = $this.PeekNextTask()
-								if(-not $status.Ok()){
-										# exhausted tasks. actually no need to rerun
-										$global:ExecCtx.RequireRerun([RerunRequest]::new([RunMode]::STARTUP, "system"))
-										$global:ExecCtx.RequireReboot()
-								}else{
-										$nextTask = $status.RetVal()
-										$this.logger_.Info("next task: $($nextTask.Name()) $($nextTask.Credential().Username())")
-								
-										if($nextTask.Credential().IsSystem()){
-												$global:ExecCtx.RequireRerun([RerunRequest]::new([RunMode]::STARTUP, $nextTask.Credential()))
-										}else{
-												$global:ExecCtx.RequireRerun([RerunRequest]::new([RunMode]::LOGON, $nextTask.Credential()))
-										}
-										$global:ExecCtx.RequireReboot()
-								}
-								
-								return
-						}
-						catch{
-								$this.logger_.Exception("fatal. exception caught: $name")
-						}
-				}
-		}
+	}
 }
 
 
@@ -776,238 +781,238 @@ class TaskExecutor{
 # -a b -a c -> a:[a,b]
 # b -> ignored
 class OptionParser{
-		hidden [System.Collections.Hashtable]$opts_ = @{}
-		hidden [int]$consumed_
-		hidden [object[]]$srcArgs_
+	hidden [System.Collections.Hashtable]$opts_ = @{}
+	hidden [int]$consumed_
+	hidden [object[]]$srcArgs_
 
-		hidden [void] Init([object[]]$srcArgs){
-				$this.consumed_ = 0
-				$this.srcArgs_ = $srcArgs
-				$this.opts_ = @{}
-		}
-		
-		OptionParser([object[]]$srcArgs){
-				$this.Init($srcArgs)
-				$this.Parse()
-		}
+	hidden [void] Init([object[]]$srcArgs){
+		$this.consumed_ = 0
+		$this.srcArgs_ = $srcArgs
+		$this.opts_ = @{}
+	}
+	
+	OptionParser([object[]]$srcArgs){
+		$this.Init($srcArgs)
+		$this.Parse()
+	}
 
-		hidden [void] Parse(){
-				while($this.Remains() -gt 0){
-						if($this.Remains() -ge 2){
-								if($this.IsKey(0) -and $this.IsKey(1)){
-										$this.ParseAsFlag(0)
-										continue
-								}
-								if($this.IsKey(0) -and (-not $this.IsKey(1))){
-										$this.ParseAsKeyValue(0)
-										continue
-								}
-								$this.consumed_ += 2
-								continue
-						}
-						
-						if($this.IsKey(0)){
-								$this.ParseAsFlag(0)
-								continue
-						}
-						$this.consumed_ += 1
+	hidden [void] Parse(){
+		while($this.Remains() -gt 0){
+			if($this.Remains() -ge 2){
+				if($this.IsKey(0) -and $this.IsKey(1)){
+					$this.ParseAsFlag(0)
+					continue
 				}
-		}
-
-		hidden [int] Remains(){
-				return $this.srcArgs_.Count - $this.consumed_
-		}
-
-		hidden [bool] IsKey($offset){
-				$pos = $this.consumed_ + $offset
-				if($pos -ge $this.srcArgs_.Count){
-						return $false
+				if($this.IsKey(0) -and (-not $this.IsKey(1))){
+					$this.ParseAsKeyValue(0)
+					continue
 				}
-				return $this.srcArgs_[$pos].StartsWith("-")
-		}
-
-		hidden [void] ParseAsFlag($offset){
-				$pos = $this.consumed_ + $offset
-				if($pos -ge $this.srcArgs_.Count){
-						return
-				}
-
-				$key = $this.srcArgs_[$pos]
-				$key = $key.Substring(1, $key.Length-1).ToLower()
-				$this.opts_[$key] = $true
-				
-				$this.consumed_ += 1
-		}
-
-		hidden [void] ParseAsKeyValue($offset){
-				$kpos = $this.consumed_ + $offset
-				if($kpos -ge $this.srcArgs_.Count){
-						return
-				}
-				$vpos = $this.consumed_ + $offset + 1
-				if($vpos -ge $this.srcArgs_.Count){
-						return
-				}
-
-				$key = $this.srcArgs_[$kpos]
-				$key = $key.Substring(1, $key.Length-1).ToLower()
-				$val = $this.srcArgs_[$vpos]
-
-				if(-not $this.opts_.Contains($key)){
-						$this.opts_[$key] = @()
-				}
-				$this.opts_[$key] += $val
-
 				$this.consumed_ += 2
+				continue
+			}
+			
+			if($this.IsKey(0)){
+				$this.ParseAsFlag(0)
+				continue
+			}
+			$this.consumed_ += 1
+		}
+	}
+
+	hidden [int] Remains(){
+		return $this.srcArgs_.Count - $this.consumed_
+	}
+
+	hidden [bool] IsKey($offset){
+		$pos = $this.consumed_ + $offset
+		if($pos -ge $this.srcArgs_.Count){
+			return $false
+		}
+		return $this.srcArgs_[$pos].StartsWith("-")
+	}
+
+	hidden [void] ParseAsFlag($offset){
+		$pos = $this.consumed_ + $offset
+		if($pos -ge $this.srcArgs_.Count){
+			return
 		}
 
-		[object] GetOption([string]$key){
-				if(-not $this.opts_.Contains($key)){
-						throw "option not found: $key"
-				}
-				return $this.opts_[$key][0]
-		}
+		$key = $this.srcArgs_[$pos]
+		$key = $key.Substring(1, $key.Length-1).ToLower()
+		$this.opts_[$key] = $true
 		
-		[object] GetOption([string]$key, $alt){
-				try{
-						return $this.GetOption($key)
-				}
-				catch{
-						return $alt
-				}
+		$this.consumed_ += 1
+	}
+
+	hidden [void] ParseAsKeyValue($offset){
+		$kpos = $this.consumed_ + $offset
+		if($kpos -ge $this.srcArgs_.Count){
+			return
+		}
+		$vpos = $this.consumed_ + $offset + 1
+		if($vpos -ge $this.srcArgs_.Count){
+			return
 		}
 
-		[object] GetOptions([string]$key){
-				if(-not $this.opts_.Contains($key)){
-						throw "option not found: $key"
-				}
-				return $this.opts_[$key]
+		$key = $this.srcArgs_[$kpos]
+		$key = $key.Substring(1, $key.Length-1).ToLower()
+		$val = $this.srcArgs_[$vpos]
+
+		if(-not $this.opts_.Contains($key)){
+			$this.opts_[$key] = @()
 		}
+		$this.opts_[$key] += $val
+
+		$this.consumed_ += 2
+	}
+
+	[object] GetOption([string]$key){
+		if(-not $this.opts_.Contains($key)){
+			throw "option not found: $key"
+		}
+		return $this.opts_[$key][0]
+	}
+	
+	[object] GetOption([string]$key, $alt){
+		try{
+			return $this.GetOption($key)
+		}
+		catch{
+			return $alt
+		}
+	}
+
+	[object] GetOptions([string]$key){
+		if(-not $this.opts_.Contains($key)){
+			throw "option not found: $key"
+		}
+		return $this.opts_[$key]
+	}
+	
+	[object] GetOptions([string]$key, $alt){
+		try{
+			return $this.GetOptions($key)
+		}
+		catch{
+			return $alt
+		}
+	}
+
+	[void] ParseOverride([object[]]$newArgs){
+		# save current opts, parse newArgs and orverride by saved opts
+		$saved = $this.opts_
+		$this.Init($newArgs)
 		
-		[object] GetOptions([string]$key, $alt){
-				try{
-						return $this.GetOptions($key)
-				}
-				catch{
-						return $alt
-				}
+		$this.Parse()
+
+		foreach($k in $saved.Keys){
+			$this.opts_[$k] = $saved[$k]
 		}
 
-		[void] ParseOverride([object[]]$newArgs){
-				# save current opts, parse newArgs and orverride by saved opts
-				$saved = $this.opts_
-				$this.Init($newArgs)
-				
-				$this.Parse()
-
-				foreach($k in $saved.Keys){
-						$this.opts_[$k] = $saved[$k]
-				}
-
-				# -reset is valid for initial run only
-				if($this.opts_.Contains("reset")){
-						$this.opts_.Remove("reset")
-				}
+		# -reset is valid for initial run only
+		if($this.opts_.Contains("reset")){
+			$this.opts_.Remove("reset")
 		}
+	}
 
-		[string] ToString(){
-				$tmp = @()
-				foreach($e in $this.opts_.GetEnumerator()){
-						$tmp += "-$($e.Key) $($e.Value)"
-				}
-				return ($tmp -join " ")
+	[string] ToString(){
+		$tmp = @()
+		foreach($e in $this.opts_.GetEnumerator()){
+			$tmp += "-$($e.Key) $($e.Value)"
 		}
+		return ($tmp -join " ")
+	}
 
-		[void] DebugPrint(){
-				foreach($e in $this.opts_.GetEnumerator()){
-						pp "$($e.Key) $($e.Value)"
-				}
+	[void] DebugPrint(){
+		foreach($e in $this.opts_.GetEnumerator()){
+			pp "$($e.Key) $($e.Value)"
 		}
+	}
 }
 
 
 class ProcLock{
-		hidden [System.Threading.Mutex]$mu_ = $null
+	hidden [System.Threading.Mutex]$mu_ = $null
 
-		ProcLock(){
-				$this.mu_ = [System.Threading.Mutex]::new($false, "Global\libsetup_mu")
+	ProcLock(){
+		$this.mu_ = [System.Threading.Mutex]::new($false, "Global\libsetup_mu")
+	}
+
+	[bool] TryLock(){
+		while($true){
+			try{
+				$a = $this.mu_.WaitOne(0)
+				return $a
+			}
+			catch [System.Threading.AbandonedMutexException] {
+				continue
+			}
+			catch{
+				throw
+			}
 		}
 
-		[bool] TryLock(){
-				while($true){
-						try{
-								$a = $this.mu_.WaitOne(0)
-								return $a
-						}
-						catch [System.Threading.AbandonedMutexException] {
-								continue
-						}
-						catch{
-								throw
-						}
-				}
+		# never
+		return $false
+	}
 
-				# never
-				return $false
+	[void] Release(){
+		if($this.mu_ -eq $null){
+			return
 		}
-
-		[void] Release(){
-				if($this.mu_ -eq $null){
-						return
-				}
-				$this.mu_.ReleaseMutex()
-				$this.mu_ = $null
-		}
+		$this.mu_.ReleaseMutex()
+		$this.mu_ = $null
+	}
 }
 
 
 class Setup{
-		hidden [ProcLock]$lock_
-		hidden [Logger]$logger_
+	hidden [ProcLock]$lock_
+	hidden [Logger]$logger_
 
-		hidden [void] Lock(){
-				$this.lock_ = [ProcLock]::new()
-				if(-not $this.lock_.TryLock()){
-						throw "process lock failed: another task is running"
-				}
+	hidden [void] Lock(){
+		$this.lock_ = [ProcLock]::new()
+		if(-not $this.lock_.TryLock()){
+			throw "process lock failed: another task is running"
 		}
+	}
 
-		hidden [void] Unlock(){
-				$this.lock_.Release()
-		}
-		
-		Setup([string]$baseDir, [Credential]$userCred){
-				$this.Lock()
-				$this.Init($baseDir, $userCred)
-		}
+	hidden [void] Unlock(){
+		$this.lock_.Release()
+	}
+	
+	Setup([string]$baseDir, [Credential]$userCred){
+		$this.Lock()
+		$this.Init($baseDir, $userCred)
+	}
 
-		Setup([string]$baseDir, [string]$username){
-				$this.Lock()
-				$this.Init($baseDir, [Credential]::new($username))
-		}
+	Setup([string]$baseDir, [string]$username){
+		$this.Lock()
+		$this.Init($baseDir, [Credential]::new($username))
+	}
 
-		hidden [void] Init([string]$baseDir, [Credential]$userCred){
-				Init-LibSetup $baseDir $userCred
-				$this.logger_ = $global:Logger.Clone("Setup")
-		}
+	hidden [void] Init([string]$baseDir, [Credential]$userCred){
+		Init-LibSetup $baseDir $userCred
+		$this.logger_ = $global:Logger.Clone("Setup")
+	}
 
-		Run(){
-				try{
-						$this.logger_.Info("setup started: mode=$($global:ExecCtx.RunMode()) user=$($global:ExecCtx.Credential().Username())")
-						$this.logger_.Info("Args: $($global:Opts.ToString())")
-						
-						
-						$bag = @{}
-						$global:TaskExecutor.Run($bag)
-						if($global:ExecCtx.ScheduleRerun().Ok()){
-								$global:ExecCtx.Rerun()
-								return
-						}
+	Run(){
+		try{
+			$this.logger_.Info("setup started: mode=$($global:ExecCtx.RunMode()) user=$($global:ExecCtx.Credential().Username())")
+			$this.logger_.Info("Args: $($global:Opts.ToString())")
+			
+			
+			$bag = @{}
+			$global:TaskExecutor.Run($bag)
+			if($global:ExecCtx.ScheduleRerun().Ok()){
+				$global:ExecCtx.Rerun()
+				return
+			}
 
-						$this.logger_.Info("all tasks finished")
-				}
-				finally{
-						$this.Unlock()
-				}
+			$this.logger_.Info("all tasks finished")
 		}
+		finally{
+			$this.Unlock()
+		}
+	}
 }

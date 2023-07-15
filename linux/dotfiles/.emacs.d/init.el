@@ -187,7 +187,6 @@
 (global-set-key (kbd "C-M-s") #'isearch-forward)
 (global-set-key (kbd "C-M-r") #'isearch-backward)
 
-
 ;;
 ;; helpers
 ;;
@@ -428,6 +427,7 @@
 	(setq winner-dont-bind-my-keys t))
 
 ;; window-number
+;; NOTE: M-1, M-2, M-3
 (use-package window-number
 	:ensure t
 	;; unworked :init (window-number-meta-mode)
@@ -461,9 +461,13 @@
 					("DONE" . "firebrick")
 					("HACK" . "firebrick")
 					("NOTE" . "firebrick")
-					("FIXME" . "firebrick")))
+					("FIXME" . "firebrick")
+					("DECIDED" . "#448a2a")
+					("UNDECIDED" . "firebrick")))
 	(setq hl-todo-highlight-punctuation ":")
 	(setq hl-todo-require-punctuation t)
+	;; enable hl-todo for org-mode
+	(setq hl-todo-exclude-modes '())
 	(global-hl-todo-mode))
 
 ;; simple-modeline
@@ -595,8 +599,8 @@
 ;; dumb-jump
 (use-package dumb-jump
 	:ensure t
-	:bind ("C-q M-." . dumb-jump-go-other-window)
 	:config
+	;; replace xref I/F. e.g.: M-. , C-M-. , M-?
 	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
 	(setq xref-show-definitions-function #'xref-show-definitions-completing-read))
 
@@ -803,7 +807,6 @@
 (when (eq system-type 'windows-nt)
 	;; font
 	
-	
 	;; IME config (use ime custom patch)
   ;;(setq default-input-method "W32-IME")
 	;;(setq-default w32-ime-mode-line-state-indicator "[--]")
@@ -822,8 +825,6 @@
 ;;
 ;; experiments
 ;;
-
-
 
 
 ;;
