@@ -524,7 +524,17 @@
 	(setq company-tooltip-limit 20)
 	(setq company-selection-wrap-around t)
 	;; disable icons
-	(setq company-format-margin-function nil))
+	(setq company-format-margin-function nil)
+
+	
+	(use-package company-fuzzy
+		:hook (company-mode . company-fuzzy-mode)
+		;; company-fuzzy recommended using :init
+		:init
+		;; NOTE: install flx
+		(setq company-fuzzy-sorting-backend 'flx)
+		(setq company-fuzzy-show-annotation nil)))
+
 
 ;; mozc.el
 (use-package mozc
@@ -840,7 +850,7 @@
 	 '("bf948e3f55a8cd1f420373410911d0a50be5a04a8886cabe8d8e471ad8fdba8e" "02f57ef0a20b7f61adce51445b68b2a7e832648ce2e7efb19d217b6454c1b644" "a44e2d1636a0114c5e407a748841f6723ed442dc3a0ed086542dc71b92a87aee" "631c52620e2953e744f2b56d102eae503017047fb43d65ce028e88ef5846ea3b" "2dd4951e967990396142ec54d376cced3f135810b2b69920e77103e0bcedfba9" "6945dadc749ac5cbd47012cad836f92aea9ebec9f504d32fe89a956260773ca4" "443e2c3c4dd44510f0ea8247b438e834188dc1c6fb80785d83ad3628eadf9294" "60ada0ff6b91687f1a04cc17ad04119e59a7542644c7c59fc135909499400ab8" "1a1ac598737d0fcdc4dfab3af3d6f46ab2d5048b8e72bc22f50271fd6d393a00" "7e068da4ba88162324d9773ec066d93c447c76e9f4ae711ddd0c5d3863489c52" "7ea883b13485f175d3075c72fceab701b5bf76b2076f024da50dff4107d0db25" "a9abd706a4183711ffcca0d6da3808ec0f59be0e8336868669dc3b10381afb6f" "e3daa8f18440301f3e54f2093fe15f4fe951986a8628e98dcd781efbec7a46f2" "944d52450c57b7cbba08f9b3d08095eb7a5541b0ecfb3a0a9ecd4a18f3c28948" "7a424478cb77a96af2c0f50cfb4e2a88647b3ccca225f8c650ed45b7f50d9525" "7153b82e50b6f7452b4519097f880d968a6eaf6f6ef38cc45a144958e553fbc6" "a0feb1322de9e26a4d209d1cfa236deaf64662bb604fa513cca6a057ddf0ef64" "ab04c00a7e48ad784b52f34aa6bfa1e80d0c3fcacc50e1189af3651013eb0d58" "04dd0236a367865e591927a3810f178e8d33c372ad5bfef48b5ce90d4b476481" "f6665ce2f7f56c5ed5d91ed5e7f6acb66ce44d0ef4acfaa3a42c7cfe9e9a9013" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" default))
  '(global-flycheck-mode t)
  '(package-selected-packages
-	 '(nhexl-mode org-id org-sidebar migemo dumb-jump yasnippet-snippets window-number which-key wgrep vterm-toggle use-package treemacs-projectile simple-modeline rust-mode powershell mood-line lsp-ui ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode gnu-elpa-keyring-update ggtags flycheck doom-themes csv-mode csharp-mode company clang-format anzu amx alect-themes)))
+	 '(flx company-fuzzy nhexl-mode org-id org-sidebar migemo dumb-jump yasnippet-snippets window-number which-key wgrep vterm-toggle use-package treemacs-projectile simple-modeline rust-mode mood-line lsp-ui ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode gnu-elpa-keyring-update ggtags flycheck doom-themes csv-mode csharp-mode company clang-format anzu amx alect-themes)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
