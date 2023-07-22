@@ -251,28 +251,31 @@
 	(setq ido-enable-flex-matching t)
 	(setq ido-use-virtual-buffers t)
 	(setq ido-use-filename-at-point 'guess)
-	(setq ido-enable-regexp t)
+	(setq ido-enable-regexp t))
 
-	;; ido-vertical-mode
-	(use-package ido-vertical-mode
-		:ensure t
-		:config
-		(ido-vertical-mode t)
-		(setq ido-vertical-show-count t)
-		(setq ido-vertical-define-keys 'C-n-and-C-p-only))
+;; ido-vertical-mode
+(use-package ido-vertical-mode
+	:ensure t
+	:after ido
+	:config
+	(ido-vertical-mode t)
+	(setq ido-vertical-show-count t)
+	(setq ido-vertical-define-keys 'C-n-and-C-p-only))
 
-	;; ido-completing-read+(ido-ubiquitous)
-	(use-package ido-completing-read+
-		:ensure t
-		:config (ido-ubiquitous-mode t))
+;; ido-completing-read+(ido-ubiquitous)
+(use-package ido-completing-read+
+	:ensure t
+	:after ido
+	:config (ido-ubiquitous-mode t))
 
-	;; amx
-	(use-package amx
-		:ensure t
-		:bind ("M-x" . amx)
-		:config	(amx-mode)
-		;; unworked :init (amx-backend 'ido) and :config (amx-backend 'ido)
-		:custom	(amx-backend 'ido)))
+;; amx
+(use-package amx
+	:ensure t
+	:after ido
+	:bind ("M-x" . amx)
+	:config	(amx-mode)
+	;; unworked :init (amx-backend 'ido) and :config (amx-backend 'ido)
+	:custom	(amx-backend 'ido))
 
 ;; org(builtin)
 (use-package org
@@ -294,7 +297,7 @@
 	:custom-face
 	;; :extend uneffected?
 	(org-level-1 ((t (:extend t :underline t :weight ultra-bold :height 1.5))))
-	(org-level-2 ((t (:weight bold :height 1.3))))
+	(org-level-2 ((t (:extend t :underline t :weight bold :height 1.3))))
 	(org-level-3 ((t (:weight bold :height 1.1))))
 
 	:hook
@@ -388,24 +391,24 @@
 	(setq org-src-preserve-indentation t)
 	
 	;; enable underline to EOL on headings
-	(setq org-fontify-whole-heading-line t)
+	(setq org-fontify-whole-heading-line t))
 
-	;; org-id
-	(use-package org-id
-		;; org-id is builtin
-		;;:ensure t
-		:config
-		;;(setq org-id-link-to-org-use-id t)
-		(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id))
+;; org-id(builtin)
+(use-package org-id
+	:after org
+	:config
+	;;(setq org-id-link-to-org-use-id t)
+	(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id))
 
-	;; org-sidebar
-	(use-package org-sidebar
-		:ensure t
-		:bind ("C-c s" . org-sidebar-toggle)
-		:config
-		(setq org-sidebar-side 'left)
-		(setq org-sidebar-default-fns '(org-sidebar-tree-view-buffer
-																		org-sidebar--todo-items))))
+;; org-sidebar
+(use-package org-sidebar
+	:ensure t
+	:after org
+	:bind ("C-c s" . org-sidebar-toggle)
+	:config
+	(setq org-sidebar-side 'left)
+	(setq org-sidebar-default-fns '(org-sidebar-tree-view-buffer
+																	org-sidebar--todo-items)))
 
 ;; window(builtin)
 (use-package window
@@ -473,7 +476,7 @@
 ;; simple-modeline
 (use-package simple-modeline
 	:ensure t
-	:config 
+	:config
 	(setq simple-modeline-segments
 				'((simple-modeline-segment-position
 					 simple-modeline-segment-modified
@@ -497,12 +500,14 @@
 				("C-t" . nil))
 
 	:config
-	(setq vterm-max-scrollback 10000)
-	(use-package vterm-toggle
-		:ensure t
-		:bind
-		(("C-t" . vterm-toggle)
-		 ("C-c C-t" . vterm-toggle-cd))))
+	(setq vterm-max-scrollback 10000))
+
+(use-package vterm-toggle
+	:ensure t
+	:after vterm
+	:bind
+	(("C-t" . vterm-toggle)
+	 ("C-c C-t" . vterm-toggle-cd)))
 
 ;; company
 (use-package company
@@ -524,16 +529,17 @@
 	(setq company-tooltip-limit 20)
 	(setq company-selection-wrap-around t)
 	;; disable icons
-	(setq company-format-margin-function nil)
-
+	(setq company-format-margin-function nil))
 	
-	(use-package company-fuzzy
-		:hook (company-mode . company-fuzzy-mode)
-		;; company-fuzzy recommended using :init
-		:init
-		;; NOTE: install flx
-		(setq company-fuzzy-sorting-backend 'flx)
-		(setq company-fuzzy-show-annotation nil)))
+(use-package company-fuzzy
+	:ensure t
+	:after company
+	:hook (company-mode . company-fuzzy-mode)
+	;; company-fuzzy recommended using :init
+	:init
+	;; NOTE: install flx
+	;;(setq company-fuzzy-sorting-backend 'flx)
+	(setq company-fuzzy-show-annotation nil))
 
 
 ;; mozc.el
@@ -544,15 +550,16 @@
 	(setq default-input-method "japanese-mozc")
 	;; unwork if truncate-lines != nil
 	;;(setq mozc-candidate-style 'overlay))
+	)
 
-	(use-package mozc-cand-posframe
-		:ensure t
-		:after mozc
-		:custom-face
-		(mozc-cand-posframe-normal-face ((t (:foreground nil :background nil))))
-		(mozc-cand-posframe-focused-face ((t (:inherit link :foreground nil :background nil))))
-		:config
-		(setq mozc-candidate-style 'posframe)))
+(use-package mozc-cand-posframe
+	:ensure t
+	:after mozc
+	:custom-face
+	(mozc-cand-posframe-normal-face ((t (:foreground nil :background nil))))
+	(mozc-cand-posframe-focused-face ((t (:inherit link :foreground nil :background nil))))
+	:config
+	(setq mozc-candidate-style 'posframe))
 	
 ;; migemo
 (use-package migemo
@@ -588,11 +595,13 @@
 
 ;; yasnippet
 (use-package yasnippet
+	:ensure t)
+
+;; actual snippets
+(use-package yasnippet-snippets
 	:ensure t
+	:after yasnippet
 	:config
-	;; actual snippets
-	(use-package yasnippet-snippets
-		:ensure t)
 	(yas-global-mode t)
 	(yas-reload-all)
 	(setq yas-prompt-functions '(yas-ido-prompt)))
@@ -673,68 +682,70 @@
 
 	;; settings per langs
 	(setq lsp-register-custom-settings
-	 '(("gopls.experimentalWorkspaceModule" t t)))
+	 '(("gopls.experimentalWorkspaceModule" t t))))
 	
-	;; lsp-ui
-	(use-package lsp-ui
-		:ensure t
-		:commands lsp-ui-mode
-		:hook (lsp-mode . lsp-ui-mode)
-		:bind
-		(:map lsp-ui-mode-map
-					([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
-					([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
-					("C-q C-u m" . lsp-ui-imenu))
-		
-		:custom-face
-		(lsp-ui-sideline-symbol-info ((t (:background "default"))))
-		;; background face of sideline and doc
-		(markdown-code-face ((t (:background "grey10"))))
-
-		:config
-		(setq lsp-lens-enable t)
-
-		;; lsp-ui-doc
-		(setq lsp-ui-doc-enable nil)
-		(setq lsp-ui-doc-header t)
-		(setq lsp-ui-doc-include-signature t)
-		(setq lsp-ui-doc-delay 2)
-
-		;; lsp-ui-sideline
-		(setq lsp-ui-sideline-enable t)
-		(setq lsp-ui-sideline-show-code-actions t)
-		(setq lsp-ui-sideline-show-hover nil)
-		(setq lsp-ui-sideline-delay 0.2)
-		;;(lsp-ui-sideline-update-mode 'line)
-		(setq lsp-ui-sideline-show-diagnostics t)
-		(setq lsp-ui-sideline-diagnostic-max-lines 10)
-		(setq lsp-ui-sideline-diagnostic-max-line-length 150)
-
-		;; lsp-ui-peek
-		(setq lsp-ui-peek-always-show t)))
+;; lsp-ui
+(use-package lsp-ui
+	:ensure t
+	:after lsp-mode
+	:commands lsp-ui-mode
+	:hook (lsp-mode . lsp-ui-mode)
+	:bind
+	(:map lsp-ui-mode-map
+				([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
+				([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
+				("C-q C-u m" . lsp-ui-imenu))
+	
+	:custom-face
+	(lsp-ui-sideline-symbol-info ((t (:background "default"))))
+	;; background face of sideline and doc
+	(markdown-code-face ((t (:background "grey10"))))
+	
+	:config
+	(setq lsp-lens-enable t)
+	
+	;; lsp-ui-doc
+	(setq lsp-ui-doc-enable nil)
+	(setq lsp-ui-doc-header t)
+	(setq lsp-ui-doc-include-signature t)
+	(setq lsp-ui-doc-delay 2)
+	
+	;; lsp-ui-sideline
+	(setq lsp-ui-sideline-enable t)
+	(setq lsp-ui-sideline-show-code-actions t)
+	(setq lsp-ui-sideline-show-hover nil)
+	(setq lsp-ui-sideline-delay 0.2)
+	;;(lsp-ui-sideline-update-mode 'line)
+	(setq lsp-ui-sideline-show-diagnostics t)
+	(setq lsp-ui-sideline-diagnostic-max-lines 10)
+	(setq lsp-ui-sideline-diagnostic-max-line-length 150)
+	
+	;; lsp-ui-peek
+	(setq lsp-ui-peek-always-show t))
 
 ;; cc-mode(builtin)
 (use-package cc-mode
-	:ensure t
-	:config
-	;; google-c-style
-	(use-package google-c-style
-		:ensure t
-		:hook (c-mode-common . google-set-c-style))
+	:ensure t)
 
-	;; clang-format
-	(use-package clang-format
-		:ensure t
-		:bind
-		(("C-q f b" . clang-format-buffer)
-		 ("C-q f r" . clang-format-region))
-		:hook
-		(c-mode-common . (lambda ()
-											 (add-before-save-hook 'clang-format-buffer)))
-		
-		:config
-		(setq clang-format-style "file")
-		(setq clang-format-fallback-style "google")))
+;; google-c-style
+(use-package google-c-style
+	:ensure t
+	:after cc-mode
+	:hook (c-mode-common . google-set-c-style))
+
+;; clang-format
+(use-package clang-format
+	:ensure t
+	:after cc-mode
+	:bind
+	(("C-q f b" . clang-format-buffer)
+	 ("C-q f r" . clang-format-region))
+	:hook
+	(c-mode-common . (lambda ()
+										 (add-before-save-hook 'clang-format-buffer)))
+	:config
+	(setq clang-format-style "file")
+	(setq clang-format-fallback-style "google"))
 
 ;; go-mode
 (use-package go-mode
@@ -752,6 +763,12 @@
 	:ensure t
 	:after lsp-mode)
 
+;; powershell
+(use-package powershell
+	:ensure t
+	:config
+	(setq powershell-indent 2))
+
 ;; csharp-mode
 ;;(use-package csharp-mode
 ;;	:ensure nil
@@ -759,7 +776,6 @@
 ;;	(setq-default tab-width 4)
 ;;	(setq-default c-basic-offset 4)
 ;;	(setq tab-stop-list (number-sequence 4 120 4)))
-	
 
 ;; python-mode
 (use-package python
@@ -804,11 +820,16 @@
 		 'doom-badger) t))
 
 ;; theme for windows
-(use-package alect-themes
+;(use-package alect-themes
+;	:if (and (eq window-system 'w32) (eq system-type 'windows-nt))
+;	:ensure t
+;	:config
+;	(load-theme 'alect-black t))
+(use-package ef-themes
 	:if (and (eq window-system 'w32) (eq system-type 'windows-nt))
 	:ensure t
 	:config
-	(load-theme 'alect-black t))
+	(load-theme 'ef-tritanopia-dark t))
 
 	
 ;;
@@ -850,7 +871,7 @@
 	 '("bf948e3f55a8cd1f420373410911d0a50be5a04a8886cabe8d8e471ad8fdba8e" "02f57ef0a20b7f61adce51445b68b2a7e832648ce2e7efb19d217b6454c1b644" "a44e2d1636a0114c5e407a748841f6723ed442dc3a0ed086542dc71b92a87aee" "631c52620e2953e744f2b56d102eae503017047fb43d65ce028e88ef5846ea3b" "2dd4951e967990396142ec54d376cced3f135810b2b69920e77103e0bcedfba9" "6945dadc749ac5cbd47012cad836f92aea9ebec9f504d32fe89a956260773ca4" "443e2c3c4dd44510f0ea8247b438e834188dc1c6fb80785d83ad3628eadf9294" "60ada0ff6b91687f1a04cc17ad04119e59a7542644c7c59fc135909499400ab8" "1a1ac598737d0fcdc4dfab3af3d6f46ab2d5048b8e72bc22f50271fd6d393a00" "7e068da4ba88162324d9773ec066d93c447c76e9f4ae711ddd0c5d3863489c52" "7ea883b13485f175d3075c72fceab701b5bf76b2076f024da50dff4107d0db25" "a9abd706a4183711ffcca0d6da3808ec0f59be0e8336868669dc3b10381afb6f" "e3daa8f18440301f3e54f2093fe15f4fe951986a8628e98dcd781efbec7a46f2" "944d52450c57b7cbba08f9b3d08095eb7a5541b0ecfb3a0a9ecd4a18f3c28948" "7a424478cb77a96af2c0f50cfb4e2a88647b3ccca225f8c650ed45b7f50d9525" "7153b82e50b6f7452b4519097f880d968a6eaf6f6ef38cc45a144958e553fbc6" "a0feb1322de9e26a4d209d1cfa236deaf64662bb604fa513cca6a057ddf0ef64" "ab04c00a7e48ad784b52f34aa6bfa1e80d0c3fcacc50e1189af3651013eb0d58" "04dd0236a367865e591927a3810f178e8d33c372ad5bfef48b5ce90d4b476481" "f6665ce2f7f56c5ed5d91ed5e7f6acb66ce44d0ef4acfaa3a42c7cfe9e9a9013" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" default))
  '(global-flycheck-mode t)
  '(package-selected-packages
-	 '(flx company-fuzzy nhexl-mode org-id org-sidebar migemo dumb-jump yasnippet-snippets window-number which-key wgrep vterm-toggle use-package treemacs-projectile simple-modeline rust-mode mood-line lsp-ui ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode gnu-elpa-keyring-update ggtags flycheck doom-themes csv-mode csharp-mode company clang-format anzu amx alect-themes)))
+	 '(company-fuzzy nhexl-mode org-id org-sidebar migemo dumb-jump yasnippet-snippets window-number which-key wgrep vterm-toggle use-package treemacs-projectile simple-modeline rust-mode mood-line lsp-ui ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode gnu-elpa-keyring-update ggtags flycheck doom-themes csv-mode csharp-mode company clang-format anzu amx alect-themes)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
