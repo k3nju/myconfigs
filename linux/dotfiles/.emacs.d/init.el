@@ -5,7 +5,7 @@
 
 
 ;;
-;; coding system
+;;  coding system
 ;;
 
 (prefer-coding-system 'utf-8)
@@ -173,7 +173,6 @@
 		 ;; truncate-lines must be enabled.
 		 ;;(toggle-truncate-lines)
 		 (toggle-input-method)))
-	 
 
 ;; set "C-h" as delete-backward-char, use F1 to see helps(default keybinding)
 (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
@@ -186,6 +185,7 @@
 (global-set-key (kbd "C-r") #'isearch-backward-regexp)
 (global-set-key (kbd "C-M-s") #'isearch-forward)
 (global-set-key (kbd "C-M-r") #'isearch-backward)
+
 
 ;;
 ;; helpers
@@ -235,10 +235,7 @@
 	:config
 	(recentf-mode t)
 	(setq recentf-max-saved-items 100)
-	(setq recentf-exclude `("recentf" "ido.last" ,(expand-file-name package-user-dir)))
-	;; recentf-auto-save-timer deprecated?
-	;;(setq recentf-auto-save-timer (run-with-idle-timer 30 t 'recentf-save-list))
-	)
+	(setq recentf-exclude `("recentf" "ido.last" ,(expand-file-name package-user-dir))))
 
 ;; ido(builtin)
 ;; NOTE: emacs28 has fido-vertical-mode.
@@ -297,7 +294,7 @@
 	:custom-face
 	;; :extend uneffected?
 	(org-level-1 ((t (:extend t :underline t :weight ultra-bold :height 1.5))))
-	(org-level-2 ((t (:extend t :underline t :weight bold :height 1.3))))
+	(org-level-2 ((t (:extend t :weight bold :height 1.3))))
 	(org-level-3 ((t (:weight bold :height 1.1))))
 
 	:hook
@@ -320,34 +317,72 @@
 						(if (file-exists-p d) (setq org-directory d))))
 				;; priority in reverse order
 				(list user-emacs-directory "~/Dropbox/"))
-	;; directory for misc notes
-	(setq misc-notes-directory (expand-file-name "misc" org-directory))
-	
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
+	(setq misc-notes-directory (expand-file-name "misc" org-directory))
+
+	;; agenda configs
 	(setq org-agenda-files (list org-directory misc-notes-directory))
 	(setq org-agenda-custom-commands
-				'(("j" "[J]ournals" tags "+journal&+LEVEL=2&+TIMESTAMP>=\"<-1m>\""
+				'(;; notes relateds
+					("n" . "[N]otes")
+					("nj" "[J]ournals"
+					 tags "+journal&+LEVEL=2&+TIMESTAMP>=\"<-1m>\""
 					 ;; limit the files to be searched to org-default-notes-file
 					 ((org-agenda-files (list org-default-notes-file))))
-					("m" "[M]isc notes" tags "+misc"
+					("nm" "[M]isc notes"
+					 tags "+misc"
 					 ((org-agenda-files (list misc-notes-directory))))
-					("1" "all level [1] headings" tags "LEVEL=1")
-					("p" "[P]rojects" tags "+project&+LEVEL=1")))
+
+					;; eisenhower's matrix
+					("e" "[E]isenhower matrix"
+					 ((tags-todo "+priority=1"
+											 ((org-agenda-overriding-header "Do It | Important & Urgent")
+												(org-agenda-todo-keyword-format "")))
+						(tags-todo "+priority=2"
+											 ((org-agenda-overriding-header "Schedule | Important & Non-urgent")
+												(org-agenda-block-separator ?-)
+												(org-agenda-todo-keyword-format "")))
+						(tags-todo "+priority=3"
+											 ((org-agenda-overriding-header "Delegate | Unimportant & Urgent")
+												(org-agenda-block-separator ?-)
+												(org-agenda-todo-keyword-format "")))
+						(tags-todo "+priority=4"
+											 ((org-agenda-overriding-header "Eliminate | Unimportant & Non-urgent")
+												(org-agenda-block-separator ?-)
+												(org-agenda-todo-keyword-format "")))
+						(tags-todo "*"
+											 ((org-agenda-overriding-header "Unprioritized")
+												(org-agenda-skip-function '(org-agenda-skip-entry-if 'regexp "\\[#[1-4]\\]"))
+												(org-agenda-block-separator ?-)
+												(org-agenda-todo-keyword-format "")))))
+					 ))
+
+	;; refiles
 	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
 	(setq org-refile-use-outline-path 'full-file-path)
 	(setq org-refile-allow-creating-parent-nodes 'confirm)
 	(setq org-outline-path-complete-in-steps nil)
-	
 	(setq org-archive-location (format "%s/%%s_archive::" (expand-file-name "archive" org-directory)))
 
+	;; org todo
+	(setq org-todo-keywords
+				'((sequence "TODO(t)" "|" "DONE(d)" "CANCELED(c)")))
+	(setq org-log-done 'time)
+
+	;; org priority
+	(setq org-highest-priority 1)
+	(setq org-lowest-priority 4)
+	(setq org-default-priority 1)
+
 	;;(setq org-use-speed-commands t)
-	
+
+	;; view configs
 	(setq org-startup-folded nil)
 	(setq org-startup-indented t)
+	
 	(setq org-indent-indentation-per-level 1)
 	;;(setq org-hide-leading-stars t)
 	;;(setq org-adapt-indentation t) ;; hard indentation
-	
 	(setq org-return-follows-link t)
 	(setq org-hide-emphasis-markers t)
 	(setq org-blank-before-new-entry
@@ -355,15 +390,17 @@
 					(plain-list-item . nil)))
 	(setq org-cycle-separator-lines 1)
 
+	(setq org-src-tab-acts-natively t)
+	(setq org-src-preserve-indentation t)
+	
+	;; enable underline to EOL on headings
+	(setq org-fontify-whole-heading-line t)
+
+	;; timestamp
 	;; to enable time stamp overlay, set org-display-custom-times is t in :init
 	(setq org-time-stamp-custom-formats '("<%Y/%m/%d>" . "<%Y/%m/%d %H:%M:%S>"))
-	
-	(setq org-todo-keywords
-				'((sequence "TODO(t)" "|" "DONE(d)" "CANCELED(c)")))
-	(setq org-log-done 'time)
 
-
-	;; file target: create a note file
+	;; org capture
 	(defun create-misc-note-file ()
 		(interactive)
 		(mkdir misc-notes-directory t)
@@ -379,19 +416,14 @@
 			filename))
 
 	(setq org-capture-templates
-				'(;;("n" "Notes" entry (file+headline "notes.org" "notes") "* %?\n%T\n" :empty-lines 1)
-					("n" "[N]otes" entry (file "notes.org") "* %?\n%T\n" :empty-lines 1 :kill-buffer 1)
+				'(("n" "[N]otes" entry (file "notes.org") "* %?\n%T\n" :empty-lines 1 :kill-buffer 1)
 					;; NOTE: plain cant refile to other org files
 					("m" "[M]isc notes" plain (file create-misc-note-file) "* %?  :misc:\n%T\n"
 					 :misc-note t :empty-lines 1 :kill-buffer t)
 					("j" "[J]ournals" entry (file+headline "notes.org" "journals") "* %T %?\n" :empty-lines 1 :kill-buffer t :prepend t)
 					("d" "[D]iary" entry (file "diary.org") "* %T\n%?\n" :empty-lines 1 :kill-buffer t :prepend t )))
-	
-	(setq org-src-tab-acts-natively t)
-	(setq org-src-preserve-indentation t)
-	
-	;; enable underline to EOL on headings
-	(setq org-fontify-whole-heading-line t))
+
+	)
 
 ;; org-id(builtin)
 (use-package org-id
@@ -502,6 +534,7 @@
 	:config
 	(setq vterm-max-scrollback 10000))
 
+;; vterm-toggle
 (use-package vterm-toggle
 	:ensure t
 	:after vterm
@@ -531,6 +564,7 @@
 	;; disable icons
 	(setq company-format-margin-function nil))
 	
+;; company-fuzzy
 (use-package company-fuzzy
 	:ensure t
 	:after company
@@ -540,7 +574,6 @@
 	;; NOTE: install flx
 	;;(setq company-fuzzy-sorting-backend 'flx)
 	(setq company-fuzzy-show-annotation nil))
-
 
 ;; mozc.el
 (use-package mozc
@@ -552,6 +585,7 @@
 	;;(setq mozc-candidate-style 'overlay))
 	)
 
+;; mozc-cand-posframe
 (use-package mozc-cand-posframe
 	:ensure t
 	:after mozc
@@ -789,10 +823,10 @@
 			(setq lsp-pylsp-plugins-black-enabled t)))
 
 
-
 ;;
 ;; theme config
 ;;
+
 (when (and (file-exists-p (expand-file-name "themes" user-emacs-directory))
 					 (boundp 'custom-theme-load-path))
 	(add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory)))
@@ -835,6 +869,7 @@
 ;;
 ;; windows customize
 ;;
+
 (when (eq system-type 'windows-nt)
 	;; font
 	
