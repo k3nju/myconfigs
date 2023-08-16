@@ -422,7 +422,6 @@
 					 :misc-note t :empty-lines 1 :kill-buffer t)
 					("j" "[J]ournals" entry (file+headline "notes.org" "journals") "* %T %?\n" :empty-lines 1 :kill-buffer t :prepend t)
 					("d" "[D]iary" entry (file "diary.org") "* %T\n%?\n" :empty-lines 1 :kill-buffer t :prepend t )))
-
 	)
 
 ;; org-id(builtin)
