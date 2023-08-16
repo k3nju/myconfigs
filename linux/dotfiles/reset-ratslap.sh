@@ -23,12 +23,12 @@ sudo ratslap \
 		 --modify f4 \
 		 --color green \
 		 --middle modeswitch \
-		 --g4 left \
-		 --g5 right \
+		 --g4 rightalt+right \
+		 --g5 rightalt+left \
 		 --g6 pagedown \
 		 --g7 pageup \
-		 --g8 leftctrl+pageup \
-		 --g9 leftctrl+pagedown \
+		 --g8 rightctrl+pageup \
+		 --g9 rightctrl+pagedown \
 		 --d2 2000\
 		 --no-dpishift \
 		 --default-dpi 2 \
