@@ -71,7 +71,7 @@ endef
 init:
 	$(call ensure_su)
 	su -c "pacman -Sy && pacman -S --noconfirm archlinux-keyring && pacman -S --needed --noconfirm base-devel && echo 'kj ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/kj"
-	$(call add_archlinuxfr,/etc/pacman.conf)
+# $(call add_archlinuxfr,/etc/pacman.conf)
 	$(call create_emacs_launcher,/usr/local/bin/emacs_launcher.sh)
 
 
