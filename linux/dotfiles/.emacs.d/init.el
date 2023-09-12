@@ -1,326 +1,469 @@
+;; TODO: embark
+;; TODO: difference focus-lines vs keep-lines
+;; TODO: 29 elgot, tree-shitter
+
+
 ;;(profiler-start 'cpu)
 
-;; workaround
-(setq byte-compile-warnings '(cl-functions))
+
+;;
+;; basic config
+;;
+(use-package emacs
+  :config
+	;; TODO: consider using early-init.el
+
+	;; workaround
+  (setq byte-compile-warnings '(cl-functions))
+
+
+	;; coding system
+  (prefer-coding-system 'utf-8)
+  (set-default-coding-systems 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (setq-default buffer-file-coding-system 'utf-8)
+	
+	
+	;; frame appearances
+  (setq inhibit-startup-screen t)
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+	(scroll-bar-mode -1)
+	
+
+	;; font for linux
+  ;;(set-frame-font "Office Code Pro 11")
+  (when (and (eq window-system 'x) (eq system-type 'gnu/linux))
+    (let* (;; custom fontset
+					 ;; which should I use?
+					 ;;(_myfontset (create-fontset-from-ascii-font
+					 ;;		(format "%s-%d:weight=normal:slant=normal" "input mono condensed" 15) nil "myfontset"))
+					 (myfontset (create-fontset-from-fontset-spec
+											 (font-xlfd-name
+												(font-spec
+												 :name "myfontset"
+												 :weight 'normal
+												 :slant 'normal
+												 :width 'condensed
+												 ;; use floating point for point size
+												 :size 13.0 
+												 :spacing 'M
+												 :registry "fontset-myfontset"))))
+
+					 ;; font and charset mappings applying to myfontset
+					 (mappings '((:font "input mono condensed"
+												:charset ascii)
+											 (:font "ipaexgothic"
+												:charset japanese-jisx0213.2004-1
+												;; to supress flicking
+												:rescale 0.999))))
+
+			;; create fontset per mappings
+      (mapc
+       (lambda (m)
+				 (let* ((font (plist-get m :font))
+								(charset (plist-get m :charset))
+								(rescale (plist-get m :rescale))
+								(fspec (font-spec :name font)))
+					 (when (find-font fspec)
+						 (set-fontset-font myfontset charset fspec nil 'append))
+					 (when rescale
+						 (add-to-list 'face-font-rescale-alist (cons (format ".*%s.*" font) rescale)))))
+       mappings)
+      
+      (add-to-list 'default-frame-alist '(font . "fontset-myfontset"))))
+  
+
+	;; font for windows
+  (when (and (eq window-system 'w32) (eq system-type 'windows-nt))
+    ;; on windows, specify font names by using CamelCase. not "input mono condensed", 
+    ;;(set-frame-font "InputMonoCondensed")
+    ;; WORKAROUND: input isn't installed
+    (set-frame-font "MS Gothic 12" nil t))
+
+
+	;; disable bell & screen flashes
+  (setq ring-bell-function 'ignore)
+
+
+  ;; line and column numbering
+	(setq-default display-line-numbers-width 3)
+  (global-display-line-numbers-mode)
+	;; show line and column number in mode line
+	(line-number-mode)
+  (column-number-mode)
+  
+
+  ;; cursor
+  (blink-cursor-mode 0)
+	(global-subword-mode t) ;; stop cursor on per humps for CamelCase
+
+
+	;; editing visibilities
+  (show-paren-mode t)
+  (setq show-trailing-whitespace t)
+  (setq-default truncate-lines t)
+  (setq-default truncate-partial-width-windows nil)
+
+
+	;; tab
+  (setq-default indent-tabs-mode t)
+  (setq-default tab-width 2)
+  (setq tab-stop-list (number-sequence 2 120 2))
+  (setq tab-always-indent 'complete)
+
+
+	;; indentation
+	;; disable electric-indent-mode always
+  (add-hook 'after-change-major-mode-hook (lambda() (electric-indent-mode -1)))
+
+
+	;; copy & paste
+  (setq select-enable-primary t)
+	(setq select-enable-clipboard t)
+  (setq save-interprogram-paste-before-kill t)
+	
+	
+	;; search defaults
+  (setq case-fold-search t) ;; case sensitive
+	
+
+	;; visit abs path for find-file
+  ;; https://memo.sugyan.com/entry/20120105/1325766364
+  (setq find-file-visit-truename t)
+
+
+	;; backup
+  (setq version-control t)
+  (setq kept-new-versions 5)
+  (setq kept-old-versions 0)
+  (setq delete-old-versions t)
+  (setq backup-by-copying t)
+  (setq backup-directory-alist `((".*" . ,(expand-file-name "backup" user-emacs-directory))))
+
+
+	;; for resizing *Completions* buffer size
+  ;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Temporary-Displays.html#index-temp_002dbuffer_002dresize_002dmode
+  (temp-buffer-resize-mode)
+	
+
+	;; elisp user site
+	(let* ((default-directory (expand-file-name "lisp" user-emacs-directory)))
+		(add-to-list 'load-path default-directory)
+		(when (file-exists-p default-directory)
+			(normal-top-level-add-subdirs-to-load-path)))
+
+	
+	;; package archives
+	(when (require 'package nil t)
+		(package-initialize)
+		(setq package-archives
+					'(("gnu" . "https://elpa.gnu.org/packages/")
+						("melpa" . "https://melpa.org/packages/")
+						("org" . "https://orgmode.org/elpa/"))))
+	
+	;; install use-package if emacs < 29
+	(when (< emacs-major-version 29)
+		(unless (package-installed-p 'use-package)
+			(message "use-package is not installed and installing it")
+			(package-refresh-contents)
+			(package-install 'use-package)))
+  
+  
+  ;; ediff
+  (setq-default ediff-split-window-function 'split-window-horizontally)
+
+  
+	;; yes or no
+  (fset 'yes-or-no-p 'y-or-n-p)
+	
+
+	;; disable ime on minibuffer
+	(add-hook 'minibuffer-setup-hook 'deactivate-input-method)
+
+
+	;; helpers
+	(defun my/add-before-save-hook (f) (add-hook #'before-save-hook f nil 'local))
+
+
+  ;;;; key bindings
+;;  (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
+;;  (setq default-input-method "japanese")
+;;  (let* ((remaps
+;;					'(;; quoted-insert
+;;						("C-q" . nil)
+;;						;; suspend-frame
+;;						("C-z" . nil)
+;;						;; window move forard
+;;						("M-n" . other-window)
+;;						;; window move backward
+;;						("M-p" . (lambda () (interactive) (other-window -1)))
+;;						;; toggle-input-method
+;;						("C-\\" . nil)
+;;						;; to display candidates for overlay by mozc, truncate-lines must be enabled.
+;;						;;(toggle-truncate-lines) ;; currently disabled
+;;						;; input method
+;;						("<zenkaku-hankaku>" . (lambda () (interactive) (toggle-input-method)))
+;;						;; swap search key bindings
+;;						("C-s" . isearch-forward-regexp)
+;;						("C-r" . isearch-backward-regexp)
+;;						("C-M-s" . isearch-forward)
+;;						("C-M-r" . isearch-backword)
+;;						;; switching buffer
+;;						("C-M-p" . previous-buffer)
+;;						("C-M-n" . next-buffer)
+;;						)))
+;;    (mapc #'(lambda (p) (global-set-key (kbd (car p)) (cdr p))) remaps))
+  (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
+  (setq default-input-method "japanese")
+	:bind
+  (:map global-map
+				;; quoted-insert
+				("C-q" . nil)
+				;; suspend-frame
+				("C-z" . nil)
+				;; window move forard
+				("M-n" . other-window)
+				;; window move backward
+				("M-p" . (lambda () (interactive) (other-window -1)))
+				;; toggle-input-method
+				("C-\\" . nil)
+				;; to display candidates for overlay by mozc, truncate-lines must be enabled.
+				;;(toggle-truncate-lines) ;; currently disabled
+				;; input method
+				("<zenkaku-hankaku>" . (lambda () (interactive) (toggle-input-method)))
+				;; swap search key bindings
+				("C-s" . isearch-forward-regexp)
+				("C-r" . isearch-backward-regexp)
+				("C-M-s" . isearch-forward)
+				("C-M-r" . isearch-backword)
+				;; switching buffer
+				("C-M-p" . previous-buffer)
+				("C-M-n" . next-buffer)
+				;; personals
+				("C-q C-x r" . (lambda () (interactive) (load-file "~/.emacs.d/init.el")))
+				)
+	;; end of config
+	)
 
 
 ;;
-;;  coding system
+;; basic packages
 ;;
 
-(prefer-coding-system 'utf-8)
-(set-default-coding-systems 'utf-8)
-(set-terminal-coding-system 'utf-8)
-(set-keyboard-coding-system 'utf-8)
-(setq-default buffer-file-coding-system 'utf-8)
-
-
-;;
-;; basic configs
-;;
-
-;; display
-(setq inhibit-startup-screen t)
-(menu-bar-mode -1)
-(when (fboundp 'tool-bar-mode)
-	(tool-bar-mode -1))
-(when (fboundp 'scroll-bar-mode)
-	(scroll-bar-mode -1))
-
-;; for resizing *Completions* buffer size
-(temp-buffer-resize-mode)
-
-;; disable bell & screen flashes
-(setq ring-bell-function 'ignore)
-
-;; line and column number
-(if (>= emacs-major-version 26)
-		(global-display-line-numbers-mode t)
-	(global-linum-mode t))
-(setq linum-format "%4d ")
-(column-number-mode t)
-
-;; cursor
-(blink-cursor-mode 0)
-(global-subword-mode t)
-
-;; buffer
-(show-paren-mode t)
-(setq show-trailing-whitespace t)
-
-;; find-file
-(setq find-file-visit-truename t)
-
-;; copy & paste
-(setq select-enable-clipboard t)
-(setq select-enable-primary t)
-(setq save-interprogram-paste-before-kill t)
-
-;; search
-(setq case-fold-search t)
-
-;; tab
-(setq-default indent-tabs-mode t)
-(setq-default tab-width 2)
-(setq tab-stop-list (number-sequence 2 120 2))
-(setq tab-always-indent 'complete)
-
-;; line trancation
-(setq-default truncate-lines t)
-(setq-default truncate-partial-width-windows nil)
-
-;; load path
-(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
-
-;; backup
-(setq version-control t)
-(setq kept-new-versions 5)
-(setq kept-old-versions 0)
-(setq delete-old-versions t)
-(setq backup-by-copying t)
-(setq backup-directory-alist `((".*" . ,(expand-file-name "backup" user-emacs-directory))))
-
-;; auto save
-;;(setq kill-buffer-delete-auto-save-files t)
-;;(setq auto-save-timeout 5)
-
-;; yes or no
-(fset 'yes-or-no-p 'y-or-n-p)
-
-;; font
-;;(set-frame-font "Input 12" nil t)
-;;(set-frame-font "Office Code Pro 11")
-;;(set-frame-font "Noto Sans Mono CJK JP 10" nil t)
-(when (and (eq window-system 'x) (eq system-type 'gnu/linux))
-	(let* ((mappings '((:font "input mono condensed"
-											:charset ascii)
-										 (:font "ipaexgothic"
-											:charset japanese-jisx0213.2004-1
-											;; to supress flicking
-											:rescale 0.999)))
-				 ;; which should I use?
-				 ;;(_myfontset (create-fontset-from-ascii-font
-				 ;;							(format "%s-%d:weight=normal:slant=normal" "input mono condensed" 15) nil "myfontset"))
-				 (myfontset (create-fontset-from-fontset-spec
-										 (font-xlfd-name
-											(font-spec :name "myfontset"
-																 :weight 'normal
-																 :slant 'normal
-																 :width 'condensed
-																 :size 13.0 ;; use floating point for point size.
-																 :spacing 'M
-																 :registry "fontset-myfontset")))))
-		(mapc
-		 (lambda (m)
-			 (let* ((font (plist-get m :font))
-							(charset (plist-get m :charset))
-							(rescale (plist-get m :rescale))
-							(fspec (font-spec :name font)))
-				 (when (find-font fspec)
-					 (set-fontset-font myfontset charset fspec nil 'append))
-				 (when rescale
-					 (add-to-list 'face-font-rescale-alist (cons (format ".*%s.*" font) rescale)))))
-		 mappings)
-		
-		(add-to-list 'default-frame-alist '(font . "fontset-myfontset"))))
-		
-		;;(add-to-list 'face-font-rescale-alist '(".*ipaexgothic.*" . 0.999))))
-		
-
-(when (and (eq window-system 'w32) (eq system-type 'windows-nt))
-	;; in windows, not "input mono condensed", use CamelCase
-	;;(set-frame-font "InputMonoCondensed")
-	(set-frame-font "MS Gothic 12" nil t)) ;; workaround
-
-;; frame sizing and positioning
-(when window-system
-	(dolist (v '((width . 160)
-							 (height . 50)
-							 (top . 0)
-							 ;;(left . (- 1000)) worked but doen't make mush sense
-							 ))
-		(add-to-list 'default-frame-alist v)))
-
-
-;; disable electric-indent-mode always
-(add-hook 'after-change-major-mode-hook (lambda() (electric-indent-mode -1)))
-
-;; ediff
-(setq-default ediff-split-window-function 'split-window-horizontally)
-
-;; lsp relateds tuning
-;; https://emacs-lsp.github.io/lsp-mode/page/performance/
-(setq gc-cons-threshold 100000000)
-(setq read-process-output-max 2097152) ;; 1024 * 1024 * 2
-
-
-;;
-;; basic key bindings
-;;
-
-;; need to insert non-graphic chars?
-(global-unset-key (kbd "C-q"))
-;; keep on coding
-(global-unset-key (kbd "C-z"))
-;; zenkaku hankaku
-(setq default-input-method "japanese")
-(global-unset-key (kbd "C-\\"))
-(global-set-key
- (kbd "<zenkaku-hankaku>")
- #'(lambda ()
-		 (interactive)
-		 ;; to enable mozc overlay candidate drawing,
-		 ;; truncate-lines must be enabled.
-		 ;;(toggle-truncate-lines)
-		 (toggle-input-method)))
-
-;; set "C-h" as delete-backward-char, use F1 to see helps(default keybinding)
-(define-key key-translation-map (kbd "C-h") (kbd "DEL"))
-;; enable cursor to move with M-p and M-p among windows
-(global-set-key (kbd "M-n") #'other-window)
-(global-set-key (kbd "M-p") #'(lambda () (interactive) (other-window -1)))
-
-;; swap search key bindings
-(global-set-key (kbd "C-s") #'isearch-forward-regexp)
-(global-set-key (kbd "C-r") #'isearch-backward-regexp)
-(global-set-key (kbd "C-M-s") #'isearch-forward)
-(global-set-key (kbd "C-M-r") #'isearch-backward)
-
-
-;;
-;; helpers
-;;
-
-(defun add-before-save-hook (f)
-	(add-hook #'before-save-hook f nil 'local))
-
-
-;;
-;; Package config
-;;
-
-;; package
-(when (require 'package nil t)
-	(package-initialize)
-	(setq package-archives
-				'(("gnu" . "https://elpa.gnu.org/packages/")
-					("melpa" . "https://melpa.org/packages/")
-					("org" . "https://orgmode.org/elpa/"))))
-
-;; use-package
-(unless (package-installed-p 'use-package)
-	(message "use-package is not installed and installing it")
-	(package-refresh-contents)
-	(package-install 'use-package))
-
-;; auto-package-update
-(use-package auto-package-update
-	:disabled
-	:ensure t
-	:config
-	(setq auto-package-update-delete-old-versions t)
-	(auto-package-update-maybe))
-
-;; hexl-mode(builtin)
+;; hexl(builtint)
 (use-package hexl
-	:config
+	:init
 	(setq hexl-bits 8))
 
-;; uniquify(builtin)
+
+;; uniquify(builtin). unique buffer names
 (use-package uniquify
-	:config	(setq uniquify-buffer-name-style 'forward))
+	:init
+	(setq uniquify-buffer-name-style 'forward))
 
-;; recentf(builtin)
+
+;; recentf(builtin). open file history
 (use-package recentf
-	:config
-	(recentf-mode t)
+	:init
 	(setq recentf-max-saved-items 100)
-	(setq recentf-exclude `("recentf" "ido.last" ,(expand-file-name package-user-dir))))
-
-;; ido(builtin)
-;; NOTE: emacs28 has fido-vertical-mode.
-;;       https://www.manueluberti.eu/emacs/2021/08/06/fido/
-;;       consider this insted ido.
-(use-package ido
+	(setq recentf-exclude `("recentf"
+													"ido.last"
+													,(expand-file-name package-user-dir)))
 	:config
-	(ido-mode t)
-	(setq ido-everywhere t)
-	(setq ido-enable-flex-matching t)
-	(setq ido-use-virtual-buffers t)
-	(setq ido-use-filename-at-point 'guess)
-	(setq ido-enable-regexp t))
+	(recentf-mode t))
 
-;; ido-vertical-mode
-(use-package ido-vertical-mode
-	:ensure t
-	:after ido
+
+;; savehist(builtin). minibuffer history
+(use-package savehist
 	:config
-	(ido-vertical-mode t)
-	(setq ido-vertical-show-count t)
-	(setq ido-vertical-define-keys 'C-n-and-C-p-only))
+	(savehist-mode))
 
-;; ido-completing-read+(ido-ubiquitous)
-(use-package ido-completing-read+
+
+;; window(builtin). window layout management
+(use-package window
+	:init
+	(setq display-buffer-alist
+				'(
+					("\\*Warnings\\*"
+					 (display-buffer-reuse-mode-window display-buffer-below-selected))
+					("\\*vterm\\*"
+					 (display-buffer-reuse-window display-buffer-below-selected)))))
+
+
+;; winner(builtin). window layout displacement undo/redo
+(use-package winner
+	:bind
+	(("C-q C-w p" . 'winner-undo)
+	 ("C-q C-w n" . 'winner-redo))
+	:init
+	(setq winner-dont-bind-my-keys t)
+	:config
+	(winner-mode 1))
+
+
+;; anzu. display current match and total matchs
+(use-package anzu
 	:ensure t
-	:after ido
-	:config (ido-ubiquitous-mode t))
+	:bind
+	(("M-%" . anzu-isearch-query-replace)
+	 ("C-M-%" . anzu-isearch-query-replace-regexp))
+	:init
+	(setq anzu-search-threshold 999)
+	:config
+	(global-anzu-mode +1))
 
-;; amx
-(use-package amx
+
+;; window-number. moving cursor by alt-1|2|3 
+;; NOTE: M-1, M-2, M-3
+(use-package window-number
 	:ensure t
-	:after ido
-	:bind ("M-x" . amx)
-	:config	(amx-mode)
-	;; unworked :init (amx-backend 'ido) and :config (amx-backend 'ido)
-	:custom	(amx-backend 'ido))
+	:config
+	(window-number-meta-mode))
 
-;; org(builtin)
-(use-package org
+
+;; which-key. showing keybinding in minibuffer
+(use-package which-key
+	:ensure t
+	:hook
+	(after-init . which-key-mode)
+	:config
+	(which-key-setup-side-window-right))
+
+
+;; goto-chg. cursor history
+(use-package goto-chg
+	:ensure t
+	:bind
+	(("C-q p" . goto-last-change)
+	 ("C-q n" . goto-last-change-reverse)))
+
+
+;; hl-line-mode. highlighting cursor line
+(use-package hl-line
+	:ensure t
+	:config
+	(global-hl-line-mode))
+
+
+;; hl-todo. highlighting code tags
+(use-package hl-todo
 	:ensure t
 	:init
-	;; must be set before org-mode loaded
-	(setq org-display-custom-times t)
+	(setq hl-todo-keyword-faces
+				'(("NOTE" . "firebrick")
+					("XXX" . "firebrick")
+					("HACK" . "firebrick")
+					("TODO" . "firebrick")
+					("DONE" . "firebrick")
+					("FIXME" . "firebrick")
+					("WORKAROUND" . "firebrick")
+					("DECIDED" . "#448a2a")
+					("UNDECIDED" . "firebrick")))
+	(setq hl-todo-highlight-punctuation ":")
+	(setq hl-todo-require-punctuation t)
+	:config
+	(global-hl-todo-mode))
+
+
+;; simple-modeline. modeline customization
+(use-package simple-modeline
+	:ensure t
+	:init
+	(setq simple-modeline-segments
+				'((simple-modeline-segment-position
+					 simple-modeline-segment-modified
+					 simple-modeline-segment-buffer-name
+					 simple-modeline-segment-vc)
+					(simple-modeline-segment-major-mode
+					 simple-modeline-segment-eol
+					 simple-modeline-segment-encoding)))
+	:config
+	(simple-modeline-mode))
+
+
+;; wgrep. materializing grep results 
+(use-package wgrep
+	:ensure t)
+
+
+;; treemacs
+(use-package treemacs
+	:ensure t
+	:bind ("C-q t" . treemacs)
+	:config
+	(setq treemacs-no-png-images t))
+
+
+;; vterm. fast terminal
+;; NOTE: need external configuration to .bashrc
+(use-package vterm
+	:if (eq system-type 'gnu/linux)
+	:ensure t
+	:hook
+	(vterm-mode . (lambda () (setq-local global-hl-line-mode nil)))
+	:config
+	;; vterm-toggle
+	(use-package vterm-toggle
+		:ensure t
+		:requires vterm
+		:bind
+		(("C-t" . vterm-toggle)
+		 ("C-c C-t" . vterm-toggle-cd)
+		 :map vterm-mode-map
+		 ("C-t" . vterm-toggle))))
+
+
+;; org
+(use-package org
+	:ensure t
 	:bind
 	(("C-c c" . org-capture)
-	 ("C-c a" . org-agenda)
 	 ("C-c l" . org-store-link)
-	 ("M-," . org-mark-ring-goto)
+	 ("C-c a" . org-agenda)
+	 ;; shortcut for opening org. experiment biding
+	 ("C-c A" . consult-org-agenda)
 	 :map org-mode-map
+	 ("M-g o" . consult-org-heading) ;; consult-org
+	 ("M-," . org-mark-ring-goto)
 	 ;; on terminal, "C-," is recognized to ",". on GUI works well.
-	 ;; "C-c ," is default bound to org-priority, but change it to org-insert-structure-template
-	 ;; for usability terminal and GUI
-	 ("C-c ," . org-insert-structure-template))
-
+	 ;; change "C-c ,"(org-priority) to org-insert-structure-template and
+	 ;; rebind "C-c p" to org-priority
+	 ("C-c ," . org-insert-structure-template)
+	 ("C-c p" . org-priority))
 	:custom-face
 	;; :extend uneffected?
 	(org-level-1 ((t (:extend t :underline t :weight ultra-bold :height 1.5))))
 	(org-level-2 ((t (:extend t :weight bold :height 1.3))))
 	(org-level-3 ((t (:weight bold :height 1.1))))
-
 	:hook
 	(org-capture-after-finalize . (lambda ()
 																	;; HACK: if misc template invoked and that is aborted, delete a note file
 																	(let* ((is-misc (org-capture-get :misc-note))
 																				 (note-file-name (buffer-file-name (org-capture-get :buffer))))
-																		(if (and is-misc
-																						 org-note-abort
-																						 (file-exists-p note-file-name))
-																				(delete-file note-file-name)))))
-
+																		(when (and is-misc
+																							 org-note-abort
+																							 (file-exists-p note-file-name))
+																			(delete-file note-file-name)))))
 	:config
+	;; must be set before org-mode loaded
+	(setq org-display-custom-times t)
+	
 	;; org-directory precedence
 	;; 1) ~/Dropbox/org/
 	;; 2) ~/.emacs.d/org/
 	;; 3) ~/org/ (org-directory default)
 	(mapc (lambda (v)
 					(let* ((d (expand-file-name "org/" v)))
-						(if (file-exists-p d) (setq org-directory d))))
+						(when (file-exists-p d)
+							(setq org-directory d))))
 				;; priority in reverse order
-				(list user-emacs-directory "~/Dropbox/"))
+				(list "~/" user-emacs-directory "~/Dropbox/"))
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
 	(setq misc-notes-directory (expand-file-name "misc" org-directory))
 
-	;; agenda configs
+	;; agenda config
 	(setq org-agenda-files (list org-directory misc-notes-directory))
 	(setq org-agenda-custom-commands
 				'(;; notes relateds
@@ -374,9 +517,7 @@
 	(setq org-lowest-priority 4)
 	(setq org-default-priority 1)
 
-	;;(setq org-use-speed-commands t)
-
-	;; view configs
+	;; view config
 	(setq org-startup-folded nil)
 	(setq org-startup-indented t)
 	
@@ -422,187 +563,61 @@
 					 :misc-note t :empty-lines 1 :kill-buffer t)
 					("j" "[J]ournals" entry (file+headline "notes.org" "journals") "* %T %?\n" :empty-lines 1 :kill-buffer t :prepend t)
 					("d" "[D]iary" entry (file "diary.org") "* %T\n%?\n" :empty-lines 1 :kill-buffer t :prepend t )))
-	)
 
-;; org-id(builtin)
-(use-package org-id
-	:after org
-	:config
-	;;(setq org-id-link-to-org-use-id t)
-	(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id))
+	;; org-id(builtin)
+	(use-package org-id
+		:requires org
+		:config
+		;;(setq org-id-link-to-org-use-id t)
+		(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id))
 
-;; org-sidebar
-(use-package org-sidebar
-	:ensure t
-	:after org
-	:bind ("C-c s" . org-sidebar-toggle)
-	:config
-	(setq org-sidebar-side 'left)
-	(setq org-sidebar-default-fns '(org-sidebar-tree-view-buffer
-																	org-sidebar--todo-items)))
+	;; org-sidebar
+	(use-package org-sidebar
+		:ensure t
+		:requires org
+		:bind ("C-c s" . org-sidebar-toggle)
+		:config
+		(setq org-sidebar-side 'left)
+		(setq org-sidebar-default-fns '(org-sidebar-tree-view-buffer
+																		org-sidebar--todo-items))))
 
-;; window(builtin)
-(use-package window
-	:config
-	(setq display-buffer-alist
-				'(
-					("\\*Warnings\\*"
-					 (display-buffer-reuse-mode-window display-buffer-below-selected))
-					("\\*vterm\\*"
-					 (display-buffer-reuse-window display-buffer-below-selected)))))
 
-;; winner(builtin)
-(use-package winner
-	:config (winner-mode 1)
-	:bind
-	(("C-x p" . 'winner-undo)
-	 ("C-x n" . 'winner-redo))
-	:config
-	(setq winner-dont-bind-my-keys t))
+;;
+;; jp env packages
+;;
 
-;; window-number
-;; NOTE: M-1, M-2, M-3
-(use-package window-number
-	:ensure t
-	;; unworked :init (window-number-meta-mode)
-	:config (window-number-meta-mode))
-
-;; which-key
-(use-package which-key
-	:ensure t
-	:hook (after-init . which-key-mode))
-
-;; goto-chg
-(use-package goto-chg
-	:ensure t
-	:bind
-	(("C-q p" . goto-last-change)
-	 ("C-q n" . goto-last-change-reverse)))
-
-;; hl-line-mode
-(use-package hl-line
-	:disabled
-	:ensure t
-	:config (global-hl-line-mode))
-
-;; hl-todo
-(use-package hl-todo
-	:ensure t
-	:config
-	(setq hl-todo-keyword-faces
-				'(("XXX" . "firebrick")
-					("TODO" . "firebrick")
-					("DONE" . "firebrick")
-					("HACK" . "firebrick")
-					("NOTE" . "firebrick")
-					("FIXME" . "firebrick")
-					("DECIDED" . "#448a2a")
-					("UNDECIDED" . "firebrick")))
-	(setq hl-todo-highlight-punctuation ":")
-	(setq hl-todo-require-punctuation t)
-	;; enable hl-todo for org-mode
-	(setq hl-todo-exclude-modes '())
-	(global-hl-todo-mode))
-
-;; simple-modeline
-(use-package simple-modeline
-	:ensure t
-	:config
-	(setq simple-modeline-segments
-				'((simple-modeline-segment-position
-					 simple-modeline-segment-modified
-					 simple-modeline-segment-buffer-name
-					 simple-modeline-segment-vc)
-					(simple-modeline-segment-major-mode
-					 simple-modeline-segment-eol
-					 simple-modeline-segment-encoding)))
-	(simple-modeline-mode))
-
-;; vterm
-;; NOTE: need external configuration to .bashrc
-(use-package vterm
-	:if (eq system-type 'gnu/linux)
-	:ensure t
-	:hook (vterm-mode . (lambda () (setq-local global-hl-line-mode nil)))
-	:bind
-	(:map vterm-mode-map
-				("M-p" . nil)
-				("M-n" . nil)
-				("C-t" . nil))
-
-	:config
-	(setq vterm-max-scrollback 10000))
-
-;; vterm-toggle
-(use-package vterm-toggle
-	:ensure t
-	:after vterm
-	:bind
-	(("C-t" . vterm-toggle)
-	 ("C-c C-t" . vterm-toggle-cd)))
-
-;; company
-(use-package company
-	:ensure t
-	:hook (prog-mode . global-company-mode)
-	:bind
-	(("C-M-i" . company-complete)
-	 ;;("TAB" . company-indent-or-complete-common)
-	 :map company-active-map
-	 ("C-n" . company-select-next)
-	 ("C-p" . company-select-previous)
-	 ("C-j" . company-complete-selection)
-	 ("C-h" . nil))
-	
-	:config
-	(setq company-search-regexp-function #'company-search-flex-regexp)
-	(setq company-minimum-prefix-length 1)
-	(setq company-idle-delay 0)
-	(setq company-tooltip-limit 20)
-	(setq company-selection-wrap-around t)
-	;; disable icons
-	(setq company-format-margin-function nil))
-	
-;; company-fuzzy
-(use-package company-fuzzy
-	:ensure t
-	:after company
-	:hook (company-mode . company-fuzzy-mode)
-	;; company-fuzzy recommended using :init
-	:init
-	;; NOTE: install flx
-	;;(setq company-fuzzy-sorting-backend 'flx)
-	(setq company-fuzzy-show-annotation nil))
-
-;; mozc.el
+;; mozc.el. japanese input 
 (use-package mozc
 	:if window-system
 	:ensure t
-	:config
+	:init
 	(setq default-input-method "japanese-mozc")
 	;; unwork if truncate-lines != nil
 	;;(setq mozc-candidate-style 'overlay))
 	)
 
-;; mozc-cand-posframe
+
+;; mozc-cand-posframe. show japanese candidates in in-buffer
 (use-package mozc-cand-posframe
 	:ensure t
-	:after mozc
+	:requires mozc
 	:custom-face
-	(mozc-cand-posframe-normal-face ((t (:foreground nil :background nil))))
-	(mozc-cand-posframe-focused-face ((t (:inherit link :foreground nil :background nil))))
-	:config
+	(mozc-cand-posframe-normal-face ((t (:foreground unspecified :background unspecified))))
+	(mozc-cand-posframe-focused-face ((t (:inherit link :foreground unspecified :background unspecified))))
+	:init
 	(setq mozc-candidate-style 'posframe))
 	
-;; migemo
+
+;; migemo. search japanese words in alphabets
 (use-package migemo
 	:if (let* ((exec-path (cons (expand-file-name "cmigemo-default-win64" user-emacs-directory) exec-path)))
 				(executable-find "cmigemo"))
 	:ensure t
 	;; supress lsp warnings
 	:commands migemo-init
-	:hook (after-init . migemo-init)
-	:config
+	:hook
+	(after-init . migemo-init)
+	:init
 	(setq migemo-command
 				(let* ((exec-path (cons (expand-file-name "cmigemo-default-win64" user-emacs-directory) exec-path)))
 					(executable-find "cmigemo")))
@@ -615,40 +630,37 @@
 	(setq migemo-regex-dictionary nil)
 	(setq migemo-coding-system 'utf-8-unix))
 
-;; anzu
-(use-package anzu
-	:ensure t
-	:bind
-	(("M-%" . anzu-isearch-query-replace)
-	 ("C-M-%" . anzu-isearch-query-replace-regexp))
-	
-	:config
-	(global-anzu-mode +1)
-	(setq anzu-search-threshold 999))
 
-;; yasnippet
+;;
+;; coding packages
+;;
+
+;; yasnippet. snippet provider
 (use-package yasnippet
-	:ensure t)
-
-;; actual snippets
-(use-package yasnippet-snippets
+	:disabled
 	:ensure t
-	:after yasnippet
 	:config
-	(yas-global-mode t)
-	(yas-reload-all)
-	(setq yas-prompt-functions '(yas-ido-prompt)))
+	;; actual snippets
+	(use-package yasnippet-snippets
+		:ensure t
+		:requires yasnippet
+		:init
+		(setq yas-prompt-functions '(yas-ido-prompt))
+		:config
+		(yas-global-mode t)
+		(yas-reload-all)))
 
-;; wgrep
-(use-package wgrep
-	:ensure t)
 
-;; ggtags
+;; ggtags. gnu global
 (use-package ggtags
 	:ensure t
-	:bind ("C-q g" . 'ggtags-mode))
+	:bind
+	("C-q g" . 'ggtags-mode))
 
-;; dumb-jump
+
+;; dumb-jump. ensuring navigating codes work
+;; NOTE: dumb-jump is registered as a xref implementation.
+;;       when lsp is not activated, M-. will use dumb-jump via xref interface.
 (use-package dumb-jump
 	:ensure t
 	:config
@@ -656,41 +668,49 @@
 	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
 	(setq xref-show-definitions-function #'xref-show-definitions-completing-read))
 
-;; projectile
+
+;; projectile. project management
 (use-package projectile
 	:ensure t
 	;; unwork :config (projectile-mode +1)
 	:init (projectile-mode +1)
-	:bind
-	(:map projectile-mode-map
-				("C-c p" . projectile-command-map)))
+	:bind-keymap
+	("C-c p" . projectile-command-map))
 
-;; treemacs
-(use-package treemacs
-	:ensure t
-	:bind ("C-q t" . treemacs)
-	:config
-	(setq treemacs-no-png-images t))
 
 ;; treemacs-projectile
 (use-package treemacs-projectile
 	:ensure t
 	:after treemacs projectile)
 
-;; flycheck
-(use-package flycheck
-	:ensure t
-	:config
-	(setq flycheck-disabled-checkers '(emacs-lisp-checkdoc))
-	(global-flycheck-mode))
 
-; flymake(builtin)
+;; flymake(builtin)
 (use-package flymake
-	:disabled
 	:bind
 	(:map flymake-mode-map
 				("C-q C-p" . flymake-goto-prev-error)
 				("C-q C-n" . flymake-goto-next-error)))
+
+
+;; flycheck
+(use-package flycheck
+	:disabled
+	:ensure t
+	:init
+	(setq flycheck-disabled-checkers '(emacs-lisp-checkdoc))
+	:config
+	(global-flycheck-mode))
+
+
+;;
+;; development packages
+;;
+
+;; experiment
+;; eglot(builtin). 
+(use-package eglot
+	:ensure t)
+
 
 ;; lsp-mode
 ;; NOTE: Resuires language servers individually.
@@ -698,16 +718,18 @@
 ;;			 python: install python-lsp-server[all] for each project
 ;;			 golang: go get golang.org./x/tools/gopls@latest
 (use-package lsp-mode
+	:disabled
 	:ensure t
-	;;:commands lsp-deferred
-	:hook (prog-mode . lsp-deferred)
-	
+	:hook
+	(prog-mode . lsp-deferred)
+	:init
+	(setq lsp-keymap-prefix "C-q l")
 	:config
 	;;(setq lsp-log-io t) ;; for debug
-	(setq lsp-keymap-prefix "C-q l")
 	(setq lsp-warn-no-matched-clients nil)
 	(setq lsp-signature-auto-activate nil)
-	(setq lsp-completion-provider :capf)
+	;;(setq lsp-completion-provider :capf) ;; for company mode
+	(setq lsp-completion-provider :none)
 	
 	;; clangd args
 	;; set log=verbose for debug
@@ -719,6 +741,7 @@
 	
 ;; lsp-ui
 (use-package lsp-ui
+	:disabled
 	:ensure t
 	:after lsp-mode
 	:commands lsp-ui-mode
@@ -756,70 +779,422 @@
 	;; lsp-ui-peek
 	(setq lsp-ui-peek-always-show t))
 
+
 ;; cc-mode(builtin)
 (use-package cc-mode
-	:ensure t)
-
-;; google-c-style
-(use-package google-c-style
 	:ensure t
-	:after cc-mode
-	:hook (c-mode-common . google-set-c-style))
-
-;; clang-format
-(use-package clang-format
-	:ensure t
-	:after cc-mode
-	:bind
-	(("C-q f b" . clang-format-buffer)
-	 ("C-q f r" . clang-format-region))
+	:after (:any lsp-mode eglot)
 	:hook
 	(c-mode-common . (lambda ()
-										 (add-before-save-hook 'clang-format-buffer)))
+										 (cond ((featurep 'eglot)
+														(eglot-ensure)))))
 	:config
-	(setq clang-format-style "file")
-	(setq clang-format-fallback-style "google"))
+	;; google-c-style
+	(use-package google-c-style
+		:ensure t
+		:hook
+		(c-mode-common . google-set-c-style))
+	
+	;; clang-format
+	(use-package clang-format
+		:ensure t
+		:requires cc-mode
+		:bind
+		(("C-q f b" . clang-format-buffer)
+		 ("C-q f r" . clang-format-region))
+		:hook
+		(c-mode-common . (lambda ()
+											 (my/add-before-save-hook 'clang-format-buffer)))
+		:init
+		(setq clang-format-style "file")
+		(setq clang-format-fallback-style "google")))
+
 
 ;; go-mode
 (use-package go-mode
 	:ensure t
-	:after lsp-mode
+	:after (:any lsp-mode eglot)
 	:hook
 	(go-mode . (lambda ()
-							 (add-before-save-hook
-								(lambda ()
-									(lsp-organize-imports)
-									(lsp-format-buffer))))))
+							 (cond ((featurep 'lsp-mode)
+											(my/add-before-save-hook
+											 (lambda ()
+												 (lsp-organize-imports)
+												 (lsp-format-buffer))))
+										 ((featurep 'eglot)
+											(eglot-ensure))))))
 
-;; rust-mode
-(use-package rust-mode
-	:ensure t
-	:after lsp-mode)
-
-;; powershell
-(use-package powershell
-	:ensure t
-	:config
-	(setq powershell-indent 2))
-
-;; csharp-mode
-;;(use-package csharp-mode
-;;	:ensure nil
-;;	:config
-;;	(setq-default tab-width 4)
-;;	(setq-default c-basic-offset 4)
-;;	(setq tab-stop-list (number-sequence 4 120 4)))
 
 ;; python-mode
 (use-package python
 	:ensure t
-	:after lsp-mode
+	:after (:any lsp-mode eglot)
 	:hook
 	(python-mode . (lambda ()
-									 (add-before-save-hook 'lsp-format-buffer)))
+									 (cond ((featurep 'lsp-mode)
+													(my/add-before-save-hook 'lsp-format-buffer)
+													(if (and (executable-find "black"))
+															(setq lsp-pylsp-plugins-black-enabled t)))
+												 ((featurep 'eglot)
+													(eglot-ensure))))))
+
+
+;; rust-mode
+(use-package rust-mode
+	:ensure t
+	:after (:any lsp-mode eglot)
+	:hook
+	(rust-mode . (lambda ()
+								 (cond ((featurep 'eglot)
+												(eglot-ensure))))))
+
+
+;; powershell
+(use-package powershell
+	:ensure t
+	:after (:any lsp-mode eglot)
+	:hook
+	(powershell-mode . (lambda ()
+											 (cond ((featurep 'eglot)
+															(eglot-ensure)))))
+	:init
+	(setq powershell-indent 2))
+
+
+;;
+;; completion packages
+;;
+
+;; vertico. minibuffer completion U/I
+(use-package vertico
+	:ensure t
+	:init
+	(setq vertico-count 15)
+	(setq vertico-preselect 'first)
+	(setq vertico-cycle t)
+
+	;; case insensitive on minibuffer completion
+	(setq read-file-name-completion-ignore-case t)
+  (setq read-buffer-completion-ignore-case t)
+  (setq completion-ignore-case t)
 	:config
-	(if (executable-find "black")
-			(setq lsp-pylsp-plugins-black-enabled t)))
+	(vertico-mode)
+
+	(use-package vertico-directory
+		:requires vertico
+		:bind
+		(:map vertico-map
+					;; disable invoking dird by enter. alt, M-RET invokes dird.
+					("RET" . vertico-directory-enter)
+					("C-j" . vertico-directory-enter)
+					("DEL" . vertico-directory-delete-char)
+					("M-DEL" . vertico-directory-delete-word))
+		:hook
+		(rfn-eshadow-update-overlay . vertico-directory-tidy)))
+
+
+;; consult. minibuffer completion sources
+(use-package consult
+	:ensure t
+	:commands
+	(consult-org-heading
+	 consult-org-agenda)
+  :bind (;; C-c bindings in `mode-specific-map'
+         ("C-c M-x" . consult-mode-command)
+         ;; ("C-c k" . consult-kmacro)
+         ("C-c m" . consult-man)
+				 
+         ;; C-x bindings in `ctl-x-map'
+         ("C-x M-:" . consult-complex-command) ;; orig. repeat-complex-command
+         ("C-x b" . consult-buffer) ;; orig. switch-to-buffer
+         ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+         ("C-x 5 b" . consult-buffer-other-frame) ;; orig. switch-to-buffer-other-frame
+         ("C-x r b" . consult-bookmark) ;; orig. bookmark-jump
+         ;;("C-x p b" . consult-project-buffer) ;; orig. project-switch-to-buffer
+
+         ;; bindings for fast register access
+         ("C-q r l" . consult-register-load)
+         ("C-q r s" . consult-register-store) ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-q r r" . consult-register)
+         
+				 ;; yank
+         ("M-y" . consult-yank-pop) ;; orig. yank-pop
+				 
+         ;; M-g bindings in `goto-map'
+         ;;("M-g e" . consult-compile-error)
+         ;;("M-g f" . consult-flymake) ;; Alternative: consult-flycheck
+         ("M-g g" . consult-goto-line) ;; orig. goto-line
+         ("M-g M-g" . consult-goto-line) ;; orig. goto-line
+         ("M-g o" . consult-outline) ;; Alternative: consult-org-heading
+         ("M-g m" . consult-mark)
+         ("M-g M" . consult-global-mark)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+				 
+         ;; M-s bindings in `search-map'
+         ("M-s f" . consult-find)
+         ("M-s F" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s r" . consult-ripgrep)
+         ("M-s l" . consult-line) ;; for current buffer
+				 ("C-;"   . consult-line) ;; experiment binding
+         ("M-s L" . consult-line-multi) ;; for multiple buffer
+         ;;("M-s k" . consult-keep-lines) ;; editing actually
+         ("M-s n" . consult-focus-lines) ;; narrowing. not editing actually
+
+
+         ;; Isearch integration
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
+         ("M-s l" . consult-line) ;; needed by consult-line to detect isearch
+         ("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
+				 ("M-s x" . consult-isearch-forward)
+				 
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history) ;; orig. next-matching-history-element
+         ("M-r" . consult-history) ;; orig. previous-matching-history-element
+				 )
+
+  :hook
+	;; enable preview at poin in the *Completion* buffer
+	(completion-list-mode . consult-preview-at-point-mode)
+
+  :init
+  ;; Optionally configure the register formatting. This improves the register
+  ;; preview for `consult-register', `consult-register-load',
+  ;; `consult-register-store' and the Emacs built-ins.
+  (setq register-preview-delay 0.0)
+  (setq register-preview-function #'consult-register-format)
+
+  ;; Optionally tweak the register preview window.
+  ;; This adds thin lines, sorting and hides the mode line of the window.
+  (advice-add #'register-preview :override #'consult-register-window)
+
+  ;; Use Consult to select xref locations with preview
+  (setq xref-show-xrefs-function #'consult-xref)
+  (setq xref-show-definitions-function #'consult-xref)
+
+  ;; Configure other variables and modes in the :config section,
+  ;; after lazily loading the package.
+  :config
+  (consult-customize
+	 ;; applying emacs theme
+	 consult-theme
+	 :preview-key '(:debounce 0.2 any)
+
+	 ;; preview by C-.
+   consult-ripgrep consult-git-grep consult-grep
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-bookmark consult--source-file-register
+   consult--source-recent-file consult--source-project-recent-file
+   :preview-key "M-.")
+
+	
+  ;; Optionally configure the narrowing key.
+  ;; Both < and C-+ work reasonably well.
+  (setq consult-narrow-key "<") ;; "C-+"
+
+  ;; Optionally make narrowing help available in the minibuffer.
+  ;; You may want to use `embark-prefix-help-command' or which-key instead.
+  ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+
+	;; use projectile to grep files in a project
+  (setq consult-project-function nil))
+
+
+;; ido(builtin). minibuffer completion I/F
+;; NOTE: emacs 28 introduced fido-vertical-mode.
+;;       consider using this
+(use-package ido
+	:disabled
+	:init
+	(message "ido init")
+	:config
+	(message "ido config")
+	(ido-mode t)
+	(setq ido-everywhere t)
+	(setq ido-enable-flex-matching t)
+	(setq ido-use-virtual-buffers t)
+	(setq ido-use-filename-at-point 'guess)
+	(setq ido-enable-regexp t)
+
+	;; ido-vertical-mode
+	(use-package ido-vertical-mode
+		:ensure t
+		:requires ido
+		:init
+		(message "ido-vertical init")
+		
+		:config
+		(message "ido-vertical config")
+		(ido-vertical-mode t)
+		(setq ido-vertical-show-count t)
+		(setq ido-vertical-define-keys 'C-n-and-C-p-only))
+	
+	;; ido-completing-read+
+	(use-package ido-completing-read+
+		:ensure t
+		:requires ido
+		:config
+		(ido-ubiquitous-mode t))
+
+	;; amx
+	(use-package amx
+		:ensure t
+		:requires ido
+		:bind ("M-x" . amx)
+		:config	(amx-mode)
+		;; unworked :init (amx-backend 'ido) and :config (amx-backend 'ido)
+		:custom	(amx-backend 'ido)))
+
+
+;; corfu. inbuffer completion
+(use-package corfu
+	:ensure t
+	:bind
+	(:map corfu-map
+				;;("TAB" . corfu-next)
+				;;("<tab>" . corfu-next)
+				("C-j" . corfu-complete)
+				("M-SPC" . corfu-insert-separator))
+	:init
+	;;(setq corfu-separator ",") ;; need to match orderless-component-separator
+	(setq corfu-cycle t)
+	(setq corfu-auto t)
+	(setq corfu-count 15)
+	(setq corfu-auto-delay 0)
+	(setq corfu-auto-prefix 1)
+	(setq corfu-preselect 'directory)
+	(setq corfu-on-exact-match 'insert)
+	;; must be in :init
+	(global-corfu-mode)
+	:config
+	(use-package kind-icon
+		:ensure t
+		:requires corfu
+		:init
+		;; disable icon
+		(setq kind-icon-use-icons nil))
+	
+	(use-package cape
+		:ensure t
+		:init
+		(add-to-list 'completion-at-point-functions #'cape-file)))
+
+
+;; company. traditional one.
+(use-package company
+	:if (not window-system)
+	:ensure t
+	:hook
+	(prog-mode . global-company-mode)
+	:bind
+	(("C-M-i" . company-complete)
+	 ;;("TAB" . company-indent-or-complete-common)
+	 :map company-active-map
+	 ("C-n" . company-select-next)
+	 ("C-p" . company-select-previous)
+	 ("C-j" . company-complete-selection)
+	 ("C-h" . nil))
+	:init
+	(setq company-backends
+				;; TODO: rethink backends order
+				'(company-capf
+					company-files
+					company-clang
+					(company-dabbrev-code
+					 company-gtags
+					 company-keywords)))
+	
+	;;(setq company-search-regexp-function #'company-search-flex-regexp)
+	(setq company-minimum-prefix-length 1)
+	(setq company-idle-delay 0)
+	(setq company-tooltip-limit 20)
+	(setq company-selection-wrap-around t)
+	;; disable icons
+	(setq company-format-margin-function nil)
+
+	;; NOTE: company-dabbrev is disabled.
+	;; company-dabbrev is useful, but difficult to use in JP env
+	;;;; case sensitive
+	;;(setq company-dabbrev-downcase nil)
+	;;(setq company-dabbrev-ignore-case nil)
+
+	:config
+	;; make lsp-mode use company
+	(setq lsp-completion-provider :capf)
+
+;;	;; company-fuzzy
+;;	(use-package company-fuzzy
+;;		:disabled
+;;		:ensure t
+;;		:after company
+;;		:hook (company-mode . company-fuzzy-mode)
+;;		;; company-fuzzy recommended using :init
+;;		:init
+;;		;; NOTE: install flx
+;;		;;(setq company-fuzzy-sorting-backend 'flx)
+;;		(setq company-fuzzy-show-annotation nil))
+;;
+;;
+;;	;; company-fussy
+;;	;; faster than company-fuzzy
+;;	(use-package fussy
+;;		:disabled
+;;		:ensure t
+;;		:config
+;;		(push 'fussy completion-styles)
+;;		(setq company-category-defaults nil)
+;;		(setq company-category-overrides nil))
+
+	)
+
+
+;; orderless. fuzzy matching for completion candidates
+(use-package orderless
+	:ensure t
+	:init
+	;;(setq orderless-component-separator ",")
+	(setq orderless-matching-styles '(orderless-literal
+																		orderless-regexp
+																		orderless-prefixes))
+	(setq completion-styles '(orderless basic))
+	(setq completion-category-defaults nil)
+	;; TODO: consider fine-grained tuning per categories
+	;;(setq completion-category-overrides '((file (style basic))))
+	:config
+	(setq my/orderless-completion-styles completion-styles)
+
+	;; prescient. sorting completion candidates
+	;; NOTE: using sort function only
+	(use-package prescient
+		:disabled
+		:ensure t
+		:config
+		(prescient-persist-mode)
+		
+		(use-package corfu-prescient
+			:ensure t
+			:requires corfu
+			:init
+			(setq corfu-prescient-enable-filtering nil)
+			;;(setq corfu-prescient-completion-styles my/orderless-completion-styles)
+			:config
+			(corfu-prescient-mode))
+
+;;		(use-package vertico-prescient
+;;			:ensure t
+;;			:requires vertico
+;;			:init
+;;			(setq vertico-prescient-enable-filtering nil)
+;;			;;(setq vertico-prescient-completion-styles my/orderless-completion-styles)
+;;			:config
+;;			(vertico-prescient-mode))
+		)
+	)
 
 
 ;;
@@ -840,17 +1215,19 @@
 (use-package doom-themes
 	:if (eq system-type 'gnu/linux)
 	:ensure t
-	:config
+	:init
 	(setq doom-themes-enable-bold t)
 	(setq doom-themes-treemacs-theme "doom-one")
 	;; treemacs integration requires icons
 	;;(doom-themes-treemacs-config)
+	:config
 	(doom-themes-org-config)
 
 	(load-theme
 	 (if window-system
 			 'doom-tokyo-night
-		 'doom-badger) t))
+		 'doom-badger)
+	 t))
 
 ;; theme for windows
 ;(use-package alect-themes
@@ -864,48 +1241,24 @@
 	:config
 	(load-theme 'ef-tritanopia-dark t))
 
-	
-;;
-;; windows customize
-;;
 
-(when (eq system-type 'windows-nt)
-	;; font
-	
-	;; IME config (use ime custom patch)
-  ;;(setq default-input-method "W32-IME")
-	;;(setq-default w32-ime-mode-line-state-indicator "[--]")
-	;;(setq w32-ime-mode-line-state-indicator-list '("[--]" "[あ]" "[--]"))
-	;;(w32-ime-initialize)
-
-	;; python27 pyls
-	(defun use-python27 ()
-		(interactive)
-		(setq lsp-clients-python-command '("c:\\python27\\scripts\\pyls.exe"))))
+;; load customizations
+(load "work" t)
 
 
 ;;(profiler-report)
 ;;(profiler-stop)
 
-;;
-;; experiments
-;;
 
-
-;;
-;; end of origin
-;;
+;;;; EOF
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-	 '("bf948e3f55a8cd1f420373410911d0a50be5a04a8886cabe8d8e471ad8fdba8e" "02f57ef0a20b7f61adce51445b68b2a7e832648ce2e7efb19d217b6454c1b644" "a44e2d1636a0114c5e407a748841f6723ed442dc3a0ed086542dc71b92a87aee" "631c52620e2953e744f2b56d102eae503017047fb43d65ce028e88ef5846ea3b" "2dd4951e967990396142ec54d376cced3f135810b2b69920e77103e0bcedfba9" "6945dadc749ac5cbd47012cad836f92aea9ebec9f504d32fe89a956260773ca4" "443e2c3c4dd44510f0ea8247b438e834188dc1c6fb80785d83ad3628eadf9294" "60ada0ff6b91687f1a04cc17ad04119e59a7542644c7c59fc135909499400ab8" "1a1ac598737d0fcdc4dfab3af3d6f46ab2d5048b8e72bc22f50271fd6d393a00" "7e068da4ba88162324d9773ec066d93c447c76e9f4ae711ddd0c5d3863489c52" "7ea883b13485f175d3075c72fceab701b5bf76b2076f024da50dff4107d0db25" "a9abd706a4183711ffcca0d6da3808ec0f59be0e8336868669dc3b10381afb6f" "e3daa8f18440301f3e54f2093fe15f4fe951986a8628e98dcd781efbec7a46f2" "944d52450c57b7cbba08f9b3d08095eb7a5541b0ecfb3a0a9ecd4a18f3c28948" "7a424478cb77a96af2c0f50cfb4e2a88647b3ccca225f8c650ed45b7f50d9525" "7153b82e50b6f7452b4519097f880d968a6eaf6f6ef38cc45a144958e553fbc6" "a0feb1322de9e26a4d209d1cfa236deaf64662bb604fa513cca6a057ddf0ef64" "ab04c00a7e48ad784b52f34aa6bfa1e80d0c3fcacc50e1189af3651013eb0d58" "04dd0236a367865e591927a3810f178e8d33c372ad5bfef48b5ce90d4b476481" "f6665ce2f7f56c5ed5d91ed5e7f6acb66ce44d0ef4acfaa3a42c7cfe9e9a9013" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "7a7b1d475b42c1a0b61f3b1d1225dd249ffa1abb1b7f726aec59ac7ca3bf4dae" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" default))
- '(global-flycheck-mode t)
  '(package-selected-packages
-	 '(company-fuzzy nhexl-mode org-id org-sidebar migemo dumb-jump yasnippet-snippets window-number which-key wgrep vterm-toggle use-package treemacs-projectile simple-modeline rust-mode mood-line lsp-ui ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode gnu-elpa-keyring-update ggtags flycheck doom-themes csv-mode csharp-mode company clang-format anzu amx alect-themes)))
+	 '(back-button minimap vertico-prescient corfu-prescient prescient yasnippet-snippets window-number which-key wgrep vterm-toggle vertico use-package treemacs-projectile simple-modeline rust-mode powershell org-sidebar orderless nhexl-mode mozc-cand-posframe migemo lsp-ui kind-icon ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode ggtags fussy flycheck flx-ido ef-themes dumb-jump doom-themes corfu consult company-fuzzy clang-format cape anzu amx alect-themes)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
