@@ -709,7 +709,9 @@
 ;; experiment
 ;; eglot(builtin). 
 (use-package eglot
-	:ensure t)
+	:ensure t
+	:config
+	(setq eglot-ignored-server-capabilities '(:hoverProvider)))
 
 
 ;; lsp-mode
@@ -1242,7 +1244,9 @@
 	(load-theme 'ef-tritanopia-dark t))
 
 
-;; load customizations
+;;
+;; customization el
+;;
 (load "work" t)
 
 
