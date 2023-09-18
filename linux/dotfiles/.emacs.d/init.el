@@ -1,6 +1,6 @@
-;; TODO: embark
-;; TODO: difference focus-lines vs keep-lines
-;; TODO: 29 elgot, tree-shitter
+;; TODO: consider using embark
+;; TODO: focus-lines vs keep-lines
+;; TODO: try 29. elgot, tree-shitter
 
 
 ;;(profiler-start 'cpu)
@@ -388,12 +388,12 @@
 	:ensure t)
 
 
-;; treemacs
-(use-package treemacs
+;; neotree
+(use-package neotree
 	:ensure t
-	:bind ("C-q t" . treemacs)
-	:config
-	(setq treemacs-no-png-images t))
+	:bind ("C-x d" . neotree-toggle)
+	:init
+	(setq neo-theme 'ascii))
 
 
 ;; vterm. fast terminal
@@ -438,14 +438,16 @@
 	(org-level-2 ((t (:extend t :weight bold :height 1.3))))
 	(org-level-3 ((t (:weight bold :height 1.1))))
 	:hook
-	(org-capture-after-finalize . (lambda ()
-																	;; HACK: if misc template invoked and that is aborted, delete a note file
-																	(let* ((is-misc (org-capture-get :misc-note))
-																				 (note-file-name (buffer-file-name (org-capture-get :buffer))))
-																		(when (and is-misc
-																							 org-note-abort
-																							 (file-exists-p note-file-name))
-																			(delete-file note-file-name)))))
+	;; global-hl-todo-mode is not effective
+	((org-mode . hl-todo-mode)
+	 (org-capture-after-finalize . (lambda ()
+																	 ;; HACK: if misc template invoked and that is aborted, delete a note file
+																	 (let* ((is-misc (org-capture-get :misc-note))
+																					(note-file-name (buffer-file-name (org-capture-get :buffer))))
+																		 (when (and is-misc
+																								org-note-abort
+																								(file-exists-p note-file-name))
+																			 (delete-file note-file-name))))))
 	:config
 	;; must be set before org-mode loaded
 	(setq org-display-custom-times t)
@@ -671,17 +673,12 @@
 
 ;; projectile. project management
 (use-package projectile
+	:disabled
 	:ensure t
 	;; unwork :config (projectile-mode +1)
 	:init (projectile-mode +1)
 	:bind-keymap
 	("C-c p" . projectile-command-map))
-
-
-;; treemacs-projectile
-(use-package treemacs-projectile
-	:ensure t
-	:after treemacs projectile)
 
 
 ;; flymake(builtin)
@@ -711,7 +708,8 @@
 (use-package eglot
 	:ensure t
 	:config
-	(setq eglot-ignored-server-capabilities '(:hoverProvider)))
+	(setq eglot-ignored-server-capabilities '(:hoverProvider
+																						:inlayHintProvider)))
 
 
 ;; lsp-mode
@@ -739,47 +737,46 @@
 
 	;; settings per langs
 	(setq lsp-register-custom-settings
-	 '(("gopls.experimentalWorkspaceModule" t t))))
+	 '(("gopls.experimentalWorkspaceModule" t t)))
 	
-;; lsp-ui
-(use-package lsp-ui
-	:disabled
-	:ensure t
-	:after lsp-mode
-	:commands lsp-ui-mode
-	:hook (lsp-mode . lsp-ui-mode)
-	:bind
-	(:map lsp-ui-mode-map
-				([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
-				([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
-				("C-q C-u m" . lsp-ui-imenu))
-	
-	:custom-face
-	(lsp-ui-sideline-symbol-info ((t (:background "default"))))
-	;; background face of sideline and doc
-	(markdown-code-face ((t (:background "grey10"))))
-	
-	:config
-	(setq lsp-lens-enable t)
-	
-	;; lsp-ui-doc
-	(setq lsp-ui-doc-enable nil)
-	(setq lsp-ui-doc-header t)
-	(setq lsp-ui-doc-include-signature t)
-	(setq lsp-ui-doc-delay 2)
-	
-	;; lsp-ui-sideline
-	(setq lsp-ui-sideline-enable t)
-	(setq lsp-ui-sideline-show-code-actions t)
-	(setq lsp-ui-sideline-show-hover nil)
-	(setq lsp-ui-sideline-delay 0.2)
-	;;(lsp-ui-sideline-update-mode 'line)
-	(setq lsp-ui-sideline-show-diagnostics t)
-	(setq lsp-ui-sideline-diagnostic-max-lines 10)
-	(setq lsp-ui-sideline-diagnostic-max-line-length 150)
-	
-	;; lsp-ui-peek
-	(setq lsp-ui-peek-always-show t))
+	;; lsp-ui
+	(use-package lsp-ui
+		:disabled
+		:ensure t
+		:after lsp-mode
+		:commands lsp-ui-mode
+		:hook (lsp-mode . lsp-ui-mode)
+		:bind
+		(:map lsp-ui-mode-map
+					([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
+					([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
+					("C-q C-u m" . lsp-ui-imenu))
+		
+		:custom-face
+		(lsp-ui-sideline-symbol-info ((t (:background "default"))))
+		;; background face of sideline and doc
+		(markdown-code-face ((t (:background "grey10"))))
+		:config
+		(setq lsp-lens-enable t)
+		
+		;; lsp-ui-doc
+		(setq lsp-ui-doc-enable nil)
+		(setq lsp-ui-doc-header t)
+		(setq lsp-ui-doc-include-signature t)
+		(setq lsp-ui-doc-delay 2)
+		
+		;; lsp-ui-sideline
+		(setq lsp-ui-sideline-enable t)
+		(setq lsp-ui-sideline-show-code-actions t)
+		(setq lsp-ui-sideline-show-hover nil)
+		(setq lsp-ui-sideline-delay 0.2)
+		;;(lsp-ui-sideline-update-mode 'line)
+		(setq lsp-ui-sideline-show-diagnostics t)
+		(setq lsp-ui-sideline-diagnostic-max-lines 10)
+		(setq lsp-ui-sideline-diagnostic-max-line-length 150)
+		
+		;; lsp-ui-peek
+		(setq lsp-ui-peek-always-show t)))
 
 
 ;; cc-mode(builtin)
@@ -965,14 +962,8 @@
 	(completion-list-mode . consult-preview-at-point-mode)
 
   :init
-  ;; Optionally configure the register formatting. This improves the register
-  ;; preview for `consult-register', `consult-register-load',
-  ;; `consult-register-store' and the Emacs built-ins.
   (setq register-preview-delay 0.0)
   (setq register-preview-function #'consult-register-format)
-
-  ;; Optionally tweak the register preview window.
-  ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
 
   ;; Use Consult to select xref locations with preview
@@ -994,14 +985,9 @@
    consult--source-recent-file consult--source-project-recent-file
    :preview-key "M-.")
 
-	
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
   (setq consult-narrow-key "<") ;; "C-+"
-
-  ;; Optionally make narrowing help available in the minibuffer.
-  ;; You may want to use `embark-prefix-help-command' or which-key instead.
-  ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
 
 	;; use projectile to grep files in a project
   (setq consult-project-function nil))
@@ -1121,7 +1107,6 @@
 
 	;; NOTE: company-dabbrev is disabled.
 	;; company-dabbrev is useful, but difficult to use in JP env
-	;;;; case sensitive
 	;;(setq company-dabbrev-downcase nil)
 	;;(setq company-dabbrev-ignore-case nil)
 
@@ -1171,7 +1156,7 @@
 	(setq my/orderless-completion-styles completion-styles)
 
 	;; prescient. sorting completion candidates
-	;; NOTE: using sort function only
+	;; NOTE: consider using sort function only
 	(use-package prescient
 		:disabled
 		:ensure t
@@ -1202,24 +1187,19 @@
 ;;
 ;; theme config
 ;;
-
 (when (and (file-exists-p (expand-file-name "themes" user-emacs-directory))
 					 (boundp 'custom-theme-load-path))
 	(add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory)))
 
-;;(use-package modus-themes
-;;	:ensure t
-;;	:config
-;;	(load-theme 'modus-vivendi t)
-;;	;; disable line highlight
-;;	(global-hl-line-mode -1)))
-
+;; theme for linux
 (use-package doom-themes
 	:if (eq system-type 'gnu/linux)
 	:ensure t
 	:init
 	(setq doom-themes-enable-bold t)
-	(setq doom-themes-treemacs-theme "doom-one")
+	
+	;; NOTE: currently, treemacs is unused
+	;;(setq doom-themes-treemacs-theme "doom-one")
 	;; treemacs integration requires icons
 	;;(doom-themes-treemacs-config)
 	:config
@@ -1232,11 +1212,7 @@
 	 t))
 
 ;; theme for windows
-;(use-package alect-themes
-;	:if (and (eq window-system 'w32) (eq system-type 'windows-nt))
-;	:ensure t
-;	:config
-;	(load-theme 'alect-black t))
+;; alt alect-themes
 (use-package ef-themes
 	:if (and (eq window-system 'w32) (eq system-type 'windows-nt))
 	:ensure t
@@ -1245,7 +1221,7 @@
 
 
 ;;
-;; customization el
+;; customizations el files
 ;;
 (load "work" t)
 
@@ -1255,17 +1231,3 @@
 
 
 ;;;; EOF
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-	 '(back-button minimap vertico-prescient corfu-prescient prescient yasnippet-snippets window-number which-key wgrep vterm-toggle vertico use-package treemacs-projectile simple-modeline rust-mode powershell org-sidebar orderless nhexl-mode mozc-cand-posframe migemo lsp-ui kind-icon ido-vertical-mode ido-completing-read+ hl-todo hcl-mode goto-chg google-c-style go-mode ggtags fussy flycheck flx-ido ef-themes dumb-jump doom-themes corfu consult company-fuzzy clang-format cape anzu amx alect-themes)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
