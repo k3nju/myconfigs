@@ -2,20 +2,19 @@
 ;; TODO: focus-lines vs keep-lines
 ;; TODO: try 29. elgot, tree-shitter
 
-
 ;;(profiler-start 'cpu)
 
 
 ;;
 ;; basic config
 ;;
+
 (use-package emacs
   :config
 	;; TODO: consider using early-init.el
 
 	;; workaround
   (setq byte-compile-warnings '(cl-functions))
-
 
 	;; coding system
   (prefer-coding-system 'utf-8)
@@ -24,13 +23,11 @@
   (set-keyboard-coding-system 'utf-8)
   (setq-default buffer-file-coding-system 'utf-8)
 	
-	
 	;; frame appearances
   (setq inhibit-startup-screen t)
   (menu-bar-mode -1)
   (tool-bar-mode -1)
 	(scroll-bar-mode -1)
-	
 
 	;; font for linux
   ;;(set-frame-font "Office Code Pro 11")
@@ -74,7 +71,6 @@
       
       (add-to-list 'default-frame-alist '(font . "fontset-myfontset"))))
   
-
 	;; font for windows
   (when (and (eq window-system 'w32) (eq system-type 'windows-nt))
     ;; on windows, specify font names by using CamelCase. not "input mono condensed", 
@@ -82,10 +78,8 @@
     ;; WORKAROUND: input isn't installed
     (set-frame-font "MS Gothic 12" nil t))
 
-
 	;; disable bell & screen flashes
   (setq ring-bell-function 'ignore)
-
 
   ;; line and column numbering
 	(setq-default display-line-numbers-width 3)
@@ -94,11 +88,9 @@
 	(line-number-mode)
   (column-number-mode)
   
-
   ;; cursor
   (blink-cursor-mode 0)
 	(global-subword-mode t) ;; stop cursor on per humps for CamelCase
-
 
 	;; editing visibilities
   (show-paren-mode t)
@@ -106,33 +98,27 @@
   (setq-default truncate-lines t)
   (setq-default truncate-partial-width-windows nil)
 
-
 	;; tab
   (setq-default indent-tabs-mode t)
   (setq-default tab-width 2)
   (setq tab-stop-list (number-sequence 2 120 2))
   (setq tab-always-indent 'complete)
 
-
 	;; indentation
 	;; disable electric-indent-mode always
   (add-hook 'after-change-major-mode-hook (lambda() (electric-indent-mode -1)))
-
 
 	;; copy & paste
   (setq select-enable-primary t)
 	(setq select-enable-clipboard t)
   (setq save-interprogram-paste-before-kill t)
 	
-	
 	;; search defaults
   (setq case-fold-search t) ;; case sensitive
-	
 
 	;; visit abs path for find-file
   ;; https://memo.sugyan.com/entry/20120105/1325766364
   (setq find-file-visit-truename t)
-
 
 	;; backup
   (setq version-control t)
@@ -142,18 +128,15 @@
   (setq backup-by-copying t)
   (setq backup-directory-alist `((".*" . ,(expand-file-name "backup" user-emacs-directory))))
 
-
 	;; for resizing *Completions* buffer size
   ;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Temporary-Displays.html#index-temp_002dbuffer_002dresize_002dmode
   (temp-buffer-resize-mode)
-	
 
 	;; elisp user site
 	(let* ((default-directory (expand-file-name "lisp" user-emacs-directory)))
 		(add-to-list 'load-path default-directory)
 		(when (file-exists-p default-directory)
 			(normal-top-level-add-subdirs-to-load-path)))
-
 	
 	;; package archives
 	(when (require 'package nil t)
@@ -170,22 +153,17 @@
 			(package-refresh-contents)
 			(package-install 'use-package)))
   
-  
   ;; ediff
   (setq-default ediff-split-window-function 'split-window-horizontally)
-
   
 	;; yes or no
   (fset 'yes-or-no-p 'y-or-n-p)
 	
-
 	;; disable ime on minibuffer
 	(add-hook 'minibuffer-setup-hook 'deactivate-input-method)
 
-
 	;; helpers
 	(defun my/add-before-save-hook (f) (add-hook #'before-save-hook f nil 'local))
-
 
   ;;;; key bindings
 ;;  (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
@@ -229,8 +207,9 @@
 				("M-p" . (lambda () (interactive) (other-window -1)))
 				;; toggle-input-method
 				("C-\\" . nil)
+				;; NOTE: disabled. currently using postframe style.
 				;; to display candidates for overlay by mozc, truncate-lines must be enabled.
-				;;(toggle-truncate-lines) ;; currently disabled
+				;;(toggle-truncate-lines) 
 				;; input method
 				("<zenkaku-hankaku>" . (lambda () (interactive) (toggle-input-method)))
 				;; swap search key bindings
@@ -257,12 +236,10 @@
 	:init
 	(setq hexl-bits 8))
 
-
 ;; uniquify(builtin). unique buffer names
 (use-package uniquify
 	:init
 	(setq uniquify-buffer-name-style 'forward))
-
 
 ;; recentf(builtin). open file history
 (use-package recentf
@@ -274,12 +251,10 @@
 	:config
 	(recentf-mode t))
 
-
 ;; savehist(builtin). minibuffer history
 (use-package savehist
 	:config
 	(savehist-mode))
-
 
 ;; window(builtin). window layout management
 (use-package window
@@ -291,7 +266,6 @@
 					("\\*vterm\\*"
 					 (display-buffer-reuse-window display-buffer-below-selected)))))
 
-
 ;; winner(builtin). window layout displacement undo/redo
 (use-package winner
 	:bind
@@ -301,7 +275,6 @@
 	(setq winner-dont-bind-my-keys t)
 	:config
 	(winner-mode 1))
-
 
 ;; anzu. display current match and total matchs
 (use-package anzu
@@ -314,14 +287,12 @@
 	:config
 	(global-anzu-mode +1))
 
-
 ;; window-number. moving cursor by alt-1|2|3 
 ;; NOTE: M-1, M-2, M-3
 (use-package window-number
 	:ensure t
 	:config
 	(window-number-meta-mode))
-
 
 ;; which-key. showing keybinding in minibuffer
 (use-package which-key
@@ -331,7 +302,6 @@
 	:config
 	(which-key-setup-side-window-right))
 
-
 ;; goto-chg. cursor history
 (use-package goto-chg
 	:ensure t
@@ -339,13 +309,11 @@
 	(("C-q p" . goto-last-change)
 	 ("C-q n" . goto-last-change-reverse)))
 
-
 ;; hl-line-mode. highlighting cursor line
 (use-package hl-line
 	:ensure t
 	:config
 	(global-hl-line-mode))
-
 
 ;; hl-todo. highlighting code tags
 (use-package hl-todo
@@ -366,7 +334,6 @@
 	:config
 	(global-hl-todo-mode))
 
-
 ;; simple-modeline. modeline customization
 (use-package simple-modeline
 	:ensure t
@@ -382,11 +349,9 @@
 	:config
 	(simple-modeline-mode))
 
-
 ;; wgrep. materializing grep results 
 (use-package wgrep
 	:ensure t)
-
 
 ;; neotree
 (use-package neotree
@@ -394,7 +359,6 @@
 	:bind ("C-x d" . neotree-toggle)
 	:init
 	(setq neo-theme 'ascii))
-
 
 ;; vterm. fast terminal
 ;; NOTE: need external configuration to .bashrc
@@ -413,7 +377,6 @@
 		 ("C-c C-t" . vterm-toggle-cd)
 		 :map vterm-mode-map
 		 ("C-t" . vterm-toggle))))
-
 
 ;; org
 (use-package org
@@ -598,7 +561,6 @@
 	;;(setq mozc-candidate-style 'overlay))
 	)
 
-
 ;; mozc-cand-posframe. show japanese candidates in in-buffer
 (use-package mozc-cand-posframe
 	:ensure t
@@ -609,7 +571,6 @@
 	:init
 	(setq mozc-candidate-style 'posframe))
 	
-
 ;; migemo. search japanese words in alphabets
 (use-package migemo
 	:if (let* ((exec-path (cons (expand-file-name "cmigemo-default-win64" user-emacs-directory) exec-path)))
@@ -652,13 +613,11 @@
 		(yas-global-mode t)
 		(yas-reload-all)))
 
-
 ;; ggtags. gnu global
 (use-package ggtags
 	:ensure t
 	:bind
 	("C-q g" . 'ggtags-mode))
-
 
 ;; dumb-jump. ensuring navigating codes work
 ;; NOTE: dumb-jump is registered as a xref implementation.
@@ -670,7 +629,7 @@
 	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
 	(setq xref-show-definitions-function #'xref-show-definitions-completing-read))
 
-
+;; NOTE: disabled experimentally. using project.el(builtin)
 ;; projectile. project management
 (use-package projectile
 	:disabled
@@ -680,14 +639,12 @@
 	:bind-keymap
 	("C-c p" . projectile-command-map))
 
-
 ;; flymake(builtin)
 (use-package flymake
 	:bind
 	(:map flymake-mode-map
 				("C-q C-p" . flymake-goto-prev-error)
 				("C-q C-n" . flymake-goto-next-error)))
-
 
 ;; flycheck
 (use-package flycheck
@@ -711,7 +668,7 @@
 	(setq eglot-ignored-server-capabilities '(:hoverProvider
 																						:inlayHintProvider)))
 
-
+;; NOTE: disabled experimentally. trying eglot.
 ;; lsp-mode
 ;; NOTE: Resuires language servers individually.
 ;;			 C/C++: pacman -S clang
@@ -778,7 +735,6 @@
 		;; lsp-ui-peek
 		(setq lsp-ui-peek-always-show t)))
 
-
 ;; cc-mode(builtin)
 (use-package cc-mode
 	:ensure t
@@ -808,7 +764,6 @@
 		(setq clang-format-style "file")
 		(setq clang-format-fallback-style "google")))
 
-
 ;; go-mode
 (use-package go-mode
 	:ensure t
@@ -823,7 +778,6 @@
 										 ((featurep 'eglot)
 											(eglot-ensure))))))
 
-
 ;; python-mode
 (use-package python
 	:ensure t
@@ -837,7 +791,6 @@
 												 ((featurep 'eglot)
 													(eglot-ensure))))))
 
-
 ;; rust-mode
 (use-package rust-mode
 	:ensure t
@@ -846,7 +799,6 @@
 	(rust-mode . (lambda ()
 								 (cond ((featurep 'eglot)
 												(eglot-ensure))))))
-
 
 ;; powershell
 (use-package powershell
@@ -890,7 +842,6 @@
 					("M-DEL" . vertico-directory-delete-word))
 		:hook
 		(rfn-eshadow-update-overlay . vertico-directory-tidy)))
-
 
 ;; consult. minibuffer completion sources
 (use-package consult
@@ -993,6 +944,7 @@
   (setq consult-project-function nil))
 
 
+;; NOTE: disabled. currently using vertico.
 ;; ido(builtin). minibuffer completion I/F
 ;; NOTE: emacs 28 introduced fido-vertical-mode.
 ;;       consider using this
@@ -1038,7 +990,6 @@
 		;; unworked :init (amx-backend 'ido) and :config (amx-backend 'ido)
 		:custom	(amx-backend 'ido)))
 
-
 ;; corfu. inbuffer completion
 (use-package corfu
 	:ensure t
@@ -1071,7 +1022,6 @@
 		:ensure t
 		:init
 		(add-to-list 'completion-at-point-functions #'cape-file)))
-
 
 ;; company. traditional one.
 (use-package company
@@ -1109,7 +1059,6 @@
 	;; company-dabbrev is useful, but difficult to use in JP env
 	;;(setq company-dabbrev-downcase nil)
 	;;(setq company-dabbrev-ignore-case nil)
-
 	:config
 	;; make lsp-mode use company
 	(setq lsp-completion-provider :capf)
@@ -1136,9 +1085,7 @@
 ;;		(push 'fussy completion-styles)
 ;;		(setq company-category-defaults nil)
 ;;		(setq company-category-overrides nil))
-
 	)
-
 
 ;; orderless. fuzzy matching for completion candidates
 (use-package orderless
@@ -1180,8 +1127,7 @@
 ;;			;;(setq vertico-prescient-completion-styles my/orderless-completion-styles)
 ;;			:config
 ;;			(vertico-prescient-mode))
-		)
-	)
+		))
 
 
 ;;
@@ -1223,11 +1169,11 @@
 ;;
 ;; customizations el files
 ;;
+
 (load "work" t)
 
 
 ;;(profiler-report)
 ;;(profiler-stop)
-
 
 ;;;; EOF
