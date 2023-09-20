@@ -893,7 +893,6 @@
          ;;("M-s k" . consult-keep-lines) ;; editing actually
          ("M-s n" . consult-focus-lines) ;; narrowing. not editing actually
 
-
          ;; Isearch integration
          :map isearch-mode-map
          ("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
