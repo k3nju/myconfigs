@@ -1,5 +1,4 @@
 ;; TODO: consider using embark
-;; TODO: focus-lines vs keep-lines
 ;; TODO: try 29. elgot, tree-shitter
 
 ;;(profiler-start 'cpu)
@@ -629,10 +628,8 @@
 	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
 	(setq xref-show-definitions-function #'xref-show-definitions-completing-read))
 
-;; NOTE: disabled experimentally. using project.el(builtin)
 ;; projectile. project management
 (use-package projectile
-	:disabled
 	:ensure t
 	;; unwork :config (projectile-mode +1)
 	:init (projectile-mode +1)
@@ -705,6 +702,7 @@
 		:hook (lsp-mode . lsp-ui-mode)
 		:bind
 		(:map lsp-ui-mode-map
+					;; remap xref-find-defenitions function to lsp-ui-peek-find-definitions
 					([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
 					([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
 					("C-q C-u m" . lsp-ui-imenu))
@@ -890,8 +888,8 @@
          ("M-s l" . consult-line) ;; for current buffer
 				 ("C-;"   . consult-line) ;; experiment binding
          ("M-s L" . consult-line-multi) ;; for multiple buffer
-         ;;("M-s k" . consult-keep-lines) ;; editing actually
-         ("M-s n" . consult-focus-lines) ;; narrowing. not editing actually
+         ;;("M-s k" . consult-keep-lines) ;; actually editing
+         ("M-s n" . consult-focus-lines) ;; narrowing
 
          ;; Isearch integration
          :map isearch-mode-map
@@ -996,8 +994,11 @@
 	(:map corfu-map
 				;;("TAB" . corfu-next)
 				;;("<tab>" . corfu-next)
+				;; C-a is bound to corfu-prompt-begging. so replace it to move-beginning-of-line.
+				([remap corfu-prompt-beginning] . move-beginning-of-line)
 				("C-j" . corfu-complete)
-				("M-SPC" . corfu-insert-separator))
+				("M-SPC" . corfu-insert-separator)
+				("C-SPC" . corfu-insert-separator))
 	:init
 	;;(setq corfu-separator ",") ;; need to match orderless-component-separator
 	(setq corfu-cycle t)
@@ -1007,6 +1008,7 @@
 	(setq corfu-auto-prefix 1)
 	(setq corfu-preselect 'directory)
 	(setq corfu-on-exact-match 'insert)
+	
 	;; must be in :init
 	(global-corfu-mode)
 	:config
