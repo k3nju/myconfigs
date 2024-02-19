@@ -228,6 +228,9 @@ class ExecutionContext{
 	}
 
 	[void] RequireRerun($rerunReq){
+		$mode = $rerunReq.RunMode()
+		$user = $rerunReq.Credential().Username()
+		$this.logger_.Info("rerun required: mode=$mode user=$user")
 		$this.rerunReq_ = $rerunReq
 	}
 	
@@ -236,6 +239,7 @@ class ExecutionContext{
 	}
 
 	[void] RequireReboot(){
+		$this.logger_.Info("reboot required")
 		$this.rebootRequired_ = $true
 	}
 
@@ -243,19 +247,10 @@ class ExecutionContext{
 		return $this.rebootRequired_
 	}
 
-	[void] hidden debugLogSchduling(){
-		$reboot = $this.IsRebootRequired()
-		$rerun = $this.IsRerunRequired()
-		$mode = $this.rerunReq_.RunMode()
-		$user = $this.rerunReq_.Credential().Username()
-		$this.logger_.Info("scheduling rerun: reboot=$reboot rerun=$rerun mode=$mode user=$user")
-	}
-
 	[Status] ScheduleRerun(){
 		if((-not $this.IsRerunRequired()) -and (-not $this.IsRebootRequired())){
 			return Ng "no need to rerun" "not required neither reboot or rerun"
 		}
-		$this.debugLogSchduling()
 		
 		$action = New-ScheduledTaskAction -Execute "powershell.exe" `
 			-Argument "-ep bypass -file $($MyInvocation.PSCommandPath) -runmode $($this.rerunReq_.RunMode())"
