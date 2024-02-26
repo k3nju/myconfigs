@@ -254,7 +254,10 @@ class ExecutionContext{
 		
 		$action = New-ScheduledTaskAction -Execute "powershell.exe" `
 			-Argument "-ep bypass -file $($MyInvocation.PSCommandPath) -runmode $($this.rerunReq_.RunMode())"
-		$settings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1)
+		$settings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) `
+			-AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+			-StartWhenAvailable `
+			-MultipleInstances IgnoreNew
 
 		$rerunCred = $this.rerunReq_.Credential()
 		if($this.IsRebootRequired()){
