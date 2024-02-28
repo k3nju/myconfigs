@@ -997,7 +997,9 @@
 	(use-package cape
 		:ensure t
 		:init
-		(add-to-list 'completion-at-point-functions #'cape-file)))
+		(add-to-list 'completion-at-point-functions
+								 #'cape-file
+								 #'cape-line)))
 
 ;; company. traditional one.
 (use-package company
