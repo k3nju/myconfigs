@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;; TODO: consider using embark
 ;; TODO: try 29. elgot, tree-shitter
 
@@ -9,29 +11,29 @@
 ;;
 
 (use-package emacs
-  :config
+	:config
 	;; TODO: consider using early-init.el
-
+	
 	;; workaround
-  (setq byte-compile-warnings '(cl-functions))
-
+	(setq byte-compile-warnings '(cl-functions))
+	
 	;; coding system
-  (prefer-coding-system 'utf-8)
-  (set-default-coding-systems 'utf-8)
-  (set-terminal-coding-system 'utf-8)
-  (set-keyboard-coding-system 'utf-8)
-  (setq-default buffer-file-coding-system 'utf-8)
+	(prefer-coding-system 'utf-8)
+	(set-default-coding-systems 'utf-8)
+	(set-terminal-coding-system 'utf-8)
+	(set-keyboard-coding-system 'utf-8)
+	(setq-default buffer-file-coding-system 'utf-8)
 	
 	;; frame appearances
-  (setq inhibit-startup-screen t)
-  (menu-bar-mode -1)
-  (tool-bar-mode -1)
+	(setq inhibit-startup-screen t)
+	(menu-bar-mode -1)
+	(tool-bar-mode -1)
 	(scroll-bar-mode -1)
 
 	;; font for linux
-  ;;(set-frame-font "Office Code Pro 11")
-  (when (and (eq window-system 'x) (eq system-type 'gnu/linux))
-    (let* (;; custom fontset
+	;;(set-frame-font "Office Code Pro 11")
+	(when (and (eq window-system 'x) (eq system-type 'gnu/linux))
+		(let* (;; custom fontset
 					 ;; which should I use?
 					 ;;(_myfontset (create-fontset-from-ascii-font
 					 ;;		(format "%s-%d:weight=normal:slant=normal" "input mono condensed" 15) nil "myfontset"))
@@ -56,8 +58,8 @@
 												:rescale 0.999))))
 
 			;; create fontset per mappings
-      (mapc
-       (lambda (m)
+			(mapc
+			 (lambda (m)
 				 (let* ((font (plist-get m :font))
 								(charset (plist-get m :charset))
 								(rescale (plist-get m :rescale))
@@ -66,70 +68,70 @@
 						 (set-fontset-font myfontset charset fspec nil 'append))
 					 (when rescale
 						 (add-to-list 'face-font-rescale-alist (cons (format ".*%s.*" font) rescale)))))
-       mappings)
-      
-      (add-to-list 'default-frame-alist '(font . "fontset-myfontset"))))
-  
+			 mappings)
+			
+			(add-to-list 'default-frame-alist '(font . "fontset-myfontset"))))
+	
 	;; font for windows
-  (when (and (eq window-system 'w32) (eq system-type 'windows-nt))
-    ;; on windows, specify font names by using CamelCase. not "input mono condensed", 
-    ;;(set-frame-font "InputMonoCondensed")
-    ;; WORKAROUND: input isn't installed
-    (set-frame-font "MS Gothic 12" nil t))
+	(when (and (eq window-system 'w32) (eq system-type 'windows-nt))
+		;; on windows, specify font names by using CamelCase. not "input mono condensed", 
+		;;(set-frame-font "InputMonoCondensed")
+		;; WORKAROUND: input isn't installed
+		(set-frame-font "MS Gothic 12" nil t))
 
 	;; disable bell & screen flashes
-  (setq ring-bell-function 'ignore)
+	(setq ring-bell-function 'ignore)
 
-  ;; line and column numbering
+	;; line and column numbering
 	(setq-default display-line-numbers-width 3)
-  (global-display-line-numbers-mode)
+	(global-display-line-numbers-mode)
 	;; show line and column number in mode line
 	(line-number-mode)
-  (column-number-mode)
-  
-  ;; cursor
-  (blink-cursor-mode 0)
+	(column-number-mode)
+	
+	;; cursor
+	(blink-cursor-mode 0)
 	(global-subword-mode t) ;; stop cursor on per humps for CamelCase
 
 	;; editing visibilities
-  (show-paren-mode t)
-  (setq show-trailing-whitespace t)
-  (setq-default truncate-lines t)
-  (setq-default truncate-partial-width-windows nil)
+	(show-paren-mode t)
+	(setq show-trailing-whitespace t)
+	(setq-default truncate-lines t)
+	(setq-default truncate-partial-width-windows nil)
 
 	;; tab
-  (setq-default indent-tabs-mode t)
-  (setq-default tab-width 2)
-  (setq tab-stop-list (number-sequence 2 120 2))
-  (setq tab-always-indent 'complete)
+	(setq-default indent-tabs-mode t)
+	(setq-default tab-width 2)
+	(setq tab-stop-list (number-sequence 2 120 2))
+	(setq tab-always-indent 'complete)
 
 	;; indentation
 	;; disable electric-indent-mode always
-  (add-hook 'after-change-major-mode-hook (lambda() (electric-indent-mode -1)))
+	(add-hook 'after-change-major-mode-hook (lambda() (electric-indent-mode -1)))
 
 	;; copy & paste
-  (setq select-enable-primary t)
+	(setq select-enable-primary t)
 	(setq select-enable-clipboard t)
-  (setq save-interprogram-paste-before-kill t)
+	(setq save-interprogram-paste-before-kill t)
 	
 	;; search defaults
-  (setq case-fold-search t) ;; case sensitive
+	(setq case-fold-search t) ;; case sensitive
 
 	;; visit abs path for find-file
-  ;; https://memo.sugyan.com/entry/20120105/1325766364
-  (setq find-file-visit-truename t)
+	;; https://memo.sugyan.com/entry/20120105/1325766364
+	(setq find-file-visit-truename t)
 
 	;; backup
-  (setq version-control t)
-  (setq kept-new-versions 5)
-  (setq kept-old-versions 0)
-  (setq delete-old-versions t)
-  (setq backup-by-copying t)
-  (setq backup-directory-alist `((".*" . ,(expand-file-name "backup" user-emacs-directory))))
+	(setq version-control t)
+	(setq kept-new-versions 5)
+	(setq kept-old-versions 0)
+	(setq delete-old-versions t)
+	(setq backup-by-copying t)
+	(setq backup-directory-alist `((".*" . ,(expand-file-name "backup" user-emacs-directory))))
 
 	;; for resizing *Completions* buffer size
-  ;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Temporary-Displays.html#index-temp_002dbuffer_002dresize_002dmode
-  (temp-buffer-resize-mode)
+	;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Temporary-Displays.html#index-temp_002dbuffer_002dresize_002dmode
+	(temp-buffer-resize-mode)
 
 	;; elisp user site
 	(let* ((default-directory (expand-file-name "lisp" user-emacs-directory)))
@@ -151,12 +153,12 @@
 			(message "use-package is not installed and installing it")
 			(package-refresh-contents)
 			(package-install 'use-package)))
-  
-  ;; ediff
-  (setq-default ediff-split-window-function 'split-window-horizontally)
-  
+	
+	;; ediff
+	(setq-default ediff-split-window-function 'split-window-horizontally)
+	
 	;; yes or no
-  (fset 'yes-or-no-p 'y-or-n-p)
+	(fset 'yes-or-no-p 'y-or-n-p)
 	
 	;; disable ime on minibuffer
 	(add-hook 'minibuffer-setup-hook 'deactivate-input-method)
@@ -164,38 +166,11 @@
 	;; helpers
 	(defun my/add-before-save-hook (f) (add-hook #'before-save-hook f nil 'local))
 
-  ;;;; key bindings
-;;  (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
-;;  (setq default-input-method "japanese")
-;;  (let* ((remaps
-;;					'(;; quoted-insert
-;;						("C-q" . nil)
-;;						;; suspend-frame
-;;						("C-z" . nil)
-;;						;; window move forard
-;;						("M-n" . other-window)
-;;						;; window move backward
-;;						("M-p" . (lambda () (interactive) (other-window -1)))
-;;						;; toggle-input-method
-;;						("C-\\" . nil)
-;;						;; to display candidates for overlay by mozc, truncate-lines must be enabled.
-;;						;;(toggle-truncate-lines) ;; currently disabled
-;;						;; input method
-;;						("<zenkaku-hankaku>" . (lambda () (interactive) (toggle-input-method)))
-;;						;; swap search key bindings
-;;						("C-s" . isearch-forward-regexp)
-;;						("C-r" . isearch-backward-regexp)
-;;						("C-M-s" . isearch-forward)
-;;						("C-M-r" . isearch-backword)
-;;						;; switching buffer
-;;						("C-M-p" . previous-buffer)
-;;						("C-M-n" . next-buffer)
-;;						)))
-;;    (mapc #'(lambda (p) (global-set-key (kbd (car p)) (cdr p))) remaps))
-  (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
-  (setq default-input-method "japanese")
+	;;;; key bindings
+	(define-key key-translation-map (kbd "C-h") (kbd "DEL"))
+	(setq default-input-method "japanese")
 	:bind
-  (:map global-map
+	(:map global-map
 				;; quoted-insert
 				("C-q" . nil)
 				;; suspend-frame
@@ -523,7 +498,7 @@
 	(setq org-capture-templates
 				'(("n" "[N]otes" entry (file "notes.org") "* %?\n%T\n" :empty-lines 1 :kill-buffer 1)
 					;; NOTE: plain cant refile to other org files
-					("m" "[M]isc notes" plain (file create-misc-note-file) "* %?  :misc:\n%T\n"
+					("m" "[M]isc notes" plain (file create-misc-note-file) "* %?	:misc:\n%T\n"
 					 :misc-note t :empty-lines 1 :kill-buffer t)
 					("j" "[J]ournals" entry (file+headline "notes.org" "journals") "* %T %?\n" :empty-lines 1 :kill-buffer t :prepend t)
 					("d" "[D]iary" entry (file "diary.org") "* %T\n%?\n" :empty-lines 1 :kill-buffer t :prepend t )))
@@ -620,7 +595,7 @@
 
 ;; dumb-jump. ensuring navigating codes work
 ;; NOTE: dumb-jump is registered as a xref implementation.
-;;       when lsp is not activated, M-. will use dumb-jump via xref interface.
+;;			 when lsp is not activated, M-. will use dumb-jump via xref interface.
 (use-package dumb-jump
 	:ensure t
 	:config
@@ -824,8 +799,8 @@
 
 	;; case insensitive on minibuffer completion
 	(setq read-file-name-completion-ignore-case t)
-  (setq read-buffer-completion-ignore-case t)
-  (setq completion-ignore-case t)
+	(setq read-buffer-completion-ignore-case t)
+	(setq completion-ignore-case t)
 	:config
 	(vertico-mode)
 
@@ -847,104 +822,104 @@
 	:commands
 	(consult-org-heading
 	 consult-org-agenda)
-  :bind (;; C-c bindings in `mode-specific-map'
-         ("C-c M-x" . consult-mode-command)
-         ;; ("C-c k" . consult-kmacro)
-         ("C-c m" . consult-man)
+	:bind (;; C-c bindings in `mode-specific-map'
+				 ("C-c M-x" . consult-mode-command)
+				 ;; ("C-c k" . consult-kmacro)
+				 ("C-c m" . consult-man)
 				 
-         ;; C-x bindings in `ctl-x-map'
-         ("C-x M-:" . consult-complex-command) ;; orig. repeat-complex-command
-         ("C-x b" . consult-buffer) ;; orig. switch-to-buffer
-         ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-         ("C-x 5 b" . consult-buffer-other-frame) ;; orig. switch-to-buffer-other-frame
-         ("C-x r b" . consult-bookmark) ;; orig. bookmark-jump
-         ;;("C-x p b" . consult-project-buffer) ;; orig. project-switch-to-buffer
+				 ;; C-x bindings in `ctl-x-map'
+				 ("C-x M-:" . consult-complex-command) ;; orig. repeat-complex-command
+				 ("C-x b" . consult-buffer) ;; orig. switch-to-buffer
+				 ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+				 ("C-x 5 b" . consult-buffer-other-frame) ;; orig. switch-to-buffer-other-frame
+				 ("C-x r b" . consult-bookmark) ;; orig. bookmark-jump
+				 ;;("C-x p b" . consult-project-buffer) ;; orig. project-switch-to-buffer
 
-         ;; bindings for fast register access
-         ("C-q r l" . consult-register-load)
-         ("C-q r s" . consult-register-store) ;; orig. abbrev-prefix-mark (unrelated)
-         ("C-q r r" . consult-register)
-         
+				 ;; bindings for fast register access
+				 ("C-q r l" . consult-register-load)
+				 ("C-q r s" . consult-register-store) ;; orig. abbrev-prefix-mark (unrelated)
+				 ("C-q r r" . consult-register)
+				 
 				 ;; yank
-         ("M-y" . consult-yank-pop) ;; orig. yank-pop
+				 ("M-y" . consult-yank-pop) ;; orig. yank-pop
 				 
-         ;; M-g bindings in `goto-map'
-         ;;("M-g e" . consult-compile-error)
-         ;;("M-g f" . consult-flymake) ;; Alternative: consult-flycheck
-         ("M-g g" . consult-goto-line) ;; orig. goto-line
-         ("M-g M-g" . consult-goto-line) ;; orig. goto-line
-         ("M-g o" . consult-outline) ;; Alternative: consult-org-heading
-         ("M-g m" . consult-mark)
-         ("M-g M" . consult-global-mark)
-         ("M-g i" . consult-imenu)
-         ("M-g I" . consult-imenu-multi)
+				 ;; M-g bindings in `goto-map'
+				 ;;("M-g e" . consult-compile-error)
+				 ;;("M-g f" . consult-flymake) ;; Alternative: consult-flycheck
+				 ("M-g g" . consult-goto-line) ;; orig. goto-line
+				 ("M-g M-g" . consult-goto-line) ;; orig. goto-line
+				 ("M-g o" . consult-outline) ;; Alternative: consult-org-heading
+				 ("M-g m" . consult-mark)
+				 ("M-g M" . consult-global-mark)
+				 ("M-g i" . consult-imenu)
+				 ("M-g I" . consult-imenu-multi)
 				 
-         ;; M-s bindings in `search-map'
-         ("M-s f" . consult-find)
-         ("M-s F" . consult-locate)
-         ("M-s g" . consult-grep)
-         ("M-s G" . consult-git-grep)
-         ("M-s r" . consult-ripgrep)
-         ("M-s l" . consult-line) ;; for current buffer
-				 ("C-;"   . consult-line) ;; experiment binding
-         ("M-s L" . consult-line-multi) ;; for multiple buffer
-         ;;("M-s k" . consult-keep-lines) ;; actually editing
-         ("M-s n" . consult-focus-lines) ;; narrowing
+				 ;; M-s bindings in `search-map'
+				 ("M-s f" . consult-find)
+				 ("M-s F" . consult-locate)
+				 ("M-s g" . consult-grep)
+				 ("M-s G" . consult-git-grep)
+				 ("M-s r" . consult-ripgrep)
+				 ("M-s l" . consult-line) ;; for current buffer
+				 ("C-;"	 . consult-line) ;; experiment binding
+				 ("M-s L" . consult-line-multi) ;; for multiple buffer
+				 ;;("M-s k" . consult-keep-lines) ;; actually editing
+				 ("M-s n" . consult-focus-lines) ;; narrowing
 
-         ;; Isearch integration
-         :map isearch-mode-map
-         ("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
-         ("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
-         ("M-s l" . consult-line) ;; needed by consult-line to detect isearch
-         ("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
+				 ;; Isearch integration
+				 :map isearch-mode-map
+				 ("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
+				 ("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
+				 ("M-s l" . consult-line) ;; needed by consult-line to detect isearch
+				 ("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
 				 ("M-s x" . consult-isearch-forward)
 				 
-         ;; Minibuffer history
-         :map minibuffer-local-map
-         ("M-s" . consult-history) ;; orig. next-matching-history-element
-         ("M-r" . consult-history) ;; orig. previous-matching-history-element
+				 ;; Minibuffer history
+				 :map minibuffer-local-map
+				 ("M-s" . consult-history) ;; orig. next-matching-history-element
+				 ("M-r" . consult-history) ;; orig. previous-matching-history-element
 				 )
 
-  :hook
+	:hook
 	;; enable preview at poin in the *Completion* buffer
 	(completion-list-mode . consult-preview-at-point-mode)
 
-  :init
-  (setq register-preview-delay 0.0)
-  (setq register-preview-function #'consult-register-format)
-  (advice-add #'register-preview :override #'consult-register-window)
+	:init
+	(setq register-preview-delay 0.0)
+	(setq register-preview-function #'consult-register-format)
+	(advice-add #'register-preview :override #'consult-register-window)
 
-  ;; Use Consult to select xref locations with preview
-  (setq xref-show-xrefs-function #'consult-xref)
-  (setq xref-show-definitions-function #'consult-xref)
+	;; Use Consult to select xref locations with preview
+	(setq xref-show-xrefs-function #'consult-xref)
+	(setq xref-show-definitions-function #'consult-xref)
 
-  ;; Configure other variables and modes in the :config section,
-  ;; after lazily loading the package.
-  :config
-  (consult-customize
+	;; Configure other variables and modes in the :config section,
+	;; after lazily loading the package.
+	:config
+	(consult-customize
 	 ;; applying emacs theme
 	 consult-theme
 	 :preview-key '(:debounce 0.2 any)
 
 	 ;; preview by C-.
-   consult-ripgrep consult-git-grep consult-grep
-   consult-bookmark consult-recent-file consult-xref
-   consult--source-bookmark consult--source-file-register
-   consult--source-recent-file consult--source-project-recent-file
-   :preview-key "M-.")
+	 consult-ripgrep consult-git-grep consult-grep
+	 consult-bookmark consult-recent-file consult-xref
+	 consult--source-bookmark consult--source-file-register
+	 consult--source-recent-file consult--source-project-recent-file
+	 :preview-key "M-.")
 
-  ;; Optionally configure the narrowing key.
-  ;; Both < and C-+ work reasonably well.
-  (setq consult-narrow-key "<") ;; "C-+"
+	;; Optionally configure the narrowing key.
+	;; Both < and C-+ work reasonably well.
+	(setq consult-narrow-key "<") ;; "C-+"
 
 	;; use projectile to grep files in a project
-  (setq consult-project-function nil))
+	(setq consult-project-function nil))
 
 
 ;; NOTE: disabled. currently using vertico.
 ;; ido(builtin). minibuffer completion I/F
 ;; NOTE: emacs 28 introduced fido-vertical-mode.
-;;       consider using this
+;; consider using this
 (use-package ido
 	:disabled
 	:init
@@ -1000,7 +975,7 @@
 				("M-SPC" . corfu-insert-separator)
 				("C-SPC" . corfu-insert-separator))
 	:init
-	;;(setq corfu-separator ",") ;; need to match orderless-component-separator
+	;;(setq corfu-separator " ") ;; need to be matched to orderless-component-separator
 	(setq corfu-cycle t)
 	(setq corfu-auto t)
 	(setq corfu-count 15)
@@ -1088,8 +1063,10 @@
 ;;		(setq company-category-overrides nil))
 	)
 
-;; orderless. fuzzy matching for completion candidates
+;; NOTE: currently disabled. trying prescient
+;; orderless. matching for completion candidates
 (use-package orderless
+	:disabled
 	:ensure t
 	:init
 	;;(setq orderless-component-separator ",")
@@ -1099,41 +1076,45 @@
 	(setq completion-styles '(orderless basic))
 	(setq completion-category-defaults nil)
 	;; TODO: consider fine-grained tuning per categories
-	;;(setq completion-category-overrides '((file (style basic))))
+	(setq completion-category-overrides '((file (styles basic orderless))))
+	)
+
+
+;; experiment
+;; prescient. matching for completion candidates
+(use-package prescient
+	:ensure t
+	:init
+	;;(setq completion-styles '(basic))
+	(setq completion-styles '(prescient basic))
+	(setq prescient-sort-full-matches-first t)
 	:config
-	(setq my/orderless-completion-styles completion-styles)
+	(prescient-persist-mode)
 
-	;; prescient. sorting completion candidates
-	;; NOTE: consider using sort function only
-	(use-package prescient
-		:disabled
+	(use-package corfu-prescient
 		:ensure t
+		:after corfu
+		:init
+		(setq corfu-prescient-enable-filtering t)
+		(setq corfu-prescient-enable-sorting t)
 		:config
-		(prescient-persist-mode)
-		
-		(use-package corfu-prescient
-			:ensure t
-			:requires corfu
-			:init
-			(setq corfu-prescient-enable-filtering nil)
-			;;(setq corfu-prescient-completion-styles my/orderless-completion-styles)
-			:config
-			(corfu-prescient-mode))
+		(corfu-prescient-mode))
 
-;;		(use-package vertico-prescient
-;;			:ensure t
-;;			:requires vertico
-;;			:init
-;;			(setq vertico-prescient-enable-filtering nil)
-;;			;;(setq vertico-prescient-completion-styles my/orderless-completion-styles)
-;;			:config
-;;			(vertico-prescient-mode))
-		))
+	(use-package vertico-prescient
+		:ensure t
+		:after vertico
+		:init
+		(setq vertico-prescient-enable-filtering t)
+		(setq vertico-prescient-enable-sorting t)
+		:config
+		(vertico-prescient-mode))
+	)
 
 
 ;;
 ;; theme config
 ;;
+
 (when (and (file-exists-p (expand-file-name "themes" user-emacs-directory))
 					 (boundp 'custom-theme-load-path))
 	(add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory)))
@@ -1178,3 +1159,4 @@
 ;;(profiler-stop)
 
 ;;;; EOF
+
