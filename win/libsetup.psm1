@@ -158,9 +158,16 @@ class Logger{
 	}
 
 	[void] Exception([string]$msg, $e){
-		if($e){
+		if($e -is [Exception]){
+			$msg = $msg + "`n" + $e.Message
+		}
+		elseif($e -is [System.Management.Automation.ErrorRecord]){
 			$msg = $msg + "`n" + $e.Exception.Message + "`n" + $e.ScriptStackTrace
 		}
+		else{
+			$msg = $msg + "`n" + "`$e=$e"
+		}
+		
 		$this.Write($msg, [LogSeverity]::EXCEPTION)
 	}
 
@@ -578,7 +585,8 @@ class AdhocTask : TaskBase{
 			return $rv
 		}
 		catch{
-			$this.logger.Exception("exception caught: adhoc task $($this.Name())")
+			$this.logger.Exception("exception caught: adhoc task $($this.Name())",
+														 $PSItem.Exception.InnerException)
 			return [TaskResult]::ERROR
 		}
 
