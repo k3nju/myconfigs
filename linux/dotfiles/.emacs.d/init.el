@@ -759,7 +759,7 @@
 	(python-mode . (lambda ()
 									 (cond ((featurep 'lsp-mode)
 													(my/add-before-save-hook 'lsp-format-buffer)
-													(if (and (executable-find "black"))
+													(if (executable-find "black")
 															(setq lsp-pylsp-plugins-black-enabled t)))
 												 ((featurep 'eglot)
 													(eglot-ensure))))))
@@ -770,8 +770,8 @@
 	:after (:any lsp-mode eglot)
 	:hook
 	(rust-mode . (lambda ()
-								 (cond ((featurep 'eglot)
-												(eglot-ensure))))))
+								 (if (featurep 'eglot)
+										 (eglot-ensure)))))
 
 ;; powershell
 (use-package powershell
@@ -779,8 +779,8 @@
 	:after (:any lsp-mode eglot)
 	:hook
 	(powershell-mode . (lambda ()
-											 (cond ((featurep 'eglot)
-															(eglot-ensure)))))
+											 (if (featurep 'eglot)
+													 (eglot-ensure))))
 	:init
 	(setq powershell-indent 2))
 
@@ -992,14 +992,7 @@
 		:requires corfu
 		:init
 		;; disable icon
-		(setq kind-icon-use-icons nil))
-	
-	(use-package cape
-		:ensure t
-		:init
-		(add-to-list 'completion-at-point-functions
-								 #'cape-file
-								 #'cape-line)))
+		(setq kind-icon-use-icons nil)))
 
 ;; company. traditional one.
 (use-package company
@@ -1065,6 +1058,14 @@
 ;;		(setq company-category-overrides nil))
 	)
 
+;; cape. completions provider
+(use-package cape
+	:ensure t
+	:hook
+	((text-mode prog-mode) . (lambda ()
+														 (add-to-list 'completion-at-point-functions #'cape-dabbrev t)
+														 (add-to-list 'completion-at-point-functions #'cape-file t))))
+
 ;; NOTE: currently disabled. trying prescient
 ;; orderless. matching for completion candidates
 (use-package orderless
@@ -1078,14 +1079,15 @@
 	(setq completion-styles '(orderless basic))
 	(setq completion-category-defaults nil)
 	;; TODO: consider fine-grained tuning per categories
-	(setq completion-category-overrides '((file (styles basic orderless))))
-	)
-
+	(setq completion-category-overrides '((file (styles basic orderless)))))
 
 ;; experiment
 ;; prescient. matching for completion candidates
 (use-package prescient
 	:ensure t
+	:custom-face
+	(prescient-primary-highlight
+	 ((t :foreground "#b3a3e9" :background "#2a273a" :weight ultra-bold)))
 	:init
 	;;(setq completion-styles '(basic))
 	(setq completion-styles '(prescient basic))
@@ -1109,8 +1111,7 @@
 		(setq vertico-prescient-enable-filtering t)
 		(setq vertico-prescient-enable-sorting t)
 		:config
-		(vertico-prescient-mode))
-	)
+		(vertico-prescient-mode)))
 
 
 ;;
