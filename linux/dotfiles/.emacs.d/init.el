@@ -164,7 +164,7 @@
 	(add-hook 'minibuffer-setup-hook 'deactivate-input-method)
 
 	;; helpers
-	(defun my/add-before-save-hook (f) (add-hook #'before-save-hook f nil 'local))
+	(defun my/add-before-save-hook (f) (add-hook 'before-save-hook f nil 'local))
 
 	;;;; key bindings
 	(define-key key-translation-map (kbd "C-h") (kbd "DEL"))
@@ -271,10 +271,9 @@
 ;; which-key. showing keybinding in minibuffer
 (use-package which-key
 	:ensure t
-	:hook
-	(after-init . which-key-mode)
 	:config
-	(which-key-setup-side-window-right))
+	(which-key-setup-side-window-right)
+	(which-key-mode))
 
 ;; goto-chg. cursor history
 (use-package goto-chg
@@ -550,9 +549,11 @@
 	:if (let* ((exec-path (cons (expand-file-name "cmigemo-default-win64" user-emacs-directory) exec-path)))
 				(executable-find "cmigemo"))
 	:ensure t
-	;; supress lsp warnings
+	;; to supress lsp warnings
 	:commands migemo-init
 	:hook
+	;; if :commands is used, :config is not evaluated.
+	;; so to call migemo-init, use :init or call it from hook.
 	(after-init . migemo-init)
 	:init
 	(setq migemo-command
@@ -611,12 +612,19 @@
 	:bind-keymap
 	("C-c p" . projectile-command-map))
 
-;; flymake(builtin)
+;; flymake(builtin). flymake can use eglot as a backend.
 (use-package flymake
 	:bind
 	(:map flymake-mode-map
 				("C-q C-p" . flymake-goto-prev-error)
-				("C-q C-n" . flymake-goto-next-error)))
+				("C-q C-n" . flymake-goto-next-error))
+	:hook
+	(prog-mode . flymake-mode)
+	:config
+	(use-package flymake-diagnostic-at-point
+		:ensure t
+		:after flymake
+		:hook (flymake-mode . flymake-diagnostic-at-point-mode)))
 
 ;; flycheck
 (use-package flycheck
@@ -1062,9 +1070,16 @@
 (use-package cape
 	:ensure t
 	:hook
-	((text-mode prog-mode) . (lambda ()
-														 (add-to-list 'completion-at-point-functions #'cape-dabbrev t)
-														 (add-to-list 'completion-at-point-functions #'cape-file t))))
+	((prog-mode . my/add-cape-capfs)
+	 ;; XXX: in cc-mode with eglot-mode, completion-at-point-functions ignores defaults
+	 (eglot-managed-mode . my/add-cape-capfs))
+	:config
+	(defun my/add-cape-capfs ()
+		;; TODO: rethink orders
+		(add-to-list 'completion-at-point-functions #'cape-dabbrev)
+		(add-to-list 'completion-at-point-functions #'cape-file))
+	
+	(my/add-cape-capfs))
 
 ;; NOTE: currently disabled. trying prescient
 ;; orderless. matching for completion candidates
