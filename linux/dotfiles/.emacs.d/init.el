@@ -1,9 +1,8 @@
-;; -*- lexical-binding: t; -*-
-
 ;; TODO: consider using embark
-;; TODO: try 29. elgot, tree-shitter
 
 ;;(profiler-start 'cpu)
+
+(defun my/pp (o) (mapc 'princ (list "###|" o "\n")))
 
 
 ;;
@@ -107,7 +106,7 @@
 
 	;; indentation
 	;; disable electric-indent-mode always
-	(add-hook 'after-change-major-mode-hook (lambda() (electric-indent-mode -1)))
+	(add-hook 'after-change-major-mode-hook (lambda () (electric-indent-mode -1)))
 
 	;; copy & paste
 	(setq select-enable-primary t)
@@ -132,12 +131,14 @@
 	;; for resizing *Completions* buffer size
 	;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Temporary-Displays.html#index-temp_002dbuffer_002dresize_002dmode
 	(temp-buffer-resize-mode)
-
+	
 	;; elisp user site
 	(let* ((default-directory (expand-file-name "lisp" user-emacs-directory)))
 		(add-to-list 'load-path default-directory)
 		(when (file-exists-p default-directory)
-			(normal-top-level-add-subdirs-to-load-path)))
+			(normal-top-level-add-subdirs-to-load-path))
+		;; separate autosaved customizations 
+		(setq custom-file (expand-file-name "autosaved-custom.el" default-directory)))
 	
 	;; package archives
 	(when (require 'package nil t)
@@ -358,10 +359,7 @@
 	(("C-c c" . org-capture)
 	 ("C-c l" . org-store-link)
 	 ("C-c a" . org-agenda)
-	 ;; shortcut for opening org. experiment biding
-	 ("C-c A" . consult-org-agenda)
 	 :map org-mode-map
-	 ("M-g o" . consult-org-heading) ;; consult-org
 	 ("M-," . org-mark-ring-goto)
 	 ;; on terminal, "C-," is recognized to ",". on GUI works well.
 	 ;; change "C-c ,"(org-priority) to org-insert-structure-template and
@@ -552,7 +550,7 @@
 	;; to supress lsp warnings
 	:commands migemo-init
 	:hook
-	;; if :commands is used, :config is not evaluated.
+	;; if :commands is used, :config is not evaluated. (implicit :defer).
 	;; so to call migemo-init, use :init or call it from hook.
 	(after-init . migemo-init)
 	:init
@@ -570,234 +568,10 @@
 
 
 ;;
-;; coding packages
+;; enhancement packages
 ;;
 
-;; yasnippet. snippet provider
-(use-package yasnippet
-	:disabled
-	:ensure t
-	:config
-	;; actual snippets
-	(use-package yasnippet-snippets
-		:ensure t
-		:requires yasnippet
-		:init
-		(setq yas-prompt-functions '(yas-ido-prompt))
-		:config
-		(yas-global-mode t)
-		(yas-reload-all)))
-
-;; ggtags. gnu global
-(use-package ggtags
-	:ensure t
-	:bind
-	("C-q g" . 'ggtags-mode))
-
-;; dumb-jump. ensuring navigating codes work
-;; NOTE: dumb-jump is registered as a xref implementation.
-;;			 when lsp is not activated, M-. will use dumb-jump via xref interface.
-(use-package dumb-jump
-	:ensure t
-	:config
-	;; replace xref I/F. e.g.: M-. , C-M-. , M-?
-	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
-	(setq xref-show-definitions-function #'xref-show-definitions-completing-read))
-
-;; projectile. project management
-(use-package projectile
-	:ensure t
-	;; unwork :config (projectile-mode +1)
-	:init (projectile-mode +1)
-	:bind-keymap
-	("C-c p" . projectile-command-map))
-
-;; flymake(builtin). flymake can use eglot as a backend.
-(use-package flymake
-	:bind
-	(:map flymake-mode-map
-				("C-q C-p" . flymake-goto-prev-error)
-				("C-q C-n" . flymake-goto-next-error))
-	:hook
-	(prog-mode . flymake-mode)
-	:config
-	(use-package flymake-diagnostic-at-point
-		:ensure t
-		:after flymake
-		:hook (flymake-mode . flymake-diagnostic-at-point-mode)))
-
-;; flycheck
-(use-package flycheck
-	:disabled
-	:ensure t
-	:init
-	(setq flycheck-disabled-checkers '(emacs-lisp-checkdoc))
-	:config
-	(global-flycheck-mode))
-
-
-;;
-;; development packages
-;;
-
-;; experiment
-;; eglot(builtin). 
-(use-package eglot
-	:ensure t
-	:config
-	(setq eglot-ignored-server-capabilities '(:hoverProvider
-																						:inlayHintProvider)))
-
-;; NOTE: disabled experimentally. trying eglot.
-;; lsp-mode
-;; NOTE: Resuires language servers individually.
-;;			 C/C++: pacman -S clang
-;;			 python: install python-lsp-server[all] for each project
-;;			 golang: go get golang.org./x/tools/gopls@latest
-(use-package lsp-mode
-	:disabled
-	:ensure t
-	:hook
-	(prog-mode . lsp-deferred)
-	:init
-	(setq lsp-keymap-prefix "C-q l")
-	:config
-	;;(setq lsp-log-io t) ;; for debug
-	(setq lsp-warn-no-matched-clients nil)
-	(setq lsp-signature-auto-activate nil)
-	;;(setq lsp-completion-provider :capf) ;; for company mode
-	(setq lsp-completion-provider :none)
-	
-	;; clangd args
-	;; set log=verbose for debug
-	(setq lsp-clients-clangd-args '("-j=2" "--background-index" "--log=error"))
-
-	;; settings per langs
-	(setq lsp-register-custom-settings
-	 '(("gopls.experimentalWorkspaceModule" t t)))
-	
-	;; lsp-ui
-	(use-package lsp-ui
-		:disabled
-		:ensure t
-		:after lsp-mode
-		:commands lsp-ui-mode
-		:hook (lsp-mode . lsp-ui-mode)
-		:bind
-		(:map lsp-ui-mode-map
-					;; remap xref-find-defenitions function to lsp-ui-peek-find-definitions
-					([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
-					([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
-					("C-q C-u m" . lsp-ui-imenu))
-		
-		:custom-face
-		(lsp-ui-sideline-symbol-info ((t (:background "default"))))
-		;; background face of sideline and doc
-		(markdown-code-face ((t (:background "grey10"))))
-		:config
-		(setq lsp-lens-enable t)
-		
-		;; lsp-ui-doc
-		(setq lsp-ui-doc-enable nil)
-		(setq lsp-ui-doc-header t)
-		(setq lsp-ui-doc-include-signature t)
-		(setq lsp-ui-doc-delay 2)
-		
-		;; lsp-ui-sideline
-		(setq lsp-ui-sideline-enable t)
-		(setq lsp-ui-sideline-show-code-actions t)
-		(setq lsp-ui-sideline-show-hover nil)
-		(setq lsp-ui-sideline-delay 0.2)
-		;;(lsp-ui-sideline-update-mode 'line)
-		(setq lsp-ui-sideline-show-diagnostics t)
-		(setq lsp-ui-sideline-diagnostic-max-lines 10)
-		(setq lsp-ui-sideline-diagnostic-max-line-length 150)
-		
-		;; lsp-ui-peek
-		(setq lsp-ui-peek-always-show t)))
-
-;; cc-mode(builtin)
-(use-package cc-mode
-	:ensure t
-	:after (:any lsp-mode eglot)
-	:hook
-	(c-mode-common . (lambda ()
-										 (cond ((featurep 'eglot)
-														(eglot-ensure)))))
-	:config
-	;; google-c-style
-	(use-package google-c-style
-		:ensure t
-		:hook
-		(c-mode-common . google-set-c-style))
-	
-	;; clang-format
-	(use-package clang-format
-		:ensure t
-		:requires cc-mode
-		:bind
-		(("C-q f b" . clang-format-buffer)
-		 ("C-q f r" . clang-format-region))
-		:hook
-		(c-mode-common . (lambda ()
-											 (my/add-before-save-hook 'clang-format-buffer)))
-		:init
-		(setq clang-format-style "file")
-		(setq clang-format-fallback-style "google")))
-
-;; go-mode
-(use-package go-mode
-	:ensure t
-	:after (:any lsp-mode eglot)
-	:hook
-	(go-mode . (lambda ()
-							 (cond ((featurep 'lsp-mode)
-											(my/add-before-save-hook
-											 (lambda ()
-												 (lsp-organize-imports)
-												 (lsp-format-buffer))))
-										 ((featurep 'eglot)
-											(eglot-ensure))))))
-
-;; python-mode
-(use-package python
-	:ensure t
-	:after (:any lsp-mode eglot)
-	:hook
-	(python-mode . (lambda ()
-									 (cond ((featurep 'lsp-mode)
-													(my/add-before-save-hook 'lsp-format-buffer)
-													(if (executable-find "black")
-															(setq lsp-pylsp-plugins-black-enabled t)))
-												 ((featurep 'eglot)
-													(eglot-ensure))))))
-
-;; rust-mode
-(use-package rust-mode
-	:ensure t
-	:after (:any lsp-mode eglot)
-	:hook
-	(rust-mode . (lambda ()
-								 (if (featurep 'eglot)
-										 (eglot-ensure)))))
-
-;; powershell
-(use-package powershell
-	:ensure t
-	:after (:any lsp-mode eglot)
-	:hook
-	(powershell-mode . (lambda ()
-											 (if (featurep 'eglot)
-													 (eglot-ensure))))
-	:init
-	(setq powershell-indent 2))
-
-
-;;
-;; completion packages
-;;
-
-;; vertico. minibuffer completion U/I
+;; vertico. minibuffer completion UI
 (use-package vertico
 	:ensure t
 	:init
@@ -824,17 +598,17 @@
 		:hook
 		(rfn-eshadow-update-overlay . vertico-directory-tidy)))
 
-;; consult. minibuffer completion sources
+;; consult. minibuffer commands
 (use-package consult
 	:ensure t
-	:commands
-	(consult-org-heading
-	 consult-org-agenda)
 	:bind (;; C-c bindings in `mode-specific-map'
 				 ("C-c M-x" . consult-mode-command)
 				 ;; ("C-c k" . consult-kmacro)
 				 ("C-c m" . consult-man)
-				 
+				 ;; org-mode
+				 ;; shortcut for opening org. experiment biding
+				 ("C-c A" . consult-org-agenda)
+				 ("M-g o" . consult-org-heading)
 				 ;; C-x bindings in `ctl-x-map'
 				 ("C-x M-:" . consult-complex-command) ;; orig. repeat-complex-command
 				 ("C-x b" . consult-buffer) ;; orig. switch-to-buffer
@@ -925,9 +699,9 @@
 
 
 ;; NOTE: disabled. currently using vertico.
-;; ido(builtin). minibuffer completion I/F
 ;; NOTE: emacs 28 introduced fido-vertical-mode.
-;; consider using this
+;;       consider using this
+;; ido(builtin). minibuffer completion UI
 (use-package ido
 	:disabled
 	:init
@@ -970,7 +744,7 @@
 		;; unworked :init (amx-backend 'ido) and :config (amx-backend 'ido)
 		:custom	(amx-backend 'ido)))
 
-;; corfu. inbuffer completion
+;; corfu. inbuffer completion UI
 (use-package corfu
 	:ensure t
 	:bind
@@ -1002,7 +776,7 @@
 		;; disable icon
 		(setq kind-icon-use-icons nil)))
 
-;; company. traditional one.
+;; company. traditional inbuffer completion UI
 (use-package company
 	:if (not window-system)
 	:ensure t
@@ -1066,20 +840,15 @@
 ;;		(setq company-category-overrides nil))
 	)
 
-;; cape. completions provider
+;; cape. completions sources
 (use-package cape
 	:ensure t
-	:hook
-	((prog-mode . my/add-cape-capfs)
-	 ;; XXX: in cc-mode with eglot-mode, completion-at-point-functions ignores defaults
-	 (eglot-managed-mode . my/add-cape-capfs))
 	:config
-	(defun my/add-cape-capfs ()
-		;; TODO: rethink orders
-		(add-to-list 'completion-at-point-functions #'cape-dabbrev)
-		(add-to-list 'completion-at-point-functions #'cape-file))
-	
-	(my/add-cape-capfs))
+	;; XXX: cape-capf-buster changes corfu previewing
+	;;      (cape-capf-buster (cape-capf-super #'cape-dabbrev #'cape-file))))
+	(defun my/cape-capfs ()
+		(cape-wrap-super #'cape-dabbrev #'cape-file))
+	(add-to-list 'completion-at-point-functions #'my/cape-capfs))
 
 ;; NOTE: currently disabled. trying prescient
 ;; orderless. matching for completion candidates
@@ -1130,6 +899,253 @@
 
 
 ;;
+;; development packages
+;;
+
+;; ggtags. gnu global
+(use-package ggtags
+	:ensure t
+	:bind
+	("C-q g" . 'ggtags-mode))
+
+;; dumb-jump. ensuring navigating codes work
+;; NOTE: dumb-jump is registered as a xref implementation.
+;;			 when lsp is not activated, M-. will use dumb-jump via xref interface.
+(use-package dumb-jump
+	:ensure t
+	:config
+	;; replace xref I/F. e.g.: M-. , C-M-. , M-?
+	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+	(setq xref-show-definitions-function #'xref-show-definitions-completing-read))
+
+;; projectile. project management
+(use-package projectile
+	:ensure t
+	;; unwork :config (projectile-mode +1)
+	:init (projectile-mode +1)
+	:bind-keymap
+	("C-c p" . projectile-command-map))
+
+;; flymake(builtin). flymake can use eglot as a backend.
+(use-package flymake
+	:disabled
+	:bind
+	(:map flymake-mode-map
+				("C-q C-p" . flymake-goto-prev-error)
+				("C-q C-n" . flymake-goto-next-error))
+	:hook
+	(prog-mode . flymake-mode)
+	:config
+	(use-package flymake-diagnostic-at-point
+		:ensure t
+		:after flymake
+		:hook (flymake-mode . flymake-diagnostic-at-point-mode)))
+
+;; flycheck
+(use-package flycheck
+	:disabled
+	:ensure t
+	:init
+	(setq flycheck-disabled-checkers '(emacs-lisp-checkdoc))
+	:config
+	(global-flycheck-mode))
+
+;; yasnippet. snippet provider
+(use-package yasnippet
+	:disabled
+	:ensure t
+	:config
+	;; actual snippets
+	(use-package yasnippet-snippets
+		:ensure t
+		:requires yasnippet
+		:init
+		(setq yas-prompt-functions '(yas-ido-prompt))
+		:config
+		(yas-global-mode t)
+		(yas-reload-all)))
+
+;; experiment
+;; eglot(builtin). 
+(use-package eglot
+	:ensure t
+	:after cape
+	:hook
+	;; XXX: ensure use cape-file/cape-dabbrev in c/c++-mode.
+	;;      not sure, but falling back to global completion-at-point-functions
+	;;       won't work if it's in c/c++-mode?
+	(eglot-managed-mode . (lambda ()
+													(when (or (eq major-mode 'c-mode)
+																		(eq major-mode 'c++-mode))
+														(message "c/c++-mode fallback: modifying completion-at-point-functions")
+														(setq-local completion-at-point-functions
+																				(list (cape-capf-super #'eglot-completion-at-point
+																															 #'cape-dabbrev
+																															 #'cape-file)
+																							t)))))
+	:config
+	(setq eglot-ignored-server-capabilities '(:hoverProvider
+																						:inlayHintProvider)))
+
+;; NOTE: disabled experimentally. trying eglot.
+;; lsp-mode
+;; NOTE: Resuires language servers individually.
+;;			 C/C++: pacman -S clang
+;;			 python: install python-lsp-server[all] for each project
+;;			 golang: go get golang.org./x/tools/gopls@latest
+(use-package lsp-mode
+	:disabled
+	:ensure t
+	:hook
+	(prog-mode . lsp-deferred)
+	:init
+	(setq lsp-keymap-prefix "C-q l")
+	:config
+	;;(setq lsp-log-io t) ;; for debug
+	(setq lsp-warn-no-matched-clients nil)
+	(setq lsp-signature-auto-activate nil)
+	;;(setq lsp-completion-provider :capf) ;; for company mode
+	(setq lsp-completion-provider :none)
+	
+	;; clangd args
+	;; set log=verbose for debug
+	(setq lsp-clients-clangd-args '("-j=2" "--background-index" "--log=error"))
+
+	;; settings per langs
+	(setq lsp-register-custom-settings
+	 '(("gopls.experimentalWorkspaceModule" t t)))
+	
+	;; lsp-ui
+	(use-package lsp-ui
+		:disabled
+		:ensure t
+		:after lsp-mode
+		:commands lsp-ui-mode
+		:hook (lsp-mode . lsp-ui-mode)
+		:bind
+		(:map lsp-ui-mode-map
+					;; remap xref-find-defenitions function to lsp-ui-peek-find-definitions
+					([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
+					([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
+					("C-q C-u m" . lsp-ui-imenu))
+		
+		:custom-face
+		(lsp-ui-sideline-symbol-info ((t (:background "default"))))
+		;; background face of sideline and doc
+		(markdown-code-face ((t (:background "grey10"))))
+		:config
+		(setq lsp-lens-enable t)
+		
+		;; lsp-ui-doc
+		(setq lsp-ui-doc-enable nil)
+		(setq lsp-ui-doc-header t)
+		(setq lsp-ui-doc-include-signature t)
+		(setq lsp-ui-doc-delay 2)
+		
+		;; lsp-ui-sideline
+		(setq lsp-ui-sideline-enable t)
+		(setq lsp-ui-sideline-show-code-actions t)
+		(setq lsp-ui-sideline-show-hover nil)
+		(setq lsp-ui-sideline-delay 0.2)
+		;;(lsp-ui-sideline-update-mode 'line)
+		(setq lsp-ui-sideline-show-diagnostics t)
+		(setq lsp-ui-sideline-diagnostic-max-lines 10)
+		(setq lsp-ui-sideline-diagnostic-max-line-length 150)
+		
+		;; lsp-ui-peek
+		(setq lsp-ui-peek-always-show t)))
+
+;; treesit-auto. tree-sitter lang bundles manager
+(use-package treesit-auto
+	:ensure t
+	:config
+	(setq treesit-auto-install 'prompt)
+	;;(treesit-auto-add-to-auto-mode-alist 'all)
+	(global-treesit-auto-mode))
+
+
+;;
+;; major-modes
+;;
+
+;; cc-mode(builtin)
+(use-package cc-mode
+	:ensure t
+	;;:after (:and (:any lsp-mode eglot) cape)
+	:after cape
+	:hook
+	(c-mode-common . eglot-ensure)
+	:config
+	;; google-c-style
+	(use-package google-c-style
+		:ensure t
+		:hook
+		(c-mode-common . google-set-c-style))
+	
+	;; clang-format
+	(use-package clang-format
+		:ensure t
+		:requires cc-mode
+		:bind
+		(("C-q f b" . clang-format-buffer)
+		 ("C-q f r" . clang-format-region))
+		:hook
+		(c-mode-common . (lambda ()
+											 (my/add-before-save-hook 'clang-format-buffer)))
+		:init
+		(setq clang-format-style "file")
+		(setq clang-format-fallback-style "google")))
+
+;; go-mode
+(use-package go-mode
+	:ensure t
+	:hook
+	;;(go-mode . (lambda ()
+	;;						 (my/add-before-save-hook
+	;;							(lambda ()
+	;;											 (lsp-organize-imports)
+	;;											 (lsp-format-buffer))))
+	(go-mode . eglot-ensure))
+
+;; python-mode
+(use-package python
+	:ensure t
+	:hook
+	;;(python-mode . (lambda ()
+	;;								 (my/add-before-save-hook 'lsp-format-buffer)
+	;;								 (if (executable-find "black")
+	;;										 (setq lsp-pylsp-plugins-black-enabled t))))
+	(python-mode . eglot-ensure))
+
+;; elisp-mode
+;;(use-package elisp-mode
+;;	:after cape
+;;	:hook
+;;	(emacs-lisp-mode . (lambda ()
+;;											 (setq-local completion-at-point-functions
+;;																	 (list cape-dabbrev)))))
+;;																		cape-elisp-symbol
+;;																		cape-dabbrev
+;;																		elisp-completion-at-point
+;;																		t)))))
+;;)
+
+;; rust-mode
+(use-package rust-mode
+	:ensure t
+	:hook
+	(rust-mode . eglot-ensure))
+
+;; powershell
+(use-package powershell
+	:ensure t
+	:hook
+	(powershell-mode . eglot-ensure)
+	:init
+	(setq powershell-indent 2))
+
+
+;;
 ;; theme config
 ;;
 
@@ -1170,6 +1186,10 @@
 ;; customizations el files
 ;;
 
+;; load autosaved customizations from ~/.emacs.d/lisp/autosaved-custom.el
+(load "autosaved-custom" t)
+
+;; load customizations for work
 (load "work" t)
 
 

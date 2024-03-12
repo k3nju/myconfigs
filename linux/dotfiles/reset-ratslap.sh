@@ -11,10 +11,13 @@ sudo ratslap \
 		 --g7 pageup \
 		 --g8 rightctrl+rightshift+tab \
 		 --g9 rightctrl+tab \
-		 --d2 2000\
-		 --no-dpishift \
-		 --default-dpi 2 \
 		 --rate 250 \
+		 --d1 1500 \
+		 --d2 2000 \
+		 --d3 2500 \
+		 --d4 4000 \
+		 --default-dpi 2 \
+		 --no-dpishift \
 		 --print f3
 
 # excel
@@ -23,20 +26,37 @@ sudo ratslap \
 		 --modify f4 \
 		 --color green \
 		 --middle modeswitch \
+		 --g4 esc \
+		 --g5 rightctrl+c \
+		 --g6 rightctrl+z \
+		 --g7 rightctrl+v \
+		 --g8 rightctrl+pageup \
+		 --g9 rightctrl+pagedown \
+		 --rate 500 \
+		 --d1 1500 \
+		 --d2 2000 \
+		 --d3 2500 \
+		 --d4 4000 \
+		 --default-dpi 2 \
+		 --no-dpishift \
+		 --print f4
+
+# ghidra
+sudo ratslap \
+		 --modify f5 \
+		 --color red \
+		 --middle modeswitch \
 		 --g4 rightalt+right \
 		 --g5 rightalt+left \
 		 --g6 pagedown \
 		 --g7 pageup \
-		 --g8 rightctrl+pageup \
-		 --g9 rightctrl+pagedown \
-		 --d2 2000\
-		 --no-dpishift \
-		 --default-dpi 2 \
+		 --g8 rightctrl+rightshift+tab \
+		 --g9 rightctrl+tab \
 		 --rate 250 \
-		 --print f4
-
-# ghidra
-sudo ratslap -m f5 --middle modeswitch
-#sudo ratslap -m f5 -c green -p f5
-
-
+		 --d1 1500 \
+		 --d2 2000 \
+		 --d3 2500 \
+		 --d4 4000 \
+		 --default-dpi 2 \
+		 --no-dpishift \
+		 --print f5
