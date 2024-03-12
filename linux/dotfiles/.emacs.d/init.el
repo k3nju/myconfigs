@@ -575,9 +575,10 @@
 (use-package vertico
 	:ensure t
 	:init
-	(setq vertico-count 15)
-	(setq vertico-preselect 'first)
 	(setq vertico-cycle t)
+	(setq vertico-count 15)
+	(setq vertico-resize nil)
+	(setq vertico-preselect 'first)
 
 	;; case insensitive on minibuffer completion
 	(setq read-file-name-completion-ignore-case t)
@@ -846,9 +847,12 @@
 	:config
 	;; XXX: cape-capf-buster changes corfu previewing
 	;;      (cape-capf-buster (cape-capf-super #'cape-dabbrev #'cape-file))))
-	(defun my/cape-capfs ()
-		(cape-wrap-super #'cape-dabbrev #'cape-file))
-	(add-to-list 'completion-at-point-functions #'my/cape-capfs))
+	;; XXX: cape-wrap-super doesn't work
+	;;(defun my/cape-capfs ()
+	;;		(cape-wrap-super #'cape-dabbrev #'cape-file))
+
+	(add-to-list 'completion-at-point-functions
+							 (cape-capf-super #'cape-dabbrev #'cape-file)))
 
 ;; NOTE: currently disabled. trying prescient
 ;; orderless. matching for completion candidates
