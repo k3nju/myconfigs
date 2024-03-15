@@ -1,13 +1,12 @@
+;;;; init.el from hell
+
 ;; TODO: consider using embark
 
 ;;(profiler-start 'cpu)
 
-(defun my/pp (o) (mapc 'princ (list "###|" o "\n")))
-
-
-;;
-;; basic config
-;;
+;;;
+;;; basic config
+;;;
 
 (use-package emacs
 	:config
@@ -165,8 +164,9 @@
 	(add-hook 'minibuffer-setup-hook 'deactivate-input-method)
 
 	;; helpers
+	(defun my/pp (o) (mapc 'princ (list "###|" o "\n")))
 	(defun my/add-before-save-hook (f) (add-hook 'before-save-hook f nil 'local))
-
+	
 	;;;; key bindings
 	(define-key key-translation-map (kbd "C-h") (kbd "DEL"))
 	(setq default-input-method "japanese")
@@ -202,9 +202,9 @@
 	)
 
 
-;;
-;; basic packages
-;;
+;;;
+;;; basic packages
+;;;
 
 ;; hexl(builtint)
 (use-package hexl
@@ -518,9 +518,9 @@
 																		org-sidebar--todo-items))))
 
 
-;;
-;; jp env packages
-;;
+;;;
+;;; jp env packages
+;;;
 
 ;; mozc.el. japanese input 
 (use-package mozc
@@ -567,9 +567,9 @@
 	(setq migemo-coding-system 'utf-8-unix))
 
 
-;;
-;; enhancement packages
-;;
+;;;
+;;; operability enhancement packages
+;;;
 
 ;; vertico. minibuffer completion UI
 (use-package vertico
@@ -815,31 +815,7 @@
 	;;(setq company-dabbrev-ignore-case nil)
 	:config
 	;; make lsp-mode use company
-	(setq lsp-completion-provider :capf)
-
-;;	;; company-fuzzy
-;;	(use-package company-fuzzy
-;;		:disabled
-;;		:ensure t
-;;		:after company
-;;		:hook (company-mode . company-fuzzy-mode)
-;;		;; company-fuzzy recommended using :init
-;;		:init
-;;		;; NOTE: install flx
-;;		;;(setq company-fuzzy-sorting-backend 'flx)
-;;		(setq company-fuzzy-show-annotation nil))
-;;
-;;
-;;	;; company-fussy
-;;	;; faster than company-fuzzy
-;;	(use-package fussy
-;;		:disabled
-;;		:ensure t
-;;		:config
-;;		(push 'fussy completion-styles)
-;;		(setq company-category-defaults nil)
-;;		(setq company-category-overrides nil))
-	)
+	(setq lsp-completion-provider :capf))
 
 ;; cape. completions sources
 (use-package cape
@@ -902,9 +878,9 @@
 		(vertico-prescient-mode)))
 
 
-;;
-;; development packages
-;;
+;;;
+;;; development packages
+;;;
 
 ;; ggtags. gnu global
 (use-package ggtags
@@ -1029,8 +1005,8 @@
 		:bind
 		(:map lsp-ui-mode-map
 					;; remap xref-find-defenitions function to lsp-ui-peek-find-definitions
-					([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ; M-.
-					([remap xref-find-references] . lsp-ui-peek-find-references) ; M-?
+					([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ;; M-.
+					([remap xref-find-references] . lsp-ui-peek-find-references) ;; M-?
 					("C-q C-u m" . lsp-ui-imenu))
 		
 		:custom-face
@@ -1064,13 +1040,13 @@
 	:ensure t
 	:config
 	(setq treesit-auto-install 'prompt)
-	;;(treesit-auto-add-to-auto-mode-alist 'all)
+	(treesit-auto-add-to-auto-mode-alist 'all)
 	(global-treesit-auto-mode))
 
 
-;;
-;; major-modes
-;;
+;;;
+;;; major-modes
+;;;
 
 ;; cc-mode(builtin)
 (use-package cc-mode
@@ -1121,19 +1097,6 @@
 	;;										 (setq lsp-pylsp-plugins-black-enabled t))))
 	(python-mode . eglot-ensure))
 
-;; elisp-mode
-;;(use-package elisp-mode
-;;	:after cape
-;;	:hook
-;;	(emacs-lisp-mode . (lambda ()
-;;											 (setq-local completion-at-point-functions
-;;																	 (list cape-dabbrev)))))
-;;																		cape-elisp-symbol
-;;																		cape-dabbrev
-;;																		elisp-completion-at-point
-;;																		t)))))
-;;)
-
 ;; rust-mode
 (use-package rust-mode
 	:ensure t
@@ -1149,9 +1112,9 @@
 	(setq powershell-indent 2))
 
 
-;;
-;; theme config
-;;
+;;;
+;;; theme config
+;;;
 
 (when (and (file-exists-p (expand-file-name "themes" user-emacs-directory))
 					 (boundp 'custom-theme-load-path))
@@ -1163,7 +1126,6 @@
 	:ensure t
 	:init
 	(setq doom-themes-enable-bold t)
-	
 	;; NOTE: currently, treemacs is unused
 	;;(setq doom-themes-treemacs-theme "doom-one")
 	;; treemacs integration requires icons
@@ -1186,9 +1148,9 @@
 	(load-theme 'ef-tritanopia-dark t))
 
 
-;;
-;; customizations el files
-;;
+;;;
+;;; customizations el files
+;;;
 
 ;; load autosaved customizations from ~/.emacs.d/lisp/autosaved-custom.el
 (load "autosaved-custom" t)
@@ -1200,5 +1162,6 @@
 ;;(profiler-report)
 ;;(profiler-stop)
 
-;;;; EOF
+
+;; EOF
 
