@@ -564,7 +564,8 @@
 					"/usr/share/migemo/utf-8/migemo-dict"))
 	(setq migemo-user-dictionary nil)
 	(setq migemo-regex-dictionary nil)
-	(setq migemo-coding-system 'utf-8-unix))
+	(setq migemo-coding-system 'utf-8-unix)
+	(setq migemo-use-default-isearch-keybinding nil))
 
 
 ;;;
@@ -684,7 +685,7 @@
 	 consult-theme
 	 :preview-key '(:debounce 0.2 any)
 
-	 ;; preview by C-.
+	 ;; preview by M-.
 	 consult-ripgrep consult-git-grep consult-grep
 	 consult-bookmark consult-recent-file consult-xref
 	 consult--source-bookmark consult--source-file-register
