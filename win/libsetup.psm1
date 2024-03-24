@@ -1,7 +1,6 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-
 # debug
 Set-Alias -Name pp -Value Write-Host
 
@@ -11,6 +10,11 @@ function Define-Global($name, $value){
 }
 
 
+# HACK: using "[System.Web.Script.Serialization.JavaScriptSerializer]::new()" in method will fail
+Add-Type -AssemblyName System.Web.Extensions
+Define-Global _JSSerDe ([System.Web.Script.Serialization.JavaScriptSerializer]::new())
+
+
 function New-PathLayout{
 	param([string]$baseDir)
 	
@@ -18,6 +22,7 @@ function New-PathLayout{
 		BaseDir = $baseDir
 		LogFilePath = Join-Path $baseDir "log.txt"
 		ArgsFilePath = Join-Path $baseDir "args.json"
+		TaskDataFilePath = Join-Path $baseDir "taskdata.json"
 		StateFilePath = Join-Path $baseDir "states.json"
 	}
 
@@ -50,6 +55,7 @@ function Init-LibSetup{
 
 	if($global:ExecCtx.RunMode() -eq [RunMode]::SHELL){
 		$global:ArgsFile.SetRaw("initialArgs", $global:Args)
+		$global:ArgsFile.Set("username", $global:UserCred.Username())
 		$global:ArgsFile.Save()
 	}else{
 		# NOTE: overwrite initial(first kick) args for cascading execution
@@ -58,11 +64,16 @@ function Init-LibSetup{
 		#      2nd result: -a B -c d -d e
 		$initialArgs = $global:ArgsFile.GetRaw("initialArgs")
 		$global:Opts.ParseOverride($initialArgs)
+
+		# replace UserCred to first ran
+		Define-Global UserCred ([Credential]::new($global:ArgsFile.Get("username")))
 	}
-	
+
+	Define-Global TaskData ([DataStore]::new($global:PL.TaskDataFilePath))
 	Define-Global StateFile ([DataStore]::new($global:PL.StateFilePath))
 	Define-Global TaskExecutor ([TaskExecutor]::new())
 }
+
 
 class Credential{
 	# TODO: use WindowsIdentity
@@ -101,8 +112,8 @@ class Credential{
 }
 
 
-
 enum LogSeverity{
+	DEBUG
 	INFO
 	ERROR
 	EXCEPTION
@@ -120,13 +131,20 @@ class Logger{
 		$this.filePath_ = $logFilePath
 		$this.name_ = $name
 	}
-
+	
 	[Logger] Clone([string]$name){
 		return [Logger]::new($this.filePath_, $name)
 	}
-
+	
+	[string] Name(){
+		return $this.name_
+	}
+	
 	hidden [string] GetColorBySeverity([LogSeverity]$severity){
 		switch($severity){
+			([LogSeverity]::DEBUG){
+				return "gray"
+			}
 			([LogSeverity]::INFO){
 				return "green"
 			}
@@ -147,6 +165,10 @@ class Logger{
 		
 		Write-Host $prefix -NoNewLine
 		Write-Host $msg -Foreground $this.GetColorBySeverity($severity)
+	}
+
+	[void] Debug([string]$msg){
+		$this.Write($msg, [LogSeverity]::DEBUG)
 	}
 
 	[void] Info([string]$msg){
@@ -177,11 +199,6 @@ class Logger{
 }
 
 
-enum ExecutionControl{
-	CONTINUE
-	REBOOT
-}
-
 enum RunMode{
 	SHELL # first kick by user
 	IMMEDIATE # continuation
@@ -190,24 +207,35 @@ enum RunMode{
 }
 
 class RerunRequest{
-	[RunMode]$mode_
 	[Credential]$cred_
+	[bool]$reboot_
+	[RunMode]$mode_
 
-	RerunRequest([RunMode]$mode, [Credential]$cred){
-		if($mode -notin ([RunMode]::STARTUP, [RunMode]::LOGON, [RunMode]::IMMEDIATE)){
-			throw "invalid RunMode was passed: $mode"
-		}
-		
-		$this.mode_ = $mode
+	RerunRequest([Credential]$cred, [bool]$reboot){
 		$this.cred_ = $cred
-	}
-
-	[RunMode] RunMode(){
-		return $this.mode_
+		$this.reboot_ = $reboot
+		
+		if($this.reboot_){
+			if($this.cred_.IsSystem()){
+				$this.mode_ = [RunMode]::STARTUP
+			}else{
+				$this.mode_ = [RunMode]::LOGON
+			}
+		}else{
+			$this.mode_ = [RunMode]::IMMEDIATE
+		}
 	}
 	
 	[Credential] Credential(){
 		return $this.cred_
+	}
+	
+	[RunMode] RunMode(){
+		return $this.mode_
+	}
+	
+	[bool] IsRebootRequired(){
+		return $this.reboot_
 	}
 }
 
@@ -215,7 +243,6 @@ class RerunRequest{
 class ExecutionContext{
 	hidden [Logger]$logger_
 	hidden [RerunRequest]$rerunReq_ = $null
-	hidden [bool]$rebootRequired_ = $false
 	hidden [bool]$allTaskFinished_ = $false
 	
 	ExecutionContext(){
@@ -234,77 +261,77 @@ class ExecutionContext{
 		return [Credential]::new($name)
 	}
 
-	[void] RequireRerun($rerunReq){
+	[void] RequireRerun([RerunRequest]$rerunReq){
 		$mode = $rerunReq.RunMode()
 		$user = $rerunReq.Credential().Username()
 		$this.logger_.Info("rerun required: mode=$mode user=$user")
 		$this.rerunReq_ = $rerunReq
+
+		if($this.rerunReq_.IsRebootRequired()){
+			$this.logger_.Info("reboot required") 
+		}
 	}
 	
 	[bool] IsRerunRequired(){
 		return $this.rerunReq_ -ne $null
 	}
 
-	[void] RequireReboot(){
-		$this.logger_.Info("reboot required")
-		$this.rebootRequired_ = $true
-	}
-
 	[bool] IsRebootRequired(){
-		return $this.rebootRequired_
+		if(-not $this.IsRerunRequired()){
+			return $false
+		}
+		return $this.rerunReq_.IsRebootRequired()
 	}
 
 	[Status] ScheduleRerun(){
 		if((-not $this.IsRerunRequired()) -and (-not $this.IsRebootRequired())){
 			return Ng "no need to rerun" "not required neither reboot or rerun"
 		}
-		
-		$action = New-ScheduledTaskAction -Execute "powershell.exe" `
-			-Argument "-ep bypass -file $($MyInvocation.PSCommandPath) -runmode $($this.rerunReq_.RunMode())"
-		$settings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) `
-			-AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
-			-StartWhenAvailable `
-			-MultipleInstances IgnoreNew
 
-		$rerunCred = $this.rerunReq_.Credential()
-		if($this.IsRebootRequired()){
-			if($this.rerunReq_.RunMode() -eq [RunMode]::STARTUP){
-				if(-not $rerunCred.IsSystem()){
-					throw "using non-system account for startup task is unsupported"
-				}
-				$trigger = New-ScheduledTaskTrigger -AtStartup
-			}else{
-				$trigger = New-ScheduledTaskTrigger -AtLogOn -User $rerunCred.Username()
-			}
-		
-			if($rerunCred.IsSystem()){
-				$principal = New-ScheduledTaskPrincipal -UserId SYSTEM -RunLevel Highest
-				Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings `
-					-Trigger $trigger -Principal $principal
-			}else{
-				if($rerunCred.Password() -eq ""){
-					$principal = New-ScheduledTaskPrincipal -UserId $rerunCred.Username() -RunLevel Highest -LogonType S4U
+		try{
+			$action = New-ScheduledTaskAction -Execute "powershell.exe" `
+				-Argument "-ep bypass -file $($MyInvocation.PSCommandPath) -runmode $($this.rerunReq_.RunMode())"
+			$settings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) `
+				-AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+				-StartWhenAvailable `
+				-MultipleInstances IgnoreNew
+			
+			switch($this.rerunReq_){
+				{$_.RunMode() -eq [RunMode]::STARTUP}{
+					# reboot:  true
+					# trigger: startup
+					# priv:    system
+					$trigger = New-ScheduledTaskTrigger -AtStartup
+					$principal = New-ScheduledTaskPrincipal -UserId SYSTEM -RunLevel Highest
 					Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings `
 						-Trigger $trigger -Principal $principal
-				}else{
+				}
+				{$_.RunMode() -eq [RunMode]::LOGON}{
+					# reboot:  true
+					# trigger: user logged on
+					# priv:    user
+					$trigger = New-ScheduledTaskTrigger -AtLogOn -User $_.Credential().Username()
+					$principal = New-ScheduledTaskPrincipal -UserId $_.Credential().Username() -RunLevel Highest -LogonType S4U
 					Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings `
-						-Trigger $trigger -User $rerunCred.Username() -Password $rerunCred.Password()
+						-Trigger $trigger -Principal $principal
+				}
+				{$_.RunMode() -eq [RunMode]::IMMEDIATE}{
+					# reboot:  false
+					# trigger: N/A
+					# priv:    system or user
+					$principal = New-ScheduledTaskPrincipal -UserId $_.Credential().Username() -RunLevel Highest
+					Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings -Principal $principal
+				}
+				default{
+					throw "unexpected rerun request: RunMode: $($_.RunMode())"
 				}
 			}
-		}else{
-			if($this.rerunReq_.RunMode() -ne [RunMode]::IMMEDIATE){
-				throw "invalid condition: required rerun mode is not IMMEDIATE: $($this.rerunReq_.RunMode())"
-			}
-
-			if($rerunCred.Password() -eq ""){
-				$principal = New-ScheduledTaskPrincipal -UserId $rerunCred.Username() -RunLevel Highest -LogonType S4U
-				Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings -Principal $principal
-			}else{
-				Register-ScheduledTask -TaskName libsetup -Action $action -Settings $settings -User $rerunCred.Username() -Password $rerunCred.Password()
-			}
+			return Ok
 		}
-
-		return Ok
+		catch{
+			$this.logger_.Exception("failed to register scheduled task")
+			return Ng "failed to register scheduled task"
+		}
 	}
 	
 	[void] CancelRerun(){
@@ -324,7 +351,6 @@ class ExecutionContext{
 			$settings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable
 			Register-ScheduledTask -TaskName libsetup_reboot -Action $action `
 				-Trigger $trigger -Principal $principal -Settings $settings
-			
 			return
 		}
 		
@@ -336,7 +362,7 @@ class ExecutionContext{
 
 class DataStore{
 	hidden [string]$filePath_
-	hidden [System.Collections.Specialized.OrderedDictionary]$data_ = @{}
+	hidden [hashtable]$data_ = @{}
 
 	DataStore([string]$filePath){
 		$this.filePath_ = $filePath
@@ -346,12 +372,12 @@ class DataStore{
 	}
 
 	[void] Load(){
-		$pso = Get-Content -Path $this.filePath_ | ConvertFrom-Json
-		[System.Collections.Specialized.OrderedDictionary]$tmp = @{}
-		foreach($prop in $pso.PSObject.Properties){
-			$tmp[$prop.Name] = $prop.Value
-		}
-		$this.data_ = $tmp
+		$this.data_ = $global:_JSSerDe.Deserialize((Get-Content -Path $this.filePath_), [hashtable])
+	}
+
+	[void] DebugPrint(){
+		$x = $this.data_ | ConvertTo-Json
+		pp $x
 	}
 
 	[void] Save(){
@@ -360,7 +386,7 @@ class DataStore{
 
 	[string] Get([string]$key){
 		if(-not $this.data_.Contains($key)){
-			throw "key $key not contained"
+			throw "key $key not contained. file: $(this.filePath_)"
 		}
 
 		return $this.data_[$key]
@@ -380,7 +406,20 @@ class DataStore{
 	}
 
 	[object] GetRaw([string]$key){
+		if(-not $this.data_.Contains($key)){
+			throw "key $key not contained. file: $(this.filePath_)"
+		}
+		
 		return $this.data_[$key]
+	}
+
+	[object] GetRaw([string]$key, [object]$alt){
+		try{
+			return $this.GetRaw($key)
+		}
+		catch{
+			return $alt
+		}
 	}
 
 	[void] SetRaw([string]$key, [object]$value){
@@ -513,41 +552,44 @@ class TaskBase{
 	[TaskState] State(){return $this.state_.CurrentState()}
 	[void] ResetState(){$this.state_.Clear()}
 
-
+	[TaskResult] EnsureTaskResultReturned($result){
+		if($result -is [array] -and $result.Length -gt 0){
+			$result = $result[-1]
+		}
+		if($result -eq $null){
+			$result = [TaskResult]::OK
+		}
+		if($result -isnot [TaskResult]){
+			throw "unexpected return type: expected TaskResult, but $($result.GetType())"
+		}
+		return $result
+	}
+	
 	[TaskResult] RunImpl($taskArgs){
 		throw "unimplemented"
 	}
 
-	[Status] Run(){
-		return $this.Run($null)
-	}
-
 	[Status] Run($taskArgs){
 		try{
+			$taskArgs["TASK_DATA"] = $global:TaskData.GetRaw($this.name_, @{})
 			$result = $this.RunImpl($taskArgs)
-			# TODO: ensure retval is status
-			if($result -is [array] -and $result.Length -gt 0){
-				$result = $result[-1]
-			}
-			if($result -isnot [TaskResult]){
-				throw "invalid return type: expected TaskResult, but $result"
-			}
+			$result = $this.EnsureTaskResultReturned($result)
 			switch($result){
 				([TaskResult]::ERROR){
 					$this.state_.Mark([TaskState]::FAILED)
-					return Ng "task failed: $($this.Name())" "task returned ERROR"
+					return Ok
 				}
 				([TaskResult]::OK){
 					$this.state_.Mark([TaskState]::EXECUTED)
-					return Ok ([ExecutionControl]::CONTINUE)
+					return Ok
 				}
 				([TaskResult]::REBOOT){
 					$this.state_.Mark([TaskState]::EXECUTED)
-					return Ok ([ExecutionControl]::REBOOT)
+					return Ok ([TaskResult]::REBOOT)
 				}
 				([TaskResult]::RERUN){
 					$this.state_.Mark([TaskState]::RERUN)
-					return Ok ([ExecutionControl]::REBOOT)
+					return Ok ([TaskResult]::RERUN)
 				}
 			}
 			throw "unexpected task state: $result"
@@ -555,15 +597,22 @@ class TaskBase{
 		catch{
 			$this.logger.Exception("exception caught: task $($this.Name())")
 			$this.state_.Mark([TaskState]::FAILED)
-			return Ng "task failed: $($this.Name())" $PSItem.Exception.Message
 		}
+		finally{
+			$global:TaskData.SetRaw($this.name_, $taskArgs["TASK_DATA"])
+			$global:TaskData.Save()
+			$taskArgs.Remove("TASK_DATA")
+		}
+		
+		return Ng "task failed" "unexpected execution path reached"
 	}
 }
 
 
 class AdhocTask : TaskBase{
-	hidden [ScriptBlock]$script_
-	
+	# member variable for passing taskArgs to script block codes
+	hidden [hashtable] $taskArgs
+
 	AdhocTask([string]$name, [string]$username, [ScriptBlock]$script)
 	:base($name, [Credential]::new($username)){
 		Add-Member -InputObject $this -MemberType ScriptMethod -Name Script -value $script 
@@ -571,30 +620,26 @@ class AdhocTask : TaskBase{
 	
 	[TaskResult] RunImpl($taskArgs){
 		try{
+			$this.taskArgs = $taskArgs
 			$rv = $this.Script()
-			if($rv -is [array]){
-				$rv = $rv[-1]
-			}
-			if($rv -eq $null){
-				$rv = [TaskResult]::OK
-			}
-			if($rv -isnot [TaskResult]){
-				throw "invalid return type: expected TaskResult, but $rv"
-			}
-
+			$rv = $this.EnsureTaskResultReturned($rv)
 			return $rv
 		}
 		catch{
-			$this.logger.Exception("exception caught: adhoc task $($this.Name())",
-														 $PSItem.Exception.InnerException)
+			$msg = "exception caught: adhoc task $($this.Name())"
+			$innerExp = $PSItem.Exception.InnerException
+			if($innerExp -eq $null){
+				$this.logger.Exception($msg)
+			}else{
+				$this.logger.Exception($msg, $innerExp)
+			}
 			return [TaskResult]::ERROR
 		}
-
 		throw "never reach here"
 	}
 }
 
-# helper
+# task helpers
 function Task {
 	param(
 		[string]$name,
@@ -624,6 +669,80 @@ function SystemTask {
 }
 
 
+function Get-This {
+	$cs = Get-PSCallStack
+	for($i = 0; $i -lt $cs.length; ++$i){
+		$fn = $cs[$i].FunctionName
+		if($fn -eq "RunImpl"){
+			return Get-Variable -Name this -ValueOnly -Scope ($i - 1)
+		}
+	}
+	throw "Info helper could not find AdhocTask.RunImpl callstack"
+}
+
+
+# log helpers
+function Info {
+	param([Parameter(ValueFromPipeline=$true)][string[]]$lines)
+	
+	begin{
+		$this = Get-This
+		$output = @()
+	}
+	
+	process{
+		foreach($line in $lines){
+			$this.logger.Info($line)
+			$output += $line
+		}
+	}
+
+	end{
+		$output
+	}
+}
+
+function Debug {
+	param([Parameter(ValueFromPipeline=$true)][string[]]$lines)
+	
+	begin{
+		$this = Get-This
+		$output = @()
+	}
+	
+	process{
+		foreach($line in $lines){
+			$this.logger.Debug($line)
+			$output += $line
+		}
+	}
+
+	end{
+		$output
+	}
+}
+
+function Cmd{
+	param([object]$cmd)
+
+	switch($cmd.GetType()){
+		([ScriptBlock]){
+			Debug ("cmd:" + $cmd.ToString())
+			$output = &$cmd | Debug
+			return $output
+		}
+		([string]){
+			Debug ("cmd:" + $cmd)
+			$output = Invoke-Expression $cmd | Debug
+			return $output
+		}
+		default{
+			throw "Invalid type passed. expected ScriptBLock or string, but $($cmd.GetType()): ${cmd}"
+		}
+	}
+}
+
+
 class TaskExecutor{
 	hidden [System.Collections.Generic.List[TaskBase]]$tasks_ = @()
 	hidden [Logger]$logger_
@@ -635,19 +754,22 @@ class TaskExecutor{
 	}
 
 	[void] AddTask($task){
+		$this.logger_.Info("adding task: $($task.Name())")
+
 		$run = $global:Opts.GetOptions("run", $null)
 		if(($run -ne $null) -and ($task.Name() -notin $run)){
-			$this.logger_.Info("not listed in run options. ignoring: $($task.Name())")
+			$this.logger_.Info("not listed in run options. ignored: $($task.Name())")
 			return
 		}
 		
 		$reset = $global:Opts.GetOption("reset", $null)
 		if(($reset -eq $true) -or ($reset -eq $task.Name())){
 			$task.ResetState()
-			$this.logger_.Info("task state reset: $($task.Name())")
+			$this.logger_.Info("task state is reset: $($task.Name())")
 		}
-		
+
 		$this.tasks_.Add($task)
+		$this.logger_.Info("added: $($task.Name())")
 	}
 
 	[void] ResetState(){
@@ -694,16 +816,16 @@ class TaskExecutor{
 	[void] Run($taskArgs){
 		$curCred = $global:ExecCtx.Credential()
 
-		:taskloop while($true){
-			$rv = $this.NextTask()
-			if(-not $rv.Ok()){
-				$this.logger_.Info("no remaining tasks")
-				return
-			}
+		try{
+			:taskloop while($true){
+				$rv = $this.NextTask()
+				if(-not $rv.Ok()){
+					$this.logger_.Info("no remaining tasks")
+					return
+				}
 
-			$task = $rv.RetVal()
-			$name = $task.Name()
-			try{
+				$task = $rv.RetVal()
+				$name = $task.Name()
 				switch($task.State()){
 					([TaskState]::FAILED){
 						$this.logger_.Info("${name}: state is FAILED. skipping")
@@ -720,7 +842,7 @@ class TaskExecutor{
 						$this.logger_.Info("${name}: state is UNEXECUTED. executing")
 					}
 					default{
-						throw "unexpected task state found: $name"
+						throw "aborting task executor. unexpected task state found. ${name}: $($task.State())"
 					}
 				}
 
@@ -728,7 +850,7 @@ class TaskExecutor{
 					$cu = $curCred.Username()
 					$tu = $task.Credential().Username()
 					$this.logger_.Info("${name}: required context is not matched: required=$tu current=$cu")
-					$rerunReq = [RerunRequest]::new([RunMode]::IMMEDIATE, $task.Credential())
+					$rerunReq = [RerunRequest]::new($task.Credential(), $false)
 					$global:ExecCtx.RequireRerun($rerunReq)
 					return
 				}
@@ -739,43 +861,57 @@ class TaskExecutor{
 				}
 
 				$this.logger_.Info("${name}: executing")
-				$status = $task.Run($taskArgs)
-				if(-not $status.Ok()){
-					$this.logger_.Error("${name}: failed. state is changed to $($task.State())")
-					$this.logger_.Error($status.Error())
-					continue
-				}
-				$this.logger_.Info("${name}: executed. state is changed to $($task.State())")
-				if($status.RetVal() -ne [ExecutionControl]::REBOOT){
-					continue
-				}
-
-				
-				$this.logger_.Info("${name}: required reboot")
-				# NOTE: using non-system cred for startup will be unstable. sometime it will fail.
-
-				$status = $this.PeekNextTask()
-				if(-not $status.Ok()){
-					# exhausted tasks. actually no need to rerun
-					$global:ExecCtx.RequireRerun([RerunRequest]::new([RunMode]::STARTUP, "system"))
-					$global:ExecCtx.RequireReboot()
-				}else{
-					$nextTask = $status.RetVal()
-					$this.logger_.Info("next task: $($nextTask.Name()) $($nextTask.Credential().Username())")
-				
-					if($nextTask.Credential().IsSystem()){
-						$global:ExecCtx.RequireRerun([RerunRequest]::new([RunMode]::STARTUP, $nextTask.Credential()))
-					}else{
-						$global:ExecCtx.RequireRerun([RerunRequest]::new([RunMode]::LOGON, $nextTask.Credential()))
+				$rv = $task.Run($taskArgs)
+				switch($task.State()){
+					([TaskState]::FAILED){
+						$this.logger_.Error("${name}: failed. state is changed to $($task.State())")
 					}
-					$global:ExecCtx.RequireReboot()
+					{$_ -in ([TaskState]::EXECUTED, [TaskState]::RERUN)}{
+						$this.logger_.Info("${name}: executed. state is changed to $($task.State())")
+					}
+					default{
+						throw "aborting executor. changed to unexpected task state. ${name}: $($task.State())"
+					}
 				}
 				
-				return
+				if(-not $rv.Ok()){
+					throw "aborting task executor. error returned. ${name}: $($rv.Error())"
+				}
+				$taskResult = $rv.RetVal()
+				
+				$nextTask = $null
+				switch($taskResult){
+					([TaskResult]::REBOOT){
+						$rv = $this.PeekNextTask()
+						if($rv.Ok()){
+							$nextTask = $rv.RetVal()
+						}else{
+							# tasks exhausted
+							$this.logger_.Info("no task remaining but reboot required. enqueueing dummy task")
+							# dummy
+							$nextTask = [AdhocTask]::new("dummy", "system", {return [TaskResult]::OK})
+						}
+					}
+					([TaskResult]::RERUN){
+						$nextTask = $task
+					}
+					($null){
+						continue taskloop
+					}
+					default{
+						throw "aborting task executor. unexpected task result returned. ${name}: ${taskResult}"
+					}
+				}
+
+				$this.logger_.Info("next task: $($nextTask.Name())")
+				$rerunReq = [RerunRequest]::new($task.Credential(), $true)
+				$global:ExecCtx.RequireRerun($rerunReq)
+				break
 			}
-			catch{
-				$this.logger_.Exception("fatal. exception caught: $name")
-			}
+		}
+		catch{
+			$this.logger_.Exception("fatal. exception caught on task executor")
+			return
 		}
 	}
 }
@@ -1000,6 +1136,7 @@ class Setup{
 	hidden [void] Init([string]$baseDir, [Credential]$userCred){
 		Init-LibSetup $baseDir $userCred
 		$this.logger_ = $global:Logger.Clone("Setup")
+		$this.logger_.Info("initialized")
 	}
 
 	Run(){
@@ -1007,15 +1144,26 @@ class Setup{
 			$this.logger_.Info("setup started: mode=$($global:ExecCtx.RunMode()) user=$($global:ExecCtx.Credential().Username())")
 			$this.logger_.Info("Args: $($global:Opts.ToString())")
 			
-			
-			$bag = @{}
-			$global:TaskExecutor.Run($bag)
-			if($global:ExecCtx.ScheduleRerun().Ok()){
+			# TODO: enhance taskArgs
+			# e.g.: set execution id, rerun count
+			$taskArgs = @{}
+			$global:TaskExecutor.Run($taskArgs)
+
+			if($global:ExecCtx.IsRerunRequired()){
+				$rv = $global:ExecCtx.ScheduleRerun()
+				if(-not $rv.Ok()){
+					throw "scheduling rerun failed: $($rv.Error())"
+				}
+				$this.logger_.Info("rerun scheduled")
+				
 				$global:ExecCtx.Rerun()
 				return
 			}
 
 			$this.logger_.Info("all tasks finished")
+		}
+		catch{
+			$this.logger_.Exception("fatal. exception caught")
 		}
 		finally{
 			$this.Unlock()
