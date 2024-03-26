@@ -1038,6 +1038,7 @@
 
 ;; treesit-auto. tree-sitter lang bundles manager
 (use-package treesit-auto
+	:if (executable-find "git")
 	:ensure t
 	:config
 	(setq treesit-auto-install 'prompt)
