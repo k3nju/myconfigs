@@ -754,18 +754,15 @@ class TaskExecutor{
 	}
 
 	[void] AddTask($task){
-		$this.logger_.Info("adding task: $($task.Name())")
-
 		$run = $global:Opts.GetOptions("run", $null)
 		if(($run -ne $null) -and ($task.Name() -notin $run)){
 			$this.logger_.Info("not listed in run options. ignored: $($task.Name())")
 			return
 		}
-		
+
 		$reset = $global:Opts.GetOption("reset", $null)
 		if(($reset -eq $true) -or ($reset -eq $task.Name())){
 			$task.ResetState()
-			$this.logger_.Info("task state is reset: $($task.Name())")
 		}
 
 		$this.tasks_.Add($task)
