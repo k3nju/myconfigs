@@ -827,9 +827,24 @@
 	;; XXX: cape-wrap-super doesn't work
 	;;(defun my/cape-capfs ()
 	;;		(cape-wrap-super #'cape-dabbrev #'cape-file))
-
+	;; XXX: combining cape-capf-super and cape-file is buggy
+	;; (add-to-list 'completion-at-point-functions
+	;;              (cape-capf-super #'cape-file))
+	;; typing up to "/usr/bi", then "bin/" appears as a candidate.
+	;; but, then select it, "/usr/bi" replaced with only "bin/".
+	;; the parent directory "/usr/" is erased.
+	;; (cape-capf-super (cape-company-to-capf #'company-files)) works well.
+	;; but it's a little bit slow.
+	
+	;;(add-to-list 'completion-at-point-functions
+	;;						 #'cape-file)
+	;;(add-to-list 'completion-at-point-functions
+	;;						 #'cape-dabbrev)
 	(add-to-list 'completion-at-point-functions
-							 (cape-capf-super #'cape-dabbrev #'cape-file)))
+							 (cape-capf-super #'cape-dabbrev
+																(cape-company-to-capf
+																 #'company-files))))
+
 
 ;; NOTE: currently disabled. trying prescient
 ;; orderless. matching for completion candidates
