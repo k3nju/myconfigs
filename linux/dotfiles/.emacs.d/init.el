@@ -295,13 +295,14 @@
 	:init
 	(setq hl-todo-keyword-faces
 				'(("NOTE" . "firebrick")
+					("SIDENOTE" . "tomato")
 					("XXX" . "firebrick")
 					("HACK" . "firebrick")
 					("TODO" . "firebrick")
-					("DONE" . "firebrick")
+					("DONE" . "steelblue")
 					("FIXME" . "firebrick")
 					("WORKAROUND" . "firebrick")
-					("DECIDED" . "#448a2a")
+					("DECIDED" . "mediumseagreen")
 					("UNDECIDED" . "firebrick")))
 	(setq hl-todo-highlight-punctuation ":")
 	(setq hl-todo-require-punctuation t)
@@ -640,11 +641,12 @@
 				 
 				 ;; M-s bindings in `search-map'
 				 ("M-s f" . consult-find)
-				 ("M-s F" . consult-locate)
+				 ;;("M-s F" . consult-locate)
+				 ("M-s l" . consult-locate)
 				 ("M-s g" . consult-grep)
 				 ("M-s G" . consult-git-grep)
 				 ("M-s r" . consult-ripgrep)
-				 ("M-s l" . consult-line) ;; for current buffer
+				 ;;("M-s l" . consult-line) ;; for current buffer
 				 ("C-;"	 . consult-line) ;; experiment binding
 				 ("M-s L" . consult-line-multi) ;; for multiple buffer
 				 ;;("M-s k" . consult-keep-lines) ;; actually editing
