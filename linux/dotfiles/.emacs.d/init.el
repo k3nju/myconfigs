@@ -641,12 +641,10 @@
 				 
 				 ;; M-s bindings in `search-map'
 				 ("M-s f" . consult-find)
-				 ;;("M-s F" . consult-locate)
 				 ("M-s l" . consult-locate)
 				 ("M-s g" . consult-grep)
 				 ("M-s G" . consult-git-grep)
 				 ("M-s r" . consult-ripgrep)
-				 ;;("M-s l" . consult-line) ;; for current buffer
 				 ("C-;"	 . consult-line) ;; experiment binding
 				 ("M-s L" . consult-line-multi) ;; for multiple buffer
 				 ;;("M-s k" . consult-keep-lines) ;; actually editing
@@ -662,7 +660,6 @@
 				 
 				 ;; Minibuffer history
 				 :map minibuffer-local-map
-				 ("M-s" . consult-history) ;; orig. next-matching-history-element
 				 ("M-r" . consult-history) ;; orig. previous-matching-history-element
 				 )
 
