@@ -183,14 +183,21 @@ class Logger{
 	}
 
 	[void] Exception([string]$msg, $e){
-		if($e -is [Exception]){
-			$msg = $msg + "`n" + $e.Message
-		}
-		elseif($e -is [System.Management.Automation.ErrorRecord]){
-			$msg = $msg + "`n" + $e.Exception.Message + "`n" + $e.ScriptStackTrace
-		}
-		else{
-			$msg = $msg + "`n" + "`$e=$e"
+		$msg += "`n"
+		$msg += "# $($e.GetType())".PadRight(80, "-") + "`n"
+		$msg += $e | Format-List * -Force | Out-String | %{$_.Trim()} | ?{$_}
+		$msg += "`n"
+		
+		$msg += "# InvocationInfo".PadRight(80, "-") + "`n"
+		$msg += $e.InvocationInfo | Format-List * -Force | Out-String | %{$_.Trim()} | ?{$_}
+		$msg += "`n"
+		
+		$exp = $e.Exception
+		for($i = 0; $exp; ++$i){
+			$msg += "# Exception(${i})".PadRight(80, "-") + "`n"
+			$msg += $exp | Format-List * -Force | Out-String | %{$_.Trim()} | ?{$_}
+			$msg += "`n"
+			$exp = $exp.InnerException
 		}
 		
 		$this.Write($msg, [LogSeverity]::EXCEPTION)
@@ -697,13 +704,7 @@ catch{
 		}
 		catch{
 			$msg = "exception caught: adhoc task $($this.Name())"
-			$innerExp = $PSItem.Exception.InnerException
-			if($innerExp -eq $null){
-				$this.logger.Exception($msg, $PSItem)
-			}else{
-				$this.logger.Exception($msg, $innerExp)
-			}
-			
+			$this.logger.Exception($msg, $PSItem)
 			return [TaskResult]::ERROR
 		}
 		throw "never reach here"
