@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
@@ -71,6 +73,7 @@ function Init-LibSetup{
 
 	Define-Global TaskData ([DataStore]::new($global:PL.TaskDataFilePath))
 	Define-Global StateFile ([DataStore]::new($global:PL.StateFilePath))
+	Define-Global TaskFactory ([TaskFactory]::new())
 	Define-Global TaskExecutor ([TaskExecutor]::new())
 }
 
@@ -191,10 +194,6 @@ class Logger{
 		}
 		
 		$this.Write($msg, [LogSeverity]::EXCEPTION)
-	}
-
-	[void] Exception([string]$msg){
-		$this.Exception($msg, (Get-Variable PSItem -ValueOnly -ErrorAction SilentlyContinue))
 	}
 }
 
@@ -329,7 +328,7 @@ class ExecutionContext{
 			return Ok
 		}
 		catch{
-			$this.logger_.Exception("failed to register scheduled task")
+			$this.logger_.Exception("failed to register scheduled task", $PSItem)
 			return Ng "failed to register scheduled task"
 		}
 	}
@@ -386,7 +385,7 @@ class DataStore{
 
 	[string] Get([string]$key){
 		if(-not $this.data_.Contains($key)){
-			throw "key $key not contained. file: $(this.filePath_)"
+			throw "key $key not contained. file: $($this.filePath_)"
 		}
 
 		return $this.data_[$key]
@@ -407,7 +406,7 @@ class DataStore{
 
 	[object] GetRaw([string]$key){
 		if(-not $this.data_.Contains($key)){
-			throw "key $key not contained. file: $(this.filePath_)"
+			throw "key $key not contained. file: $($this.filePath_)"
 		}
 		
 		return $this.data_[$key]
@@ -512,6 +511,7 @@ enum TaskResult{
 	REBOOT
 	# from a perspective of a task, RERUN always involves a reboot
 	RERUN
+	ABORT
 }
 
 class TaskBase{
@@ -595,7 +595,7 @@ class TaskBase{
 			throw "unexpected task state: $result"
 		}
 		catch{
-			$this.logger.Exception("exception caught: task $($this.Name())")
+			$this.logger.Exception("exception caught: task $($this.Name())", $PSItem)
 			$this.state_.Mark([TaskState]::FAILED)
 		}
 		finally{
@@ -610,34 +610,136 @@ class TaskBase{
 
 
 class AdhocTask : TaskBase{
-	# member variable for passing taskArgs to script block codes
-	hidden [hashtable] $taskArgs
+	static [ScriptBlock] $factory = {
+		param([string]$name, [string]$username, [ScriptBlock]$script)
+		return [AdhocTask]::new($name, $username, $script)
+	}
+
+	static [void] SetFactory([ScriptBlock]$factory){
+		[AdhocTask]::factory = $factory
+	}
+
+	static [AdhocTask] Create([string]$name, [string]$username, [ScriptBlock]$script){
+		return [AdhocTask]::factory.InvokeReturnAsIs(@($name, $username, $script))
+	}
+	
+	hidden [ScriptBlock] $script
 
 	AdhocTask([string]$name, [string]$username, [ScriptBlock]$script)
 	:base($name, [Credential]::new($username)){
-		Add-Member -InputObject $this -MemberType ScriptMethod -Name Script -value $script 
+		$this.script = $script
+<#
+		$tmp_src = ""
+
+		foreach($l in @("Debug", "Info", "Error", "Exception")){
+			$tmp_src += (@"
+function local:{0} {{
+	param([Parameter(ValueFromPipeline=`$true)][string[]]`$lines)
+	process{{`$lines | `$this.logger.{0}(`$_)}}
+}}
+"@ -f $l)
+		}
+		
+		$tmp_src = @"
+try{
+	$($script.ToString())
+}
+catch{
+	`$this.logger.Exception("exception caught by wrapped try-catch clause")
+	return [TaskResult]::ERROR
+}
+"@
+		$generated = [ScriptBlock]::Create($tmp_src)
+		Add-Member -InputObject $this -MemberType ScriptMethod -Name Script -value $generated 
+#>
 	}
 	
 	[TaskResult] RunImpl($taskArgs){
+		$ctxFuncs = @{
+			Debug     = {param([Parameter(ValueFromPipeline=$true)][string[]]$lines)
+									 process{foreach($l in $lines){$this.logger.Debug($l)}}}
+			Info      = {param([Parameter(ValueFromPipeline=$true)][string[]]$lines)
+									 process{foreach($l in $lines){$this.logger.Info($l)}}}
+			Error     = {param([Parameter(ValueFromPipeline=$true)][string[]]$lines)
+									 process{foreach($l in $lines){$this.logger.Error($l)}}}
+			Exception = {param([string]$msg, [object]$e)
+			             $this.logger.Exception($msg, $e)}
+			Cmd = {
+				param([object]$cmd)
+				switch($cmd.GetType()){
+					([ScriptBlock]){
+						$this.logger.Debug("script block: " + $cmd.ToString())
+						$output = &$cmd | %{$this.logger.Debug($_)}
+						return $output
+					}
+					([string]){
+						$this.logger.Debug("cmd: " + $cmd.ToString())
+						$output = Invoke-Expression $cmd | %{$this.logger.Debug($_)}
+						return $output
+					}
+					default{
+						throw "Invalid type passed. expected ScriptBLock or string, but $($cmd.GetType()): ${cmd}"
+					}
+				}
+			}
+		}
+		
+		$ctxVars = @(
+			[PSVariable]::new("this", $this),
+			[PSVariable]::new("_", $this),
+			[PSVariable]::new("taskArgs", $taskArgs)
+		);
+
 		try{
-			$this.taskArgs = $taskArgs
-			$rv = $this.Script()
-			$rv = $this.EnsureTaskResultReturned($rv)
+			$rv = $this.script.InvokeWithContext($ctxFuncs, $ctxVars, $null)
+			$rv = $this.EnsureTaskResultReturned([array]$rv)
 			return $rv
 		}
 		catch{
 			$msg = "exception caught: adhoc task $($this.Name())"
 			$innerExp = $PSItem.Exception.InnerException
 			if($innerExp -eq $null){
-				$this.logger.Exception($msg)
+				$this.logger.Exception($msg, $PSItem)
 			}else{
 				$this.logger.Exception($msg, $innerExp)
 			}
+			
 			return [TaskResult]::ERROR
 		}
 		throw "never reach here"
 	}
 }
+
+
+enum TaskType {
+	ALL
+	GENERIC
+	USER
+	SYSTEM
+}
+
+class TaskFactory{
+	hidden [hashtable] $factories = @{}
+
+	TaskFactory(){
+		$this.SetFactory([TaskType]::ALL, [AdhocTask])
+	}
+
+	SetFactory([TaskType]$task_type, [Type]$type){
+		if($task_type -eq [TaskType]::ALL){
+			$this.factories[[TaskType]::GENERIC] = $type
+			$this.factories[[TaskType]::USER] = $type
+			$this.factories[[TaskType]::SYSTEM] = $type
+		}else{
+			$this.factories[$task_type] = $type
+		}
+	}
+
+	[AdhocTask] Create([TaskType]$task_type, [string]$name, [string]$username, [ScriptBlock]$script){
+		return $this.factories[$task_type]::new($name, $username, $script)
+	}
+}
+
 
 # task helpers
 function Task {
@@ -647,7 +749,8 @@ function Task {
 	)
 
 	$cred = $global:ExecCtx.Credential()
-	$global:TaskExecutor.AddTask([AdhocTask]::new($name, $cred.Username(), $script))
+	$task = $global:TaskFactory.Create([TaskType]::GENERIC, $name, $cred.Username(), $script)
+	$global:TaskExecutor.AddTask($task)
 }
 
 function UserTask {
@@ -656,7 +759,8 @@ function UserTask {
 		[ScriptBlock]$script
 	)
 
-	$global:TaskExecutor.AddTask([AdhocTask]::new($name, $global:UserCred.Username(), $script))
+	$task = $global:TaskFactory.Create([TaskType]::USER, $name, $global:UserCred.Username(), $script)
+	$global:TaskExecutor.AddTask($task)
 }
 
 function SystemTask {
@@ -665,81 +769,8 @@ function SystemTask {
 		[ScriptBlock]$script
 	)
 
-	$global:TaskExecutor.AddTask([AdhocTask]::new($name, "system", $script))
-}
-
-
-function Get-This {
-	$cs = Get-PSCallStack
-	for($i = 0; $i -lt $cs.length; ++$i){
-		$fn = $cs[$i].FunctionName
-		if($fn -eq "RunImpl"){
-			return Get-Variable -Name this -ValueOnly -Scope ($i - 1)
-		}
-	}
-	throw "Info helper could not find AdhocTask.RunImpl callstack"
-}
-
-
-# log helpers
-function Info {
-	param([Parameter(ValueFromPipeline=$true)][string[]]$lines)
-	
-	begin{
-		$this = Get-This
-		$output = @()
-	}
-	
-	process{
-		foreach($line in $lines){
-			$this.logger.Info($line)
-			$output += $line
-		}
-	}
-
-	end{
-		$output
-	}
-}
-
-function Debug {
-	param([Parameter(ValueFromPipeline=$true)][string[]]$lines)
-	
-	begin{
-		$this = Get-This
-		$output = @()
-	}
-	
-	process{
-		foreach($line in $lines){
-			$this.logger.Debug($line)
-			$output += $line
-		}
-	}
-
-	end{
-		$output
-	}
-}
-
-function Cmd{
-	param([object]$cmd)
-
-	switch($cmd.GetType()){
-		([ScriptBlock]){
-			Debug ("cmd:" + $cmd.ToString())
-			$output = &$cmd | Debug
-			return $output
-		}
-		([string]){
-			Debug ("cmd:" + $cmd)
-			$output = Invoke-Expression $cmd | Debug
-			return $output
-		}
-		default{
-			throw "Invalid type passed. expected ScriptBLock or string, but $($cmd.GetType()): ${cmd}"
-		}
-	}
+	$task = $global:TaskFactory.Create([TaskType]::USER, $name, "system", $script)
+	$global:TaskExecutor.AddTask($task)
 }
 
 
@@ -872,7 +903,7 @@ class TaskExecutor{
 				}
 				
 				if(-not $rv.Ok()){
-					throw "aborting task executor. error returned. ${name}: $($rv.Error())"
+					throw "aborting task executor. unexpected error returned. ${name}: $($rv.Error())"
 				}
 				$taskResult = $rv.RetVal()
 				
@@ -886,7 +917,7 @@ class TaskExecutor{
 							# tasks exhausted
 							$this.logger_.Info("no task remaining but reboot required. enqueueing dummy task")
 							# dummy
-							$nextTask = [AdhocTask]::new("dummy", "system", {return [TaskResult]::OK})
+							$nextTask = [AdhocTask]::Create("dummy", "system", {return [TaskResult]::OK})
 						}
 					}
 					([TaskResult]::RERUN){
@@ -907,7 +938,7 @@ class TaskExecutor{
 			}
 		}
 		catch{
-			$this.logger_.Exception("fatal. exception caught on task executor")
+			$this.logger_.Exception("fatal. exception caught on task executor", $PSItem)
 			return
 		}
 	}
@@ -920,7 +951,7 @@ class TaskExecutor{
 # -a b -a c -> a:[a,b]
 # b -> ignored
 class OptionParser{
-	hidden [System.Collections.Hashtable]$opts_ = @{}
+	hidden [hashtable]$opts_ = @{}
 	hidden [int]$consumed_
 	hidden [object[]]$srcArgs_
 
@@ -1160,7 +1191,7 @@ class Setup{
 			$this.logger_.Info("all tasks finished")
 		}
 		catch{
-			$this.logger_.Exception("fatal. exception caught")
+			$this.logger_.Exception("fatal. exception caught", $PSItem)
 		}
 		finally{
 			$this.Unlock()
