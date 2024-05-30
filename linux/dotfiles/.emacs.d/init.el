@@ -1,7 +1,5 @@
 ;;;; init.el from hell
 
-;; TODO: consider using embark
-
 ;;(profiler-start 'cpu)
 
 ;;;
@@ -601,6 +599,7 @@
 		:hook
 		(rfn-eshadow-update-overlay . vertico-directory-tidy)))
 
+
 ;; consult. minibuffer commands
 (use-package consult
 	:ensure t
@@ -691,13 +690,47 @@
 	 consult--source-recent-file consult--source-project-recent-file
 	 :preview-key "M-.")
 
+	;; narrowing on consult-buffer
 	;; Optionally configure the narrowing key.
 	;; Both < and C-+ work reasonably well.
-	(setq consult-narrow-key "<") ;; "C-+"
+	(setq consult-narrow-key "<"))
 
-	;; use projectile to grep files in a project
-	(setq consult-project-function nil))
 
+;; experiment
+;; marginalia. enrichment minibuffer annotations
+(use-package marginalia
+	:ensure t
+	:bind
+	(:map minibuffer-local-map
+				("M-A" . marginalia-cycle))
+	:init
+	;; must be :init from official readme
+	(marginalia-mode))
+
+
+;; experiment
+;; embark. right-click context menu for emacs
+(use-package embark
+	:ensure t
+	:requires marginalia
+	:bind
+	(("C-q e ." . embark-act)
+	 ("C-q e ," . embark-dwim)
+	 ("C-q e b" . embark-bindings))
+	:init
+	(setq prefix-help-command #'embark-prefix-help-command)
+	:config
+	;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+							 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none))))
+	
+	(use-package embark-consult
+		:ensure t
+		:hook
+		(embark-collect-mode . consult-preview-at-point-mode)))
+	
 
 ;; NOTE: disabled. currently using vertico.
 ;; NOTE: emacs 28 introduced fido-vertical-mode.
@@ -752,6 +785,8 @@
 	(:map corfu-map
 				;;("TAB" . corfu-next)
 				;;("<tab>" . corfu-next)
+				("TAB" . corfu-expand)
+				("<tab>" . corfu-expand)
 				;; C-a is bound to corfu-prompt-begging. so replace it to move-beginning-of-line.
 				([remap corfu-prompt-beginning] . move-beginning-of-line)
 				("C-j" . corfu-complete)
@@ -817,6 +852,7 @@
 	;; make lsp-mode use company
 	(setq lsp-completion-provider :capf))
 
+
 ;; cape. completions sources
 (use-package cape
 	:ensure t
@@ -868,8 +904,12 @@
 	(prescient-primary-highlight
 	 ((t :foreground "#b3a3e9" :background "#2a273a" :weight ultra-bold)))
 	:init
-	;;(setq completion-styles '(basic))
-	(setq completion-styles '(prescient basic))
+;;	(add-to-list 'completion-styles-alist
+;;             '(tab completion-basic-try-completion ignore
+;;               "Completion style which provides TAB completion only."))
+;;	(setq completion-styles '(tab basic))
+;;	(setq completion-styles '(basic))
+;;	;;(setq completion-styles '(prescient basic))
 	(setq prescient-sort-full-matches-first t)
 	:config
 	(prescient-persist-mode)
@@ -881,6 +921,13 @@
 		(setq corfu-prescient-enable-filtering t)
 		(setq corfu-prescient-enable-sorting t)
 		:config
+		;; to enable corfu-expand.
+		;; HINT: https://github.com/minad/corfu/issues/170
+		;; HINT: https://github.com/minad/corfu?tab=readme-ov-file#expanding-to-the-common-candidate-prefix-with-tab
+		(add-to-list 'completion-styles-alist
+								 '(tab completion-basic-try-completion ignore
+											 "Completion style which provides TAB completion only."))
+		(setq corfu-prescient-completion-styles '(tab prescient basic))
 		(corfu-prescient-mode))
 
 	(use-package vertico-prescient
@@ -914,12 +961,13 @@
 	(setq xref-show-definitions-function #'xref-show-definitions-completing-read))
 
 ;; projectile. project management
+;; still usefull even though project.el is in emacs
 (use-package projectile
 	:ensure t
 	;; unwork :config (projectile-mode +1)
 	:init (projectile-mode +1)
 	:bind-keymap
-	("C-c p" . projectile-command-map))
+	("C-x p" . projectile-command-map))
 
 ;; flymake(builtin). flymake can use eglot as a backend.
 (use-package flymake
