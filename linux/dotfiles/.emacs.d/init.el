@@ -9,7 +9,7 @@
 (use-package emacs
 	:config
 	;; TODO: consider using early-init.el
-	
+
 	;; workaround
 	(setq byte-compile-warnings '(cl-functions))
 	
@@ -19,12 +19,15 @@
 	(set-terminal-coding-system 'utf-8)
 	(set-keyboard-coding-system 'utf-8)
 	(setq-default buffer-file-coding-system 'utf-8)
+	(when (eq system-type 'windows-nt)
+		(setq-default default-process-coding-system '(utf-8 . japanese-cp932-dos)))
 	
 	;; frame appearances
 	(setq inhibit-startup-screen t)
 	(menu-bar-mode -1)
 	(tool-bar-mode -1)
 	(scroll-bar-mode -1)
+	(add-to-list 'default-frame-alist '(fullscreen . maximized))
 
 	;; font for linux
 	;;(set-frame-font "Office Code Pro 11")
@@ -125,6 +128,10 @@
 	(setq backup-by-copying t)
 	(setq backup-directory-alist `((".*" . ,(expand-file-name "backup" user-emacs-directory))))
 
+	;; auto-save
+	(setq auto-save-visited-interval 30)
+	(auto-save-visited-mode)
+
 	;; for resizing *Completions* buffer size
 	;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Temporary-Displays.html#index-temp_002dbuffer_002dresize_002dmode
 	(temp-buffer-resize-mode)
@@ -137,20 +144,22 @@
 		;; separate autosaved customizations 
 		(setq custom-file (expand-file-name "autosaved-custom.el" default-directory)))
 	
-	;; package archives
-	(when (require 'package nil t)
-		(package-initialize)
-		(setq package-archives
-					'(("gnu" . "https://elpa.gnu.org/packages/")
-						("melpa" . "https://melpa.org/packages/")
-						("org" . "https://orgmode.org/elpa/"))))
-	
 	;; install use-package if emacs < 29
 	(when (< emacs-major-version 29)
 		(unless (package-installed-p 'use-package)
 			(message "use-package is not installed and installing it")
 			(package-refresh-contents)
 			(package-install 'use-package)))
+	
+	;; package archives
+	(when (require 'package nil t)
+		(package-initialize)
+		(setq package-archives
+					'(("gnu" . "https://elpa.gnu.org/packages/")
+						("melpa" . "https://melpa.org/packages/")
+						("org" . "https://orgmode.org/elpa/")))
+		(setq package-install-upgrade-built-in t)
+		(setq package-native-compile t))
 	
 	;; ediff
 	(setq-default ediff-split-window-function 'split-window-horizontally)
@@ -228,6 +237,11 @@
 (use-package savehist
 	:config
 	(savehist-mode))
+
+;; saveplace(builtin). save last cursor position
+(use-package saveplace
+	:config
+	(save-place-mode))
 
 ;; window(builtin). window layout management
 (use-package window
