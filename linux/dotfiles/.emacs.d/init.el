@@ -243,6 +243,14 @@
 	:config
 	(save-place-mode))
 
+;; which-key(builtin from emacs30). showing keybinding in minibuffer
+(use-package which-key
+	:ensure t
+	:config
+	(setq which-key-paging-key (kbd "DEL"))
+	(which-key-setup-side-window-right)
+	(which-key-mode))
+
 ;; window(builtin). window layout management
 (use-package window
 	:init
@@ -263,6 +271,13 @@
 	:config
 	(winner-mode 1))
 
+;; window-number. moving cursor by alt-1|2|3 
+;; NOTE: M-1, M-2, M-3
+(use-package window-number
+	:ensure t
+	:config
+	(window-number-meta-mode))
+
 ;; anzu. display current match and total matchs
 (use-package anzu
 	:ensure t
@@ -274,19 +289,15 @@
 	:config
 	(global-anzu-mode +1))
 
-;; window-number. moving cursor by alt-1|2|3 
-;; NOTE: M-1, M-2, M-3
-(use-package window-number
+;; undo-fu. undo/redo enhancements
+(use-package undo-fu
+	:disabled
 	:ensure t
 	:config
-	(window-number-meta-mode))
-
-;; which-key. showing keybinding in minibuffer
-(use-package which-key
-	:ensure t
-	:config
-	(which-key-setup-side-window-right)
-	(which-key-mode))
+	;; keep emacs orig undo/redo function for C-_
+	;;(global-set-key (kbd "C-_") 'undo-fu-only-undo)
+	(global-set-key (kbd "C-/") 'undo-fu-only-undo)
+	(global-set-key (kbd "M-/") 'undo-fu-only-redo))
 
 ;; goto-chg. cursor history
 (use-package goto-chg
@@ -363,7 +374,8 @@
 		(("C-t" . vterm-toggle)
 		 ("C-c C-t" . vterm-toggle-cd)
 		 :map vterm-mode-map
-		 ("C-t" . vterm-toggle))))
+		 ("C-t" . vterm-toggle)
+		 ("C-c C-t" . vterm-toggle-insert-cd))))
 
 ;; org
 (use-package org
@@ -447,7 +459,7 @@
 												(org-agenda-skip-function '(org-agenda-skip-entry-if 'regexp "\\[#[1-4]\\]"))
 												(org-agenda-block-separator ?-)
 												(org-agenda-todo-keyword-format "")))))
-					 ))
+					))
 
 	;; refiles
 	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
@@ -460,6 +472,8 @@
 	(setq org-todo-keywords
 				'((sequence "TODO(t)" "|" "DONE(d)" "CANCELED(c)")))
 	(setq org-log-done 'time)
+	(setq org-enforce-todo-dependencies t)
+	(setq org-enforce-todo-checkbox-dependencies t)
 
 	;; org priority
 	(setq org-highest-priority 1)
@@ -744,7 +758,7 @@
 		:ensure t
 		:hook
 		(embark-collect-mode . consult-preview-at-point-mode)))
-	
+
 
 ;; NOTE: disabled. currently using vertico.
 ;; NOTE: emacs 28 introduced fido-vertical-mode.
@@ -1030,7 +1044,7 @@
 	:hook
 	;; XXX: ensure use cape-file/cape-dabbrev in c/c++-mode.
 	;;      not sure, but falling back to global completion-at-point-functions
-	;;       won't work if it's in c/c++-mode?
+	;;      won't work if it's in c/c++-mode?
 	(eglot-managed-mode . (lambda ()
 													(when (or (eq major-mode 'c-mode)
 																		(eq major-mode 'c++-mode))
@@ -1042,7 +1056,8 @@
 																							t)))))
 	:config
 	(setq eglot-ignored-server-capabilities '(:hoverProvider
-																						:inlayHintProvider)))
+																						:inlayHintProvider))
+	(add-to-list 'eglot-stay-out-of 'flymake))
 
 ;; NOTE: disabled experimentally. trying eglot.
 ;; lsp-mode
@@ -1114,6 +1129,7 @@
 
 ;; treesit-auto. tree-sitter lang bundles manager
 (use-package treesit-auto
+	:disabled
 	:if (executable-find "git")
 	:ensure t
 	:config
@@ -1125,6 +1141,15 @@
 ;;;
 ;;; major-modes
 ;;;
+
+;; elisp-mode(builtint) 
+(use-package elisp-mode
+	;; ensure 1 ;; stucks
+	:config
+	(use-package aggressive-indent
+		:ensure t
+		:hook
+		(emacs-lisp-mode . aggressive-indent-mode)))
 
 ;; cc-mode(builtin)
 (use-package cc-mode
