@@ -808,6 +808,7 @@
 
 ;; corfu. inbuffer completion UI
 (use-package corfu
+	:if window-system
 	:ensure t
 	:bind
 	(:map corfu-map
@@ -883,6 +884,7 @@
 
 ;; cape. completions sources
 (use-package cape
+	:after corfu
 	:ensure t
 	:config
 	;; XXX: cape-capf-buster changes corfu previewing
