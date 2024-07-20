@@ -50,11 +50,11 @@
 
 					 ;; font and charset mappings applying to myfontset
 					 (mappings '((:font "input mono condensed"
-												:charset ascii)
+															:charset ascii)
 											 (:font "ipaexgothic"
-												:charset japanese-jisx0213.2004-1
-												;; to supress flicking
-												:rescale 0.999))))
+															:charset japanese-jisx0213.2004-1
+															;; to supress flicking
+															:rescale 0.999))))
 
 			;; create fontset per mappings
 			(mapc
@@ -142,7 +142,7 @@
 		(when (file-exists-p default-directory)
 			(normal-top-level-add-subdirs-to-load-path))
 		;; separate autosaved customizations 
-		(setq custom-file (expand-file-name "autosaved-custom.el" default-directory)))
+		(setq custom-file (expand-file-name "0-autosaved-custom.el" default-directory)))
 	
 	;; install use-package if emacs < 29
 	(when (< emacs-major-version 29)
@@ -154,10 +154,7 @@
 	;; package archives
 	(when (require 'package nil t)
 		(package-initialize)
-		(setq package-archives
-					'(("gnu" . "https://elpa.gnu.org/packages/")
-						("melpa" . "https://melpa.org/packages/")
-						("org" . "https://orgmode.org/elpa/")))
+		(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 		(setq package-install-upgrade-built-in t)
 		(setq package-native-compile t))
 	
@@ -408,9 +405,6 @@
 																								(file-exists-p note-file-name))
 																			 (delete-file note-file-name))))))
 	:config
-	;; must be set before org-mode loaded
-	(setq org-display-custom-times t)
-	
 	;; org-directory precedence
 	;; 1) ~/Dropbox/org/
 	;; 2) ~/.emacs.d/org/
@@ -422,20 +416,57 @@
 				;; priority in reverse order
 				(list "~/" user-emacs-directory "~/Dropbox/"))
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
-	(setq misc-notes-directory (expand-file-name "misc" org-directory))
+	(setq my/misc-notes-directory (expand-file-name "misc" org-directory))
+	(mkdir my/misc-notes-directory t)
+	(setq my/blog-pages-directory (expand-file-name "blog" org-directory))
+	(mkdir my/blog-pages-directory t)
 
+	;; org capture
+	(defun my/get-note-name (dir)
+		(interactive)
+		(let* ((get-filename (lambda ()
+													 (expand-file-name
+														(format "%s_%s.org"
+																		(format-time-string "%Y-%m-%d")
+																		(read-string "Note name: "))
+														dir)))
+					 (filename (funcall get-filename)))
+			(while (file-exists-p filename)
+				(setq filename (funcall get-filename)))
+			filename))
+	
+	(setq org-capture-templates
+				'(("n" "[N]otes" entry (file+headline "notes.org" "Notes")
+					 "* %T %?\n" 
+					 :empty-lines 1 :kill-buffer 1 :prepend t)
+					("j" "[J]ournals" entry (file+headline "notes.org" "Journals")
+					 "* %T %?\n"
+					 :empty-lines 1 :kill-buffer t :prepend t)
+					("d" "[D]iary" entry (file "diary.org")
+					 "* %T\n%?\n"
+					 :empty-lines-after 1 :prepend t :jump-to-captured t)
+					;; NOTE: plain cant refile to other org files
+					("m" "[M]isc notes" plain (file (lambda () (my/get-note-name my/misc-notes-directory)))
+					 "* %T %? :misc:\n"
+					 :misc-note t :empty-lines-after 1 :jump-to-captured t)
+					("b" "[B]log pages" plain (file (lambda () (my/get-note-name my/blog-pages-directory)))
+					 "#+title: %?\n#+date: %T\n\n* {{{date}}} | {{{title}}}\n"
+					 :misc-note t :empty-lines-after 1 :jump-to-captured t)))
+	
 	;; agenda config
-	(setq org-agenda-files (list org-directory misc-notes-directory))
+	(setq org-agenda-files (list org-directory my/misc-notes-directory))
 	(setq org-agenda-custom-commands
 				'(;; notes relateds
-					("n" . "[N]otes")
-					("nj" "[J]ournals"
-					 tags "+journal&+LEVEL=2&+TIMESTAMP>=\"<-1m>\""
-					 ;; limit the files to be searched to org-default-notes-file
+					("n" . "Notes/Journals")
+					("nn" "[N]otes in default notes file"
+					 tags "+n"
+					 ((org-agenda-files (list org-default-notes-file))))
+					("nj" "[J]ournals in default notes file"
+					 tags "+j"
 					 ((org-agenda-files (list org-default-notes-file))))
 					("nm" "[M]isc notes"
 					 tags "+misc"
-					 ((org-agenda-files (list misc-notes-directory))))
+					 ((org-agenda-files (list my/misc-notes-directory))))
 
 					;; eisenhower's matrix
 					("e" "[E]isenhower matrix"
@@ -483,7 +514,8 @@
 	;; view config
 	(setq org-startup-folded nil)
 	(setq org-startup-indented t)
-	
+
+	;; miscs
 	(setq org-indent-indentation-per-level 1)
 	;;(setq org-hide-leading-stars t)
 	;;(setq org-adapt-indentation t) ;; hard indentation
@@ -501,31 +533,8 @@
 	(setq org-fontify-whole-heading-line t)
 
 	;; timestamp
-	;; to enable time stamp overlay, set org-display-custom-times is t in :init
+	(setq-default org-display-custom-times t)
 	(setq org-time-stamp-custom-formats '("<%Y/%m/%d>" . "<%Y/%m/%d %H:%M:%S>"))
-
-	;; org capture
-	(defun create-misc-note-file ()
-		(interactive)
-		(mkdir misc-notes-directory t)
-		(let* ((get-filename (lambda ()
-													 (expand-file-name
-														(format "%s_%s.org"
-																		(format-time-string "%Y-%m-%d")
-																		(read-string "Misc note name: "))
-														misc-notes-directory)))
-					 (filename (funcall get-filename)))
-			(while (file-exists-p filename)
-				(setq filename (funcall get-filename)))
-			filename))
-
-	(setq org-capture-templates
-				'(("n" "[N]otes" entry (file "notes.org") "* %?\n%T\n" :empty-lines 1 :kill-buffer 1)
-					;; NOTE: plain cant refile to other org files
-					("m" "[M]isc notes" plain (file create-misc-note-file) "* %?	:misc:\n%T\n"
-					 :misc-note t :empty-lines 1 :kill-buffer t)
-					("j" "[J]ournals" entry (file+headline "notes.org" "journals") "* %T %?\n" :empty-lines 1 :kill-buffer t :prepend t)
-					("d" "[D]iary" entry (file "diary.org") "* %T\n%?\n" :empty-lines 1 :kill-buffer t :prepend t )))
 
 	;; org-id(builtin)
 	(use-package org-id
@@ -673,22 +682,22 @@
 				 ("M-s G" . consult-git-grep)
 				 ("M-s r" . consult-ripgrep)
 				 ("C-;"	 . consult-line) ;; experiment binding
-				 ("M-s L" . consult-line-multi) ;; for multiple buffer
-				 ;;("M-s k" . consult-keep-lines) ;; actually editing
-				 ("M-s n" . consult-focus-lines) ;; narrowing
+				("M-s L" . consult-line-multi) ;; for multiple buffer
+				;;("M-s k" . consult-keep-lines) ;; actually editing
+				("M-s n" . consult-focus-lines) ;; narrowing
 
-				 ;; Isearch integration
-				 :map isearch-mode-map
-				 ("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
-				 ("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
-				 ("M-s l" . consult-line) ;; needed by consult-line to detect isearch
-				 ("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
-				 ("M-s x" . consult-isearch-forward)
-				 
-				 ;; Minibuffer history
-				 :map minibuffer-local-map
-				 ("M-r" . consult-history) ;; orig. previous-matching-history-element
-				 )
+				;; Isearch integration
+				:map isearch-mode-map
+				("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
+				("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
+				("M-s l" . consult-line) ;; needed by consult-line to detect isearch
+				("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
+				("M-s x" . consult-isearch-forward)
+				
+				;; Minibuffer history
+				:map minibuffer-local-map
+				("M-r" . consult-history) ;; orig. previous-matching-history-element
+				)
 
 	:hook
 	;; enable preview at poin in the *Completion* buffer
@@ -830,6 +839,8 @@
 	(setq corfu-auto-prefix 1)
 	(setq corfu-preselect 'directory)
 	(setq corfu-on-exact-match 'insert)
+	(setq corfu-quit-at-boundary 'separator)
+	(setq corfu-quit-no-match 'separator)
 	
 	;; must be in :init
 	(global-corfu-mode)
@@ -1257,16 +1268,18 @@
 ;;; customizations el files
 ;;;
 
-;; load autosaved customizations from ~/.emacs.d/lisp/autosaved-custom.el
-(load "autosaved-custom" t)
-
-;; load customizations for work
-(load "work" t)
+(let* ((dir (expand-file-name "lisp" user-emacs-directory))
+			 ;; e.g.: 10-hoge.el
+			 (files (directory-files dir t "[[:digit:]]-.*\.el")))
+	(mapcar
+	 #'load
+	 (sort files (lambda (r l)
+								 (< (string-to-number (file-name-nondirectory r))
+										(string-to-number (file-name-nondirectory l)))))))
 
 
 ;;(profiler-report)
 ;;(profiler-stop)
-
 
 ;; EOF
 
