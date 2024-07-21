@@ -448,10 +448,10 @@
 					;; NOTE: plain cant refile to other org files
 					("m" "[M]isc notes" plain (file (lambda () (my/get-note-name my/misc-notes-directory)))
 					 "* %T %? :misc:\n"
-					 :misc-note t :empty-lines-after 1 :jump-to-captured t)
+					 :misc-note t :empty-lines-after 2 :jump-to-captured t)
 					("b" "[B]log pages" plain (file (lambda () (my/get-note-name my/blog-pages-directory)))
 					 "#+title: %?\n#+date: %T\n\n* {{{date}}} | {{{title}}}\n"
-					 :misc-note t :empty-lines-after 1 :jump-to-captured t)))
+					 :misc-note t :empty-lines-after 2 :jump-to-captured t)))
 	
 	;; agenda config
 	(setq org-agenda-files (list org-directory my/misc-notes-directory))
