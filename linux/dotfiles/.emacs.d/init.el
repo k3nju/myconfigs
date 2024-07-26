@@ -499,6 +499,9 @@
 	(setq org-outline-path-complete-in-steps nil)
 	(setq org-archive-location (format "%s/%%s_archive::" (expand-file-name "archive" org-directory)))
 
+	;; org tags
+	(setq org-tags-column 0)
+
 	;; org todo
 	(setq org-todo-keywords
 				'((sequence "TODO(t)" "|" "DONE(d)" "CANCELED(c)")))
