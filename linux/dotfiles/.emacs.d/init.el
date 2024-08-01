@@ -371,8 +371,7 @@
 		(("C-t" . vterm-toggle)
 		 ("C-c C-t" . vterm-toggle-cd)
 		 :map vterm-mode-map
-		 ("C-t" . vterm-toggle)
-		 ("C-c C-t" . vterm-toggle-insert-cd))))
+		 ("C-t" . vterm-toggle))))
 
 ;; org
 (use-package org
