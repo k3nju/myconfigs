@@ -21,6 +21,9 @@
 	(setq-default buffer-file-coding-system 'utf-8)
 	(when (eq system-type 'windows-nt)
 		(setq-default default-process-coding-system '(utf-8 . japanese-cp932-dos)))
+
+	;; native compilation
+	(setq native-comp-jit-compilation t)
 	
 	;; frame appearances
 	(setq inhibit-startup-screen t)
@@ -129,7 +132,10 @@
 	(setq backup-directory-alist `((".*" . ,(expand-file-name "backup" user-emacs-directory))))
 
 	;; auto-save
-	(setq auto-save-visited-interval 30)
+	;; disable auto-saving to #hoge.txt#
+	(setq auto-save-default nil)
+	;; auto-saving to visited(actual) files
+	(setq auto-save-visited-interval 30) ;; seconds
 	(auto-save-visited-mode)
 
 	;; for resizing *Completions* buffer size
@@ -163,9 +169,12 @@
 	
 	;; yes or no
 	(fset 'yes-or-no-p 'y-or-n-p)
-	
+
 	;; disable ime on minibuffer
 	(add-hook 'minibuffer-setup-hook 'deactivate-input-method)
+
+	;; scratch buffer message
+	(setq initial-scratch-message ";; *scratch*\n")
 
 	;; helpers
 	(defun my/pp (o) (mapc 'princ (list "###|" o "\n")))
@@ -615,7 +624,7 @@
 	:ensure t
 	:init
 	(setq vertico-cycle t)
-	(setq vertico-count 15)
+	(setq vertico-count 20)
 	(setq vertico-resize nil)
 	(setq vertico-preselect 'first)
 
@@ -647,9 +656,9 @@
 				 ;; ("C-c k" . consult-kmacro)
 				 ("C-c m" . consult-man)
 				 ;; org-mode
-				 ;; shortcut for opening org. experiment biding
+				 ;; shortcut for opening org. experiment
 				 ("C-c A" . consult-org-agenda)
-				 ("M-g o" . consult-org-heading)
+				 ("C-c H" . consult-org-heading)
 				 ;; C-x bindings in `ctl-x-map'
 				 ("C-x M-:" . consult-complex-command) ;; orig. repeat-complex-command
 				 ("C-x b" . consult-buffer) ;; orig. switch-to-buffer
@@ -659,9 +668,9 @@
 				 ;;("C-x p b" . consult-project-buffer) ;; orig. project-switch-to-buffer
 
 				 ;; bindings for fast register access
-				 ("C-q r l" . consult-register-load)
-				 ("C-q r s" . consult-register-store) ;; orig. abbrev-prefix-mark (unrelated)
-				 ("C-q r r" . consult-register)
+				 ("C-x r s" . consult-register-store) ;; orig. copy-to-register
+				 ("C-x r j" . consult-register-load) ;; orig. jump-to-register
+				 ("C-x r r" . consult-register) ;; orig. copy-rectangle-to-register
 				 
 				 ;; yank
 				 ("M-y" . consult-yank-pop) ;; orig. yank-pop
@@ -683,23 +692,23 @@
 				 ("M-s g" . consult-grep)
 				 ("M-s G" . consult-git-grep)
 				 ("M-s r" . consult-ripgrep)
-				 ("C-;"	 . consult-line) ;; experiment binding
-				("M-s L" . consult-line-multi) ;; for multiple buffer
-				;;("M-s k" . consult-keep-lines) ;; actually editing
-				("M-s n" . consult-focus-lines) ;; narrowing
+				 ("C-;"	 . consult-line) ;; experiment
+				 ("M-s L" . consult-line-multi) ;; for multiple buffer
+				 ;;("M-s k" . consult-keep-lines) ;; actually editing
+				 ("M-s n" . consult-focus-lines) ;; narrowing
 
-				;; Isearch integration
-				:map isearch-mode-map
-				("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
-				("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
-				("M-s l" . consult-line) ;; needed by consult-line to detect isearch
-				("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
-				("M-s x" . consult-isearch-forward)
-				
-				;; Minibuffer history
-				:map minibuffer-local-map
-				("M-r" . consult-history) ;; orig. previous-matching-history-element
-				)
+				 ;; Isearch integration
+				 :map isearch-mode-map
+				 ("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
+				 ("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
+				 ("M-s l" . consult-line) ;; needed by consult-line to detect isearch
+				 ("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
+				 ("M-s x" . consult-isearch-forward)
+				 
+				 ;; Minibuffer history
+				 :map minibuffer-local-map
+				 ("M-r" . consult-history) ;; orig. previous-matching-history-element
+				 )
 
 	:hook
 	;; enable preview at poin in the *Completion* buffer
