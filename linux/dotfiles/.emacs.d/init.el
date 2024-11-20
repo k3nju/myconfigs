@@ -717,7 +717,7 @@
 				 
 				 ;; Minibuffer history
 				 :map minibuffer-local-map
-				 ("M-r" . consult-history) ;; orig. previous-matching-history-element
+				 ("M-h" . consult-history)
 				 )
 
 	:hook
