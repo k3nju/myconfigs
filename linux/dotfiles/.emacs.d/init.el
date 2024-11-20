@@ -417,12 +417,22 @@
 	;; 1) ~/Dropbox/org/
 	;; 2) ~/.emacs.d/org/
 	;; 3) ~/org/ (org-directory default)
-	(mapc (lambda (v)
-					(let* ((d (expand-file-name "org/" v)))
+	(let* ((ds (if (eq system-type 'windows-nt)
+								 ;; org/ candidates for windows
+								 (let* ((win-home-dir (expand-file-name (getenv "HOMEPATH") (getenv "HOMEDRIVE"))))
+									 (list (expand-file-name "Dropbox" win-home-dir)
+												 user-emacs-directory
+												 win-home-dir))
+							 ;; org/ candidates for linux
+							 (list "~/Dropbox/"
+										 user-emacs-directory
+										 "~/"))))
+		(mapc (lambda (d)
+						(message d)
 						(when (file-exists-p d)
-							(setq org-directory d))))
-				;; priority in reverse order
-				(list "~/" user-emacs-directory "~/Dropbox/"))
+							(setq org-directory d)))
+					(mapcar (apply-partially 'expand-file-name "org/") ds)))
+
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
 	(setq my/misc-notes-directory (expand-file-name "misc" org-directory))
 	(mkdir my/misc-notes-directory t)
