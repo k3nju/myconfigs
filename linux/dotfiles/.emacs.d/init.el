@@ -123,7 +123,10 @@
 	;; https://memo.sugyan.com/entry/20120105/1325766364
 	(setq find-file-visit-truename t)
 
-	;; backup
+	;; disable lock file(.#hoge.txt)
+	(setq create-lockfiles nil)
+
+	;; configure backup file(hoge.txt~)
 	(setq version-control t)
 	(setq kept-new-versions 5)
 	(setq kept-old-versions 0)
@@ -131,13 +134,16 @@
 	(setq backup-by-copying t)
 	(setq backup-directory-alist `((".*" . ,(expand-file-name "backup" user-emacs-directory))))
 
-	;; auto-save
-	;; disable auto-saving to #hoge.txt#
+	;; disable auto-save file(#hoge.txt#)
 	(setq auto-save-default nil)
-	;; auto-saving to visited(actual) files
+
+	;; configure auto-saving to visited(actual) files
 	(setq auto-save-visited-interval 30) ;; seconds
 	(auto-save-visited-mode)
-
+	
+	;; auto-revert(reflect changes made by other process)
+	(global-auto-revert-mode t)
+	
 	;; for resizing *Completions* buffer size
 	;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Temporary-Displays.html#index-temp_002dbuffer_002dresize_002dmode
 	(temp-buffer-resize-mode)
@@ -428,7 +434,6 @@
 										 user-emacs-directory
 										 "~/"))))
 		(mapc (lambda (d)
-						(message d)
 						(when (file-exists-p d)
 							(setq org-directory d)))
 					(mapcar (apply-partially 'expand-file-name "org/") ds)))
@@ -916,9 +921,33 @@
 
 ;; cape. completions sources
 (use-package cape
-	:after corfu
 	:ensure t
 	:config
+	(defun my/cape-defaults ()
+		(cape-wrap-super
+		 #'cape-dabbrev
+		 #'cape-file
+		 #'cape-keyword))
+	(add-to-list 'completion-at-point-functions #'my/cape-defaults)
+	
+	(defun my/cape-inside-string ()
+		(cape-wrap-inside-string
+		 (cape-capf-super
+			#'cape-file
+			#'cape-dabbrev)))
+
+	(defun my/cape-inside-comment ()
+		(cape-wrap-inside-comment
+		 (cape-capf-super
+			#'cape-file
+			#'cape-dabbrev)))
+
+	(defun my/cape-inside-code ()
+		(cape-wrap-inside-code
+		 (cape-capf-super
+			#'cape-keyword
+			#'cape-dabbrev)))
+	
 	;; XXX: cape-capf-buster changes corfu previewing
 	;;      (cape-capf-buster (cape-capf-super #'cape-dabbrev #'cape-file))))
 	;; XXX: cape-wrap-super doesn't work
@@ -932,16 +961,7 @@
 	;; the parent directory "/usr/" is erased.
 	;; (cape-capf-super (cape-company-to-capf #'company-files)) works well.
 	;; but it's a little bit slow.
-	
-	;;(add-to-list 'completion-at-point-functions
-	;;						 #'cape-file)
-	;;(add-to-list 'completion-at-point-functions
-	;;						 #'cape-dabbrev)
-	(add-to-list 'completion-at-point-functions
-							 (cape-capf-super #'cape-dabbrev
-																(cape-company-to-capf
-																 #'company-files))))
-
+	)	
 
 ;; NOTE: currently disabled. trying prescient
 ;; orderless. matching for completion candidates
@@ -966,12 +986,12 @@
 	(prescient-primary-highlight
 	 ((t :foreground "#b3a3e9" :background "#2a273a" :weight ultra-bold)))
 	:init
-;;	(add-to-list 'completion-styles-alist
-;;             '(tab completion-basic-try-completion ignore
-;;               "Completion style which provides TAB completion only."))
-;;	(setq completion-styles '(tab basic))
-;;	(setq completion-styles '(basic))
-;;	;;(setq completion-styles '(prescient basic))
+	;;	(add-to-list 'completion-styles-alist
+	;;             '(tab completion-basic-try-completion ignore
+	;;               "Completion style which provides TAB completion only."))
+	;;	(setq completion-styles '(tab basic))
+	;;	(setq completion-styles '(basic))
+	;;	;;(setq completion-styles '(prescient basic))
 	(setq prescient-sort-full-matches-first t)
 	:config
 	(prescient-persist-mode)
@@ -1076,22 +1096,29 @@
 	:ensure t
 	:after cape
 	:hook
-	;; XXX: ensure use cape-file/cape-dabbrev in c/c++-mode.
-	;;      not sure, but falling back to global completion-at-point-functions
-	;;      won't work if it's in c/c++-mode?
-	(eglot-managed-mode . (lambda ()
-													(when (or (eq major-mode 'c-mode)
-																		(eq major-mode 'c++-mode))
-														(message "c/c++-mode fallback: modifying completion-at-point-functions")
-														(setq-local completion-at-point-functions
-																				(list (cape-capf-super #'eglot-completion-at-point
-																															 #'cape-dabbrev
-																															 #'cape-file)
-																							t)))))
+	(eglot-managed-mode . my/init-eglot)
 	:config
 	(setq eglot-ignored-server-capabilities '(:hoverProvider
 																						:inlayHintProvider))
-	(add-to-list 'eglot-stay-out-of 'flymake))
+	(add-to-list 'eglot-stay-out-of 'flymake)
+	
+	;; needed?
+	(advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
+	
+	(defun my/eglot-cape-inside-code ()
+		(cape-wrap-nonexclusive
+		 (cape-capf-inside-code
+			(cape-capf-super
+			 #'eglot-completion-at-point
+			 #'cape-keyword
+			 #'cape-dabbrev))))
+	
+	(defun my/init-eglot ()
+		(setq-local completion-at-point-functions
+								(list
+								 #'my/eglot-cape-inside-code
+								 #'my/cape-inside-string
+								 #'my/cape-inside-comment))))
 
 ;; NOTE: disabled experimentally. trying eglot.
 ;; lsp-mode
@@ -1119,7 +1146,7 @@
 
 	;; settings per langs
 	(setq lsp-register-custom-settings
-	 '(("gopls.experimentalWorkspaceModule" t t)))
+				'(("gopls.experimentalWorkspaceModule" t t)))
 	
 	;; lsp-ui
 	(use-package lsp-ui
@@ -1292,7 +1319,7 @@
 (let* ((dir (expand-file-name "lisp" user-emacs-directory))
 			 ;; e.g.: 10-hoge.el
 			 (files (directory-files dir t "[[:digit:]]-.*\.el")))
-	(mapcar
+	(mapc
 	 #'load
 	 (sort files (lambda (r l)
 								 (< (string-to-number (file-name-nondirectory r))
