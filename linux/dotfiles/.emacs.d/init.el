@@ -1,18 +1,36 @@
 ;;;; init.el from hell
+;; prefer newer version .el over .elc
+(setq load-prefer-newer t)
 
 ;;(profiler-start 'cpu)
 
-;;;
 ;;; basic config
-;;;
-
 (use-package emacs
 	:config
 	;; TODO: consider using early-init.el
 
 	;; workaround
 	(setq byte-compile-warnings '(cl-functions))
+
+	;; yes or no
+	(setq use-short-answers t)
+
+	;; native compilation
+	(setq native-comp-jit-compilation t)
 	
+
+	;; frame appearances
+	(setq inhibit-startup-screen t)
+	(setq inhibit-startup-echo-area-message t)
+	(menu-bar-mode -1)
+	(tool-bar-mode -1)
+	(scroll-bar-mode -1)
+	(add-to-list 'default-frame-alist '(fullscreen . maximized))
+	;; for resizing *Completions* buffer size
+	;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Temporary-Displays.html#index-temp_002dbuffer_002dresize_002dmode
+	(temp-buffer-resize-mode)
+
+
 	;; coding system
 	(prefer-coding-system 'utf-8)
 	(set-default-coding-systems 'utf-8)
@@ -22,18 +40,8 @@
 	(when (eq system-type 'windows-nt)
 		(setq-default default-process-coding-system '(utf-8 . japanese-cp932-dos)))
 
-	;; native compilation
-	(setq native-comp-jit-compilation t)
-	
-	;; frame appearances
-	(setq inhibit-startup-screen t)
-	(menu-bar-mode -1)
-	(tool-bar-mode -1)
-	(scroll-bar-mode -1)
-	(add-to-list 'default-frame-alist '(fullscreen . maximized))
 
 	;; font for linux
-	;;(set-frame-font "Office Code Pro 11")
 	(when (and (eq window-system 'x) (eq system-type 'gnu/linux))
 		(let* (;; custom fontset
 					 ;; which should I use?
@@ -81,8 +89,6 @@
 		;; WORKAROUND: input isn't installed
 		(set-frame-font "MS Gothic 12" nil t))
 
-	;; disable bell & screen flashes
-	(setq ring-bell-function 'ignore)
 
 	;; line and column numbering
 	(setq-default display-line-numbers-width 3)
@@ -90,10 +96,18 @@
 	;; show line and column number in mode line
 	(line-number-mode)
 	(column-number-mode)
+
+	;; disable bell & screen flashes
+	(setq ring-bell-function 'ignore)
 	
 	;; cursor
 	(blink-cursor-mode 0)
 	(global-subword-mode t) ;; stop cursor on per humps for CamelCase
+
+	;; selection
+	;; typed text replaces the selection
+	(delete-selection-mode t)
+
 
 	;; editing visibilities
 	(show-paren-mode t)
@@ -141,13 +155,6 @@
 	(setq auto-save-visited-interval 30) ;; seconds
 	(auto-save-visited-mode)
 	
-	;; auto-revert(reflect changes made by other process)
-	(global-auto-revert-mode t)
-	
-	;; for resizing *Completions* buffer size
-	;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Temporary-Displays.html#index-temp_002dbuffer_002dresize_002dmode
-	(temp-buffer-resize-mode)
-	
 	;; elisp user site
 	(let* ((default-directory (expand-file-name "lisp" user-emacs-directory)))
 		(add-to-list 'load-path default-directory)
@@ -170,21 +177,29 @@
 		(setq package-install-upgrade-built-in t)
 		(setq package-native-compile t))
 	
-	;; ediff
-	(setq-default ediff-split-window-function 'split-window-horizontally)
-	
-	;; yes or no
-	(fset 'yes-or-no-p 'y-or-n-p)
+	;; https://www.reddit.com/r/emacs/comments/q0kmw3/psa_sentenceenddoublespace/
+	(setq sentence-end-double-space nil)
 
-	;; disable ime on minibuffer
-	(add-hook 'minibuffer-setup-hook 'deactivate-input-method)
+	;; auto-revert. reflect changes made by other process
+	(global-auto-revert-mode t)
 
 	;; scratch buffer message
 	(setq initial-scratch-message ";; *scratch*\n")
 
+	;; ediff
+	(setq-default ediff-split-window-function 'split-window-horizontally)
+
+	;; dedupe minibuffer history
+	(setq history-delete-duplicates t)
+
+	;; disable ime on minibuffer
+	(add-hook 'minibuffer-setup-hook 'deactivate-input-method)
+
+
 	;; helpers
 	(defun my/pp (o) (mapc 'princ (list "###|" o "\n")))
 	(defun my/add-before-save-hook (f) (add-hook 'before-save-hook f nil 'local))
+
 	
 	;;;; key bindings
 	(define-key key-translation-map (kbd "C-h") (kbd "DEL"))
