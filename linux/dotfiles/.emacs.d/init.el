@@ -30,8 +30,12 @@
 	;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Temporary-Displays.html#index-temp_002dbuffer_002dresize_002dmode
 	(temp-buffer-resize-mode)
 
+	;; use minibuffer to answer 
+	(setq use-dialog-box nil)
+
 
 	;; coding system
+	(set-language-environment 'utf-8)
 	(prefer-coding-system 'utf-8)
 	(set-default-coding-systems 'utf-8)
 	(set-terminal-coding-system 'utf-8)
@@ -42,6 +46,7 @@
 
 
 	;; font for linux
+	;;(set-frame-font "Office Code Pro 11")
 	(when (and (eq window-system 'x) (eq system-type 'gnu/linux))
 		(let* (;; custom fontset
 					 ;; which should I use?
@@ -88,7 +93,7 @@
 		;;(set-frame-font "InputMonoCondensed")
 		;; WORKAROUND: input isn't installed
 		(set-frame-font "MS Gothic 12" nil t))
-
+	
 
 	;; line and column numbering
 	(setq-default display-line-numbers-width 3)
@@ -96,6 +101,9 @@
 	;; show line and column number in mode line
 	(line-number-mode)
 	(column-number-mode)
+
+	;; show fringe indicators in `visual-line-mode`.
+	(setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 
 	;; disable bell & screen flashes
 	(setq ring-bell-function 'ignore)
@@ -129,6 +137,16 @@
 	(setq select-enable-primary t)
 	(setq select-enable-clipboard t)
 	(setq save-interprogram-paste-before-kill t)
+
+	;; scrolling
+	;; scroll per lines
+	(setq scroll-conservatively 1)
+	;; lines remaining to start scrolling
+	(setq scroll-margin 0)
+	;; paging with leaving 5 lines of previous page
+	(setq next-screen-context-lines 5)
+	;; keep screen position when paging
+	(setq scroll-preserve-screen-position t)
 	
 	;; search defaults
 	(setq case-fold-search t) ;; case sensitive
@@ -178,7 +196,7 @@
 		(setq package-native-compile t))
 	
 	;; https://www.reddit.com/r/emacs/comments/q0kmw3/psa_sentenceenddoublespace/
-	(setq sentence-end-double-space nil)
+	(setq-default sentence-end-double-space nil)
 
 	;; auto-revert. reflect changes made by other process
 	(global-auto-revert-mode t)
@@ -193,6 +211,7 @@
 	(setq history-delete-duplicates t)
 
 	;; disable ime on minibuffer
+	;; NOTE: unwork on windows
 	(add-hook 'minibuffer-setup-hook 'deactivate-input-method)
 
 
@@ -216,7 +235,7 @@
 				("M-p" . (lambda () (interactive) (other-window -1)))
 				;; toggle-input-method
 				("C-\\" . nil)
-				;; NOTE: disabled. currently using postframe style.
+				;; NOTE: disabled. currently using posframe style.
 				;; to display candidates for overlay by mozc, truncate-lines must be enabled.
 				;;(toggle-truncate-lines) 
 				;; input method
@@ -378,13 +397,6 @@
 (use-package wgrep
 	:ensure t)
 
-;; neotree
-(use-package neotree
-	:ensure t
-	:bind ("C-x d" . neotree-toggle)
-	:init
-	(setq neo-theme 'ascii))
-
 ;; vterm. fast terminal
 ;; NOTE: need external configuration to .bashrc
 (use-package vterm
@@ -423,16 +435,16 @@
 	(org-level-2 ((t (:extend t :weight bold :height 1.3))))
 	(org-level-3 ((t (:weight bold :height 1.1))))
 	:hook
-	;; global-hl-todo-mode is not effective
-	((org-mode . hl-todo-mode)
-	 (org-capture-after-finalize . (lambda ()
-																	 ;; HACK: if misc template invoked and that is aborted, delete a note file
-																	 (let* ((is-misc (org-capture-get :misc-note))
-																					(note-file-name (buffer-file-name (org-capture-get :buffer))))
-																		 (when (and is-misc
-																								org-note-abort
-																								(file-exists-p note-file-name))
-																			 (delete-file note-file-name))))))
+	(org-mode . hl-todo-mode) ;; global-hl-todo-mode is not effective on org-mode
+	(org-mode . (lambda () (setq-local completion-at-point-functions (list #'my/cape-defaults))))
+	(org-capture-after-finalize . (lambda ()
+																	;; HACK: if misc template invoked and that is aborted, delete a note file
+																	(let* ((is-misc (org-capture-get :misc-note))
+																				 (note-file-name (buffer-file-name (org-capture-get :buffer))))
+																		(when (and is-misc
+																							 org-note-abort
+																							 (file-exists-p note-file-name))
+																			(delete-file note-file-name)))))
 	:config
 	;; org-directory precedence
 	;; 1) ~/Dropbox/org/
@@ -476,10 +488,10 @@
 	(setq org-capture-templates
 				'(("n" "[N]otes" entry (file+headline "notes.org" "Notes")
 					 "* %T %?\n" 
-					 :empty-lines 1 :kill-buffer 1 :prepend t)
+					 :empty-lines 0 :kill-buffer 1 :prepend t)
 					("j" "[J]ournals" entry (file+headline "notes.org" "Journals")
 					 "* %T %?\n"
-					 :empty-lines 1 :kill-buffer t :prepend t)
+					 :empty-lines 0 :kill-buffer t :prepend t)
 					("d" "[D]iary" entry (file "diary.org")
 					 "* %T\n%?\n"
 					 :empty-lines-after 1 :prepend t :jump-to-captured t)
@@ -582,17 +594,7 @@
 		:requires org
 		:config
 		;;(setq org-id-link-to-org-use-id t)
-		(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id))
-
-	;; org-sidebar
-	(use-package org-sidebar
-		:ensure t
-		:requires org
-		:bind ("C-c s" . org-sidebar-toggle)
-		:config
-		(setq org-sidebar-side 'left)
-		(setq org-sidebar-default-fns '(org-sidebar-tree-view-buffer
-																		org-sidebar--todo-items))))
+		(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)))
 
 
 ;;;
@@ -938,13 +940,16 @@
 (use-package cape
 	:ensure t
 	:config
+	(setq cape-dabbrev-min-length 6)
+	(setq cape-dabbrev-check-other-buffers #'cape--buffers-major-mode) ;; same-mode buffers
+
 	(defun my/cape-defaults ()
 		(cape-wrap-super
 		 #'cape-dabbrev
 		 #'cape-file
 		 #'cape-keyword))
 	(add-to-list 'completion-at-point-functions #'my/cape-defaults)
-	
+
 	(defun my/cape-inside-string ()
 		(cape-wrap-inside-string
 		 (cape-capf-super
@@ -962,7 +967,7 @@
 		 (cape-capf-super
 			#'cape-keyword
 			#'cape-dabbrev)))
-	
+
 	;; XXX: cape-capf-buster changes corfu previewing
 	;;      (cape-capf-buster (cape-capf-super #'cape-dabbrev #'cape-file))))
 	;; XXX: cape-wrap-super doesn't work
@@ -976,7 +981,7 @@
 	;; the parent directory "/usr/" is erased.
 	;; (cape-capf-super (cape-company-to-capf #'company-files)) works well.
 	;; but it's a little bit slow.
-	)	
+	)
 
 ;; NOTE: currently disabled. trying prescient
 ;; orderless. matching for completion candidates
@@ -1079,7 +1084,8 @@
 	(use-package flymake-diagnostic-at-point
 		:ensure t
 		:after flymake
-		:hook (flymake-mode . flymake-diagnostic-at-point-mode)))
+		:hook
+		(flymake-mode . flymake-diagnostic-at-point-mode)))
 
 ;; flycheck
 (use-package flycheck
@@ -1169,7 +1175,8 @@
 		:ensure t
 		:after lsp-mode
 		:commands lsp-ui-mode
-		:hook (lsp-mode . lsp-ui-mode)
+		:hook
+		(lsp-mode . lsp-ui-mode)
 		:bind
 		(:map lsp-ui-mode-map
 					;; remap xref-find-defenitions function to lsp-ui-peek-find-definitions
@@ -1221,6 +1228,8 @@
 ;; elisp-mode(builtint) 
 (use-package elisp-mode
 	;; ensure 1 ;; stucks
+	:hook
+	(emacs-lisp-mode . electric-pair-mode)
 	:config
 	(use-package aggressive-indent
 		:ensure t
