@@ -1,4 +1,6 @@
 ;;;; init.el from hell
+;; TODO: filer
+
 ;; prefer newer version .el over .elc
 (setq load-prefer-newer t)
 
@@ -679,7 +681,6 @@
 		:hook
 		(rfn-eshadow-update-overlay . vertico-directory-tidy)))
 
-
 ;; consult. minibuffer commands
 (use-package consult
 	:ensure t
@@ -775,7 +776,6 @@
 	;; Both < and C-+ work reasonably well.
 	(setq consult-narrow-key "<"))
 
-
 ;; experiment
 ;; marginalia. enrichment minibuffer annotations
 (use-package marginalia
@@ -810,7 +810,6 @@
 		:ensure t
 		:hook
 		(embark-collect-mode . consult-preview-at-point-mode)))
-
 
 ;; NOTE: disabled. currently using vertico.
 ;; NOTE: emacs 28 introduced fido-vertical-mode.
@@ -935,7 +934,6 @@
 	;; make lsp-mode use company
 	(setq lsp-completion-provider :capf))
 
-
 ;; cape. completions sources
 (use-package cape
 	:ensure t
@@ -983,10 +981,8 @@
 	;; but it's a little bit slow.
 	)
 
-;; NOTE: currently disabled. trying prescient
 ;; orderless. matching for completion candidates
 (use-package orderless
-	:disabled
 	:ensure t
 	:init
 	;;(setq orderless-component-separator ",")
@@ -1001,6 +997,7 @@
 ;; experiment
 ;; prescient. matching for completion candidates
 (use-package prescient
+	:disabled
 	:ensure t
 	:custom-face
 	(prescient-primary-highlight
@@ -1058,7 +1055,7 @@
 (use-package dumb-jump
 	:ensure t
 	:config
-	;; replace xref I/F. e.g.: M-. , C-M-. , M-?
+	;; replace xref I/F. e.g.: M-.|C-M-.|M-?
 	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
 	(setq xref-show-definitions-function #'xref-show-definitions-completing-read))
 
