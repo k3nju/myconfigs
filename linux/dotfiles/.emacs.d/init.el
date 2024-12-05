@@ -863,13 +863,22 @@
 	:ensure t
 	:bind
 	(:map corfu-map
+				;; corfu default, tab is corfu-complete 
+				;;("TAB" . corfu-complete)
+				;;("<tab>" . corfu-complete)
+				
+				;; test 1: tab to next entry
 				;;("TAB" . corfu-next)
 				;;("<tab>" . corfu-next)
-				("TAB" . corfu-expand)
-				("<tab>" . corfu-expand)
+
+				;; test 2: tab shows candidates. (same as C-M-i)
+				;;("TAB" . corfu-expand)
+				;;("<tab>" . corfu-expand)
+
+				;;("C-j" . corfu-complete)
+				
 				;; C-a is bound to corfu-prompt-begging. so replace it to move-beginning-of-line.
 				([remap corfu-prompt-beginning] . move-beginning-of-line)
-				("C-j" . corfu-complete)
 				("M-SPC" . corfu-insert-separator)
 				("C-SPC" . corfu-insert-separator))
 	:init
@@ -982,19 +991,24 @@
 	)
 
 ;; orderless. matching for completion candidates
+;; TODO: fine grained tuning
+;;       - orderless-matching-styles
+;;       - completion-category-overrides
 (use-package orderless
 	:ensure t
 	:init
 	;;(setq orderless-component-separator ",")
-	(setq orderless-matching-styles '(orderless-literal
-																		orderless-regexp
-																		orderless-prefixes))
+	(setq orderless-matching-styles '(orderless-literal-prefix
+																		orderless-literal
+																		orderless-regexp))
 	(setq completion-styles '(orderless basic))
 	(setq completion-category-defaults nil)
-	;; TODO: consider fine-grained tuning per categories
-	(setq completion-category-overrides '((file (styles basic orderless)))))
+	(setq completion-category-overrides nil)
+	;; XXX: opening files by tramp(e.g.: /ssh:hoge@hoge:~/) will fail?
+	;;(setq completion-category-overrides '((file (styles basic))))
+	)
 
-;; experiment
+;; NOTE: disabled. trying orderless
 ;; prescient. matching for completion candidates
 (use-package prescient
 	:disabled
