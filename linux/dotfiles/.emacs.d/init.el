@@ -653,6 +653,79 @@
 ;;; operability enhancement packages
 ;;;
 
+;; orderless. matching for completion candidates
+;; TODO: fine grained tuning
+;;       - orderless-matching-styles
+;;       - completion-category-overrides
+(use-package orderless
+	:ensure t
+	:config
+	;;(setq orderless-component-separator ",")
+
+	;; default matching styles
+	(orderless-define-completion-style my/orderless-default
+		(orderless-matching-styles '(orderless-literal
+																 orderless-regexp
+																 orderless-flex)))
+	(setq completion-styles '(my/orderless-default basic))
+	(setq completion-category-defaults nil)
+	(setq completion-category-overrides nil)
+	;; XXX: opening files by tramp(e.g.: /ssh:hoge@hoge:~/) will fail?
+	;;(setq completion-category-overrides '((file (styles basic))))
+
+	;; NOTE: temporary disabled. appended orderless-flex to default
+	;; define matching styles for in-buffer completion
+	;;(orderless-define-completion-style my/orderless-in-buffer
+	;;  (orderless-matching-styles '(orderless-flex)))
+	
+	;; disable eglot completion and use orderless
+	(setq completion-category-overrides '((eglot (styles my/orderless-default))
+																				(eglot-capf (styles my/orderless-default)))))
+
+;; NOTE: disabled. trying orderless
+;; prescient. matching for completion candidates
+(use-package prescient
+	:disabled
+	:ensure t
+	:custom-face
+	(prescient-primary-highlight
+	 ((t :foreground "#b3a3e9" :background "#2a273a" :weight ultra-bold)))
+	:init
+	;;	(add-to-list 'completion-styles-alist
+	;;             '(tab completion-basic-try-completion ignore
+	;;               "Completion style which provides TAB completion only."))
+	;;	(setq completion-styles '(tab basic))
+	;;	(setq completion-styles '(basic))
+	;;	;;(setq completion-styles '(prescient basic))
+	(setq prescient-sort-full-matches-first t)
+	:config
+	(prescient-persist-mode)
+
+	(use-package corfu-prescient
+		:ensure t
+		:after corfu
+		:init
+		(setq corfu-prescient-enable-filtering t)
+		(setq corfu-prescient-enable-sorting t)
+		:config
+		;; to enable corfu-expand.
+		;; HINT: https://github.com/minad/corfu/issues/170
+		;; HINT: https://github.com/minad/corfu?tab=readme-ov-file#expanding-to-the-common-candidate-prefix-with-tab
+		(add-to-list 'completion-styles-alist
+								 '(tab completion-basic-try-completion ignore
+											 "Completion style which provides TAB completion only."))
+		(setq corfu-prescient-completion-styles '(tab prescient basic))
+		(corfu-prescient-mode))
+
+	(use-package vertico-prescient
+		:ensure t
+		:after vertico
+		:init
+		(setq vertico-prescient-enable-filtering t)
+		(setq vertico-prescient-enable-sorting t)
+		:config
+		(vertico-prescient-mode)))
+
 ;; vertico. minibuffer completion UI
 (use-package vertico
 	:ensure t
@@ -787,7 +860,6 @@
 	;; must be :init from official readme
 	(marginalia-mode))
 
-
 ;; experiment
 ;; embark. right-click context menu for emacs
 (use-package embark
@@ -857,25 +929,18 @@
 		;; unworked :init (amx-backend 'ido) and :config (amx-backend 'ido)
 		:custom	(amx-backend 'ido)))
 
-;; corfu. inbuffer completion UI
+;; corfu. in-buffer completion UI
 (use-package corfu
 	:if window-system
 	:ensure t
 	:bind
 	(:map corfu-map
-				;; corfu default, tab is corfu-complete 
-				;;("TAB" . corfu-complete)
-				;;("<tab>" . corfu-complete)
-				
-				;; test 1: tab to next entry
+				;; tab to next entry
 				;;("TAB" . corfu-next)
 				;;("<tab>" . corfu-next)
-
-				;; test 2: tab shows candidates. (same as C-M-i)
-				;;("TAB" . corfu-expand)
-				;;("<tab>" . corfu-expand)
-
+				
 				;;("C-j" . corfu-complete)
+				;;("C-j" . corfu-expand)
 				
 				;; C-a is bound to corfu-prompt-begging. so replace it to move-beginning-of-line.
 				([remap corfu-prompt-beginning] . move-beginning-of-line)
@@ -903,7 +968,7 @@
 		;; disable icon
 		(setq kind-icon-use-icons nil)))
 
-;; company. traditional inbuffer completion UI
+;; company. traditional in-buffer completion UI
 (use-package company
 	:if (not window-system)
 	:ensure t
@@ -990,68 +1055,6 @@
 	;; but it's a little bit slow.
 	)
 
-;; orderless. matching for completion candidates
-;; TODO: fine grained tuning
-;;       - orderless-matching-styles
-;;       - completion-category-overrides
-(use-package orderless
-	:ensure t
-	:init
-	;;(setq orderless-component-separator ",")
-	(setq orderless-matching-styles '(orderless-literal-prefix
-																		orderless-literal
-																		orderless-regexp))
-	(setq completion-styles '(orderless basic))
-	(setq completion-category-defaults nil)
-	(setq completion-category-overrides nil)
-	;; XXX: opening files by tramp(e.g.: /ssh:hoge@hoge:~/) will fail?
-	;;(setq completion-category-overrides '((file (styles basic))))
-	)
-
-;; NOTE: disabled. trying orderless
-;; prescient. matching for completion candidates
-(use-package prescient
-	:disabled
-	:ensure t
-	:custom-face
-	(prescient-primary-highlight
-	 ((t :foreground "#b3a3e9" :background "#2a273a" :weight ultra-bold)))
-	:init
-	;;	(add-to-list 'completion-styles-alist
-	;;             '(tab completion-basic-try-completion ignore
-	;;               "Completion style which provides TAB completion only."))
-	;;	(setq completion-styles '(tab basic))
-	;;	(setq completion-styles '(basic))
-	;;	;;(setq completion-styles '(prescient basic))
-	(setq prescient-sort-full-matches-first t)
-	:config
-	(prescient-persist-mode)
-
-	(use-package corfu-prescient
-		:ensure t
-		:after corfu
-		:init
-		(setq corfu-prescient-enable-filtering t)
-		(setq corfu-prescient-enable-sorting t)
-		:config
-		;; to enable corfu-expand.
-		;; HINT: https://github.com/minad/corfu/issues/170
-		;; HINT: https://github.com/minad/corfu?tab=readme-ov-file#expanding-to-the-common-candidate-prefix-with-tab
-		(add-to-list 'completion-styles-alist
-								 '(tab completion-basic-try-completion ignore
-											 "Completion style which provides TAB completion only."))
-		(setq corfu-prescient-completion-styles '(tab prescient basic))
-		(corfu-prescient-mode))
-
-	(use-package vertico-prescient
-		:ensure t
-		:after vertico
-		:init
-		(setq vertico-prescient-enable-filtering t)
-		(setq vertico-prescient-enable-sorting t)
-		:config
-		(vertico-prescient-mode)))
-
 
 ;;;
 ;;; development packages
@@ -1109,7 +1112,6 @@
 
 ;; yasnippet. snippet provider
 (use-package yasnippet
-	:disabled
 	:ensure t
 	:config
 	;; actual snippets
@@ -1133,24 +1135,31 @@
 	(setq eglot-ignored-server-capabilities '(:hoverProvider
 																						:inlayHintProvider))
 	(add-to-list 'eglot-stay-out-of 'flymake)
+	(add-to-list 'eglot-stay-out-of 'eldoc)
 	
-	;; needed?
-	(advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
+	;; NOTE: it's recommended that wrap eglot-completion-at-point by cape-wrap-buster
+	;;       https://github.com/minad/corfu/wiki#configuring-corfu-for-eglot
+	;;       but, to use orderless-flex on in-buffer completion on corf,
+	;;       cape-wrap-buster must be disabled.
+	;;       currently, disabling cape-wrap-buster and using orderless-flex filterling.
+	;;(advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
+	
 	
 	(defun my/eglot-cape-inside-code ()
 		(cape-wrap-nonexclusive
 		 (cape-capf-inside-code
 			(cape-capf-super
 			 #'eglot-completion-at-point
-			 #'cape-keyword
 			 #'cape-dabbrev))))
 	
 	(defun my/init-eglot ()
+		(my/pp "eglot my init")
 		(setq-local completion-at-point-functions
 								(list
 								 #'my/eglot-cape-inside-code
 								 #'my/cape-inside-string
-								 #'my/cape-inside-comment))))
+								 #'my/cape-inside-comment)))
+	)
 
 ;; NOTE: disabled experimentally. trying eglot.
 ;; lsp-mode
@@ -1294,7 +1303,9 @@
 	;;								 (my/add-before-save-hook 'lsp-format-buffer)
 	;;								 (if (executable-find "black")
 	;;										 (setq lsp-pylsp-plugins-black-enabled t))))
-	(python-mode . eglot-ensure))
+	(python-mode . eglot-ensure)
+	:init
+	(setq-default python-indent-offset 4))
 
 ;; rust-mode
 (use-package rust-mode
