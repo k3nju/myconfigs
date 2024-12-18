@@ -1,5 +1,6 @@
 ;;;; init.el from hell
 ;; TODO: filer
+;; TODO: rethink using rotate. https://github.com/daichirata/emacs-rotate
 
 ;; prefer newer version .el over .elc
 (setq load-prefer-newer t)
@@ -104,7 +105,7 @@
 	(line-number-mode)
 	(column-number-mode)
 
-	;; show fringe indicators in `visual-line-mode`.
+	;; show fringe indicators in visual-line-mode
 	(setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 
 	;; disable bell & screen flashes
@@ -120,7 +121,6 @@
 
 
 	;; editing visibilities
-	(show-paren-mode t)
 	(setq show-trailing-whitespace t)
 	(setq-default truncate-lines t)
 	(setq-default truncate-partial-width-windows nil)
@@ -206,9 +206,6 @@
 	;; scratch buffer message
 	(setq initial-scratch-message ";; *scratch*\n")
 
-	;; ediff
-	(setq-default ediff-split-window-function 'split-window-horizontally)
-
 	;; dedupe minibuffer history
 	(setq history-delete-duplicates t)
 
@@ -261,10 +258,32 @@
 ;;; basic packages
 ;;;
 
-;; hexl(builtint)
+;; hexl(builtin)
 (use-package hexl
 	:init
 	(setq hexl-bits 8))
+
+;; elec-pair(builtin). auto insert parens
+(use-package elec-pair
+	:hook
+	((prog-mode org-mode) . electric-pair-mode))
+
+;; paren(builtin). show pair of parens
+(use-package paren
+	:config
+	;; show paren when a cursor(|) at
+	;; (|setq hoge 1)
+	(setq show-paren-when-point-inside-paren t)
+	;; | (setq ...)
+	(setq show-paren-when-point-in-periphery t)
+	(show-paren-mode t))
+
+;; ediff(builtin). emacs differ
+(use-package ediff
+	:defer t
+	:config
+	(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+	(setq ediff-split-window-function 'split-window-horizontally))
 
 ;; uniquify(builtin). unique buffer names
 (use-package uniquify
@@ -292,10 +311,13 @@
 	(save-place-mode))
 
 ;; which-key(builtin from emacs30). showing keybinding in minibuffer
+;; NOTE: embark will set prefix-help-command to embark-prefix-help-command
 (use-package which-key
-	:ensure t
 	:config
-	(setq which-key-paging-key (kbd "DEL"))
+	(setq which-key-idle-delay 0.5)
+	;; NOTE: no need to set to DEL. just hit F1.
+	;;(setq which-key-paging-key (kbd "DEL"))
+	(setq which-key-compute-remaps t)
 	(which-key-setup-side-window-right)
 	(which-key-mode))
 
@@ -312,15 +334,14 @@
 ;; winner(builtin). window layout displacement undo/redo
 (use-package winner
 	:bind
-	(("C-q C-w p" . 'winner-undo)
-	 ("C-q C-w n" . 'winner-redo))
+	(("C-q C-w u" . winner-undo)
+	 ("C-q C-w r" . winner-redo))
 	:init
 	(setq winner-dont-bind-my-keys t)
 	:config
 	(winner-mode 1))
 
 ;; window-number. moving cursor by alt-1|2|3 
-;; NOTE: M-1, M-2, M-3
 (use-package window-number
 	:ensure t
 	:config
@@ -757,7 +778,7 @@
 ;; consult. minibuffer commands
 (use-package consult
 	:ensure t
-	:bind (;; C-c bindings in `mode-specific-map'
+	:bind (;; C-c bindings in mode-specific-map
 				 ("C-c M-x" . consult-mode-command)
 				 ;; ("C-c k" . consult-kmacro)
 				 ("C-c m" . consult-man)
@@ -765,7 +786,7 @@
 				 ;; shortcut for opening org. experiment
 				 ("C-c A" . consult-org-agenda)
 				 ("C-c H" . consult-org-heading)
-				 ;; C-x bindings in `ctl-x-map'
+				 ;; C-x bindings in ctl-x-map
 				 ("C-x M-:" . consult-complex-command) ;; orig. repeat-complex-command
 				 ("C-x b" . consult-buffer) ;; orig. switch-to-buffer
 				 ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
@@ -781,7 +802,7 @@
 				 ;; yank
 				 ("M-y" . consult-yank-pop) ;; orig. yank-pop
 				 
-				 ;; M-g bindings in `goto-map'
+				 ;; M-g bindings in goto-map
 				 ;;("M-g e" . consult-compile-error)
 				 ;;("M-g f" . consult-flymake) ;; Alternative: consult-flycheck
 				 ("M-g g" . consult-goto-line) ;; orig. goto-line
@@ -792,7 +813,7 @@
 				 ("M-g i" . consult-imenu)
 				 ("M-g I" . consult-imenu-multi)
 				 
-				 ;; M-s bindings in `search-map'
+				 ;; M-s bindings in search-map
 				 ("M-s f" . consult-find)
 				 ("M-s l" . consult-locate)
 				 ("M-s g" . consult-grep)
@@ -1127,7 +1148,6 @@
 ;; experiment
 ;; eglot(builtin). 
 (use-package eglot
-	:ensure t
 	:after cape
 	:hook
 	(eglot-managed-mode . my/init-eglot)
@@ -1245,11 +1265,9 @@
 ;;; major-modes
 ;;;
 
-;; elisp-mode(builtint) 
+;; elisp-mode(builtin) 
 (use-package elisp-mode
 	;; ensure 1 ;; stucks
-	:hook
-	(emacs-lisp-mode . electric-pair-mode)
 	:config
 	(use-package aggressive-indent
 		:ensure t
@@ -1258,7 +1276,6 @@
 
 ;; cc-mode(builtin)
 (use-package cc-mode
-	:ensure t
 	;;:after (:and (:any lsp-mode eglot) cape)
 	:after cape
 	:hook
