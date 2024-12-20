@@ -295,11 +295,17 @@ class ExecutionContext{
 		}
 
 		try{
-			$action = New-ScheduledTaskAction -Execute "powershell.exe" `
+			$action = New-ScheduledTaskAction `
+				-Execute "powershell.exe" `
 				-Argument "-ep bypass -file $($MyInvocation.PSCommandPath) -runmode $($this.rerunReq_.RunMode())"
-			$settings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) `
-				-AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+			
+			$settings = New-ScheduledTaskSettingsSet `
+				-RestartCount 5 `
+				-RestartInterval (New-TimeSpan -Minutes 1) `
 				-StartWhenAvailable `
+				-AllowStartIfOnBatteries `
+				-DontStopIfGoingOnBatteries `
+				-DontStopOnIdleEnd `
 				-MultipleInstances IgnoreNew
 			
 			switch($this.rerunReq_){
