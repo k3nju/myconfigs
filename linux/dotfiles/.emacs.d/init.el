@@ -248,7 +248,7 @@
 				("C-M-p" . previous-buffer)
 				("C-M-n" . next-buffer)
 				;; personals
-				("C-q C-x r" . (lambda () (interactive) (load-file "~/.emacs.d/init.el")))
+				("C-q C-x C-r" . (lambda () (interactive) (load-file "~/.emacs.d/init.el")))
 				)
 	;; end of config
 	)
@@ -267,6 +267,17 @@
 (use-package elec-pair
 	:hook
 	((prog-mode org-mode) . electric-pair-mode))
+
+;; dired(builtin). the directory editor
+(use-package dired
+	:config
+	;; suggest a target for moving/copying intelligently
+	(setq dired-dwim-target t)
+	(setq dired-recursive-copies 'always)
+	(setq dired-recursive-deletes 'top) ;; ask
+	(setq dired-create-destination-dirs 'always)
+	;; XXX: unworking?
+	(setq dired-kill-when-opening-new-dired-buffer t))
 
 ;; paren(builtin). show pair of parens
 (use-package paren
@@ -334,8 +345,8 @@
 ;; winner(builtin). window layout displacement undo/redo
 (use-package winner
 	:bind
-	(("C-q C-w u" . winner-undo)
-	 ("C-q C-w r" . winner-redo))
+	(("C-q C-w C-u" . winner-undo)
+	 ("C-q C-w C-r" . winner-redo))
 	:init
 	(setq winner-dont-bind-my-keys t)
 	:config
@@ -372,8 +383,8 @@
 (use-package goto-chg
 	:ensure t
 	:bind
-	(("C-q p" . goto-last-change)
-	 ("C-q n" . goto-last-change-reverse)))
+	(("C-q C-c C-p" . goto-last-change)
+	 ("C-q C-c C-n" . goto-last-change-reverse)))
 
 ;; hl-line-mode. highlighting cursor line
 (use-package hl-line
@@ -686,22 +697,23 @@
 	;; default matching styles
 	(orderless-define-completion-style my/orderless-default
 		(orderless-matching-styles '(orderless-literal
-																 orderless-regexp
-																 orderless-flex)))
+																 orderless-regexp)))
 	(setq completion-styles '(my/orderless-default basic))
 	(setq completion-category-defaults nil)
 	(setq completion-category-overrides nil)
+
 	;; XXX: opening files by tramp(e.g.: /ssh:hoge@hoge:~/) will fail?
 	;;(setq completion-category-overrides '((file (styles basic))))
 
-	;; NOTE: temporary disabled. appended orderless-flex to default
 	;; define matching styles for in-buffer completion
-	;;(orderless-define-completion-style my/orderless-in-buffer
-	;;  (orderless-matching-styles '(orderless-flex)))
+	(orderless-define-completion-style my/orderless-in-buffer
+	  (orderless-matching-styles '(orderless-literal
+																 orderless-regexp
+																 orderless-flex)))
 	
 	;; disable eglot completion and use orderless
-	(setq completion-category-overrides '((eglot (styles my/orderless-default))
-																				(eglot-capf (styles my/orderless-default)))))
+	(setq completion-category-overrides '((eglot (styles my/orderless-in-buffer))
+																				(eglot-capf (styles my/orderless-in-buffer)))))
 
 ;; NOTE: disabled. trying orderless
 ;; prescient. matching for completion candidates
@@ -884,25 +896,25 @@
 ;; experiment
 ;; embark. right-click context menu for emacs
 (use-package embark
-	:ensure t
-	:requires marginalia
-	:bind
-	(("C-q e ." . embark-act)
-	 ("C-q e ," . embark-dwim)
-	 ("C-q e b" . embark-bindings))
-	:init
-	(setq prefix-help-command #'embark-prefix-help-command)
-	:config
-	;; Hide the mode line of the Embark live/completions buffers
-  (add-to-list 'display-buffer-alist
+												:ensure t
+												:requires marginalia
+												:bind
+	(("C-q C-." . embark-act)
+	 ("C-q C-," . embark-dwim)
+	 ("C-q C-e C-b" . embark-bindings))
+												:init
+												(setq prefix-help-command #'embark-prefix-help-command)
+												:config
+												;; Hide the mode line of the Embark live/completions buffers
+											(add-to-list 'display-buffer-alist
 							 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none))))
-	
-	(use-package embark-consult
-		:ensure t
-		:hook
-		(embark-collect-mode . consult-preview-at-point-mode)))
+												
+												(use-package embark-consult
+													:ensure t
+													:hook
+													(embark-collect-mode . consult-preview-at-point-mode)))
 
 ;; NOTE: disabled. currently using vertico.
 ;; NOTE: emacs 28 introduced fido-vertical-mode.
@@ -1085,7 +1097,7 @@
 (use-package ggtags
 	:ensure t
 	:bind
-	("C-q g" . 'ggtags-mode))
+	("C-q C-g" . 'ggtags-mode))
 
 ;; dumb-jump. ensuring navigating codes work
 ;; NOTE: dumb-jump is registered as a xref implementation.
@@ -1097,14 +1109,25 @@
 	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
 	(setq xref-show-definitions-function #'xref-show-definitions-completing-read))
 
+
+;; NOTE: currently, using project.el
 ;; projectile. project management
 ;; still usefull even though project.el is in emacs
 (use-package projectile
+	:disabled
 	:ensure t
 	;; unwork :config (projectile-mode +1)
 	:init (projectile-mode +1)
 	:bind-keymap
 	("C-x p" . projectile-command-map))
+
+;; project(builtin). project management ops
+(use-package project
+	:config
+	(setq project-vc-extra-root-markers '(".projectile"
+																				".project"
+																				"requirements.txt"
+																				"go.mod")))
 
 ;; flymake(builtin). flymake can use eglot as a backend.
 (use-package flymake
@@ -1133,6 +1156,7 @@
 
 ;; yasnippet. snippet provider
 (use-package yasnippet
+	:disabled
 	:ensure t
 	:config
 	;; actual snippets
@@ -1188,67 +1212,67 @@
 ;;			 python: install python-lsp-server[all] for each project
 ;;			 golang: go get golang.org./x/tools/gopls@latest
 (use-package lsp-mode
-	:disabled
-	:ensure t
-	:hook
-	(prog-mode . lsp-deferred)
-	:init
-	(setq lsp-keymap-prefix "C-q l")
-	:config
-	;;(setq lsp-log-io t) ;; for debug
-	(setq lsp-warn-no-matched-clients nil)
-	(setq lsp-signature-auto-activate nil)
-	;;(setq lsp-completion-provider :capf) ;; for company mode
-	(setq lsp-completion-provider :none)
-	
-	;; clangd args
-	;; set log=verbose for debug
-	(setq lsp-clients-clangd-args '("-j=2" "--background-index" "--log=error"))
+				:disabled
+				:ensure t
+				:hook
+				(prog-mode . lsp-deferred)
+				:init
+	(setq lsp-keymap-prefix "C-q C-l")
+				:config
+				;;(setq lsp-log-io t) ;; for debug
+				(setq lsp-warn-no-matched-clients nil)
+				(setq lsp-signature-auto-activate nil)
+				;;(setq lsp-completion-provider :capf) ;; for company mode
+				(setq lsp-completion-provider :none)
+				
+				;; clangd args
+				;; set log=verbose for debug
+				(setq lsp-clients-clangd-args '("-j=2" "--background-index" "--log=error"))
 
-	;; settings per langs
-	(setq lsp-register-custom-settings
+				;; settings per langs
+				(setq lsp-register-custom-settings
 				'(("gopls.experimentalWorkspaceModule" t t)))
-	
-	;; lsp-ui
-	(use-package lsp-ui
-		:disabled
-		:ensure t
-		:after lsp-mode
-		:commands lsp-ui-mode
-		:hook
-		(lsp-mode . lsp-ui-mode)
-		:bind
-		(:map lsp-ui-mode-map
+				
+				;; lsp-ui
+				(use-package lsp-ui
+					:disabled
+					:ensure t
+					:after lsp-mode
+					:commands lsp-ui-mode
+					:hook
+					(lsp-mode . lsp-ui-mode)
+					:bind
+					(:map lsp-ui-mode-map
 					;; remap xref-find-defenitions function to lsp-ui-peek-find-definitions
 					([remap xref-find-definitions] . lsp-ui-peek-find-definitions) ;; M-.
 					([remap xref-find-references] . lsp-ui-peek-find-references) ;; M-?
-					("C-q C-u m" . lsp-ui-imenu))
-		
-		:custom-face
-		(lsp-ui-sideline-symbol-info ((t (:background "default"))))
-		;; background face of sideline and doc
-		(markdown-code-face ((t (:background "grey10"))))
-		:config
-		(setq lsp-lens-enable t)
-		
-		;; lsp-ui-doc
-		(setq lsp-ui-doc-enable nil)
-		(setq lsp-ui-doc-header t)
-		(setq lsp-ui-doc-include-signature t)
-		(setq lsp-ui-doc-delay 2)
-		
-		;; lsp-ui-sideline
-		(setq lsp-ui-sideline-enable t)
-		(setq lsp-ui-sideline-show-code-actions t)
-		(setq lsp-ui-sideline-show-hover nil)
-		(setq lsp-ui-sideline-delay 0.2)
-		;;(lsp-ui-sideline-update-mode 'line)
-		(setq lsp-ui-sideline-show-diagnostics t)
-		(setq lsp-ui-sideline-diagnostic-max-lines 10)
-		(setq lsp-ui-sideline-diagnostic-max-line-length 150)
-		
-		;; lsp-ui-peek
-		(setq lsp-ui-peek-always-show t)))
+("C-q C-u C-m" . lsp-ui-imenu))
+					
+					:custom-face
+					(lsp-ui-sideline-symbol-info ((t (:background "default"))))
+					;; background face of sideline and doc
+					(markdown-code-face ((t (:background "grey10"))))
+					:config
+					(setq lsp-lens-enable t)
+					
+					;; lsp-ui-doc
+					(setq lsp-ui-doc-enable nil)
+					(setq lsp-ui-doc-header t)
+					(setq lsp-ui-doc-include-signature t)
+					(setq lsp-ui-doc-delay 2)
+					
+					;; lsp-ui-sideline
+					(setq lsp-ui-sideline-enable t)
+					(setq lsp-ui-sideline-show-code-actions t)
+					(setq lsp-ui-sideline-show-hover nil)
+					(setq lsp-ui-sideline-delay 0.2)
+					;;(lsp-ui-sideline-update-mode 'line)
+					(setq lsp-ui-sideline-show-diagnostics t)
+					(setq lsp-ui-sideline-diagnostic-max-lines 10)
+					(setq lsp-ui-sideline-diagnostic-max-line-length 150)
+					
+					;; lsp-ui-peek
+					(setq lsp-ui-peek-always-show t)))
 
 ;; treesit-auto. tree-sitter lang bundles manager
 (use-package treesit-auto
@@ -1260,6 +1284,27 @@
 	(treesit-auto-add-to-auto-mode-alist 'all)
 	(global-treesit-auto-mode))
 
+
+;; experiment
+(use-package paredit
+	:ensure t
+	:hook ((lisp-data-mode . enable-paredit-mode)))
+
+;; experiment
+;; popper. show buffers in popup
+(use-package popper
+	:ensure t
+	:bind
+	(("C-q C-p C-p" . popper-toggle)
+	 ("C-q C-p C-n" . popper-cycle))
+	:config
+  (setq popper-reference-buffers
+				'("\\*Messages\\*"
+					"\\*scratch*\\*"
+					"^\\*.*vterm.*\\*$" vterm-mode))
+	(setq popper-display-control nil)
+	(popper-mode)
+	(popper-echo-mode))
 
 ;;;
 ;;; major-modes
@@ -1276,30 +1321,30 @@
 
 ;; cc-mode(builtin)
 (use-package cc-mode
-	;;:after (:and (:any lsp-mode eglot) cape)
-	:after cape
-	:hook
-	(c-mode-common . eglot-ensure)
-	:config
-	;; google-c-style
-	(use-package google-c-style
-		:ensure t
-		:hook
-		(c-mode-common . google-set-c-style))
-	
-	;; clang-format
-	(use-package clang-format
-		:ensure t
-		:requires cc-mode
-		:bind
-		(("C-q f b" . clang-format-buffer)
-		 ("C-q f r" . clang-format-region))
-		:hook
-		(c-mode-common . (lambda ()
-											 (my/add-before-save-hook 'clang-format-buffer)))
-		:init
-		(setq clang-format-style "file")
-		(setq clang-format-fallback-style "google")))
+									;;:after (:and (:any lsp-mode eglot) cape)
+									:after cape
+									:hook
+									(c-mode-common . eglot-ensure)
+									:config
+									;; google-c-style
+									(use-package google-c-style
+										:ensure t
+										:hook
+										(c-mode-common . google-set-c-style))
+									
+									;; clang-format
+									(use-package clang-format
+										:ensure t
+										:requires cc-mode
+										:bind
+	(("C-q C-f C-b" . clang-format-buffer)
+	 ("C-q C-f C-r" . clang-format-region))
+										:hook
+										(c-mode-common . (lambda ()
+																			(my/add-before-save-hook 'clang-format-buffer)))
+										:init
+										(setq clang-format-style "file")
+										(setq clang-format-fallback-style "google")))
 
 ;; go-mode
 (use-package go-mode
