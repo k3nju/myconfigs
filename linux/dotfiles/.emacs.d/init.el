@@ -1,19 +1,44 @@
 ;;;; init.el from hell
+;; TODO: filer
+;; TODO: rethink using rotate. https://github.com/daichirata/emacs-rotate
+
+;; prefer newer version .el over .elc
+(setq load-prefer-newer t)
 
 ;;(profiler-start 'cpu)
 
-;;;
 ;;; basic config
-;;;
-
 (use-package emacs
 	:config
 	;; TODO: consider using early-init.el
 
 	;; workaround
 	(setq byte-compile-warnings '(cl-functions))
+
+	;; yes or no
+	(setq use-short-answers t)
+
+	;; native compilation
+	(setq native-comp-jit-compilation t)
 	
+
+	;; frame appearances
+	(setq inhibit-startup-screen t)
+	(setq inhibit-startup-echo-area-message t)
+	(menu-bar-mode -1)
+	(tool-bar-mode -1)
+	(scroll-bar-mode -1)
+	(add-to-list 'default-frame-alist '(fullscreen . maximized))
+	;; for resizing *Completions* buffer size
+	;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Temporary-Displays.html#index-temp_002dbuffer_002dresize_002dmode
+	(temp-buffer-resize-mode)
+
+	;; use minibuffer to answer 
+	(setq use-dialog-box nil)
+
+
 	;; coding system
+	(set-language-environment 'utf-8)
 	(prefer-coding-system 'utf-8)
 	(set-default-coding-systems 'utf-8)
 	(set-terminal-coding-system 'utf-8)
@@ -21,13 +46,7 @@
 	(setq-default buffer-file-coding-system 'utf-8)
 	(when (eq system-type 'windows-nt)
 		(setq-default default-process-coding-system '(utf-8 . japanese-cp932-dos)))
-	
-	;; frame appearances
-	(setq inhibit-startup-screen t)
-	(menu-bar-mode -1)
-	(tool-bar-mode -1)
-	(scroll-bar-mode -1)
-	(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
 
 	;; font for linux
 	;;(set-frame-font "Office Code Pro 11")
@@ -77,9 +96,7 @@
 		;;(set-frame-font "InputMonoCondensed")
 		;; WORKAROUND: input isn't installed
 		(set-frame-font "MS Gothic 12" nil t))
-
-	;; disable bell & screen flashes
-	(setq ring-bell-function 'ignore)
+	
 
 	;; line and column numbering
 	(setq-default display-line-numbers-width 3)
@@ -87,13 +104,23 @@
 	;; show line and column number in mode line
 	(line-number-mode)
 	(column-number-mode)
+
+	;; show fringe indicators in visual-line-mode
+	(setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
+
+	;; disable bell & screen flashes
+	(setq ring-bell-function 'ignore)
 	
 	;; cursor
 	(blink-cursor-mode 0)
 	(global-subword-mode t) ;; stop cursor on per humps for CamelCase
 
+	;; selection
+	;; typed text replaces the selection
+	(delete-selection-mode t)
+
+
 	;; editing visibilities
-	(show-paren-mode t)
 	(setq show-trailing-whitespace t)
 	(setq-default truncate-lines t)
 	(setq-default truncate-partial-width-windows nil)
@@ -112,6 +139,16 @@
 	(setq select-enable-primary t)
 	(setq select-enable-clipboard t)
 	(setq save-interprogram-paste-before-kill t)
+
+	;; scrolling
+	;; scroll per lines
+	(setq scroll-conservatively 1)
+	;; lines remaining to start scrolling
+	(setq scroll-margin 0)
+	;; paging with leaving 5 lines of previous page
+	(setq next-screen-context-lines 5)
+	;; keep screen position when paging
+	(setq scroll-preserve-screen-position t)
 	
 	;; search defaults
 	(setq case-fold-search t) ;; case sensitive
@@ -120,7 +157,10 @@
 	;; https://memo.sugyan.com/entry/20120105/1325766364
 	(setq find-file-visit-truename t)
 
-	;; backup
+	;; disable lock file(.#hoge.txt)
+	(setq create-lockfiles nil)
+
+	;; configure backup file(hoge.txt~)
 	(setq version-control t)
 	(setq kept-new-versions 5)
 	(setq kept-old-versions 0)
@@ -128,13 +168,12 @@
 	(setq backup-by-copying t)
 	(setq backup-directory-alist `((".*" . ,(expand-file-name "backup" user-emacs-directory))))
 
-	;; auto-save
-	(setq auto-save-visited-interval 30)
-	(auto-save-visited-mode)
+	;; disable auto-save file(#hoge.txt#)
+	(setq auto-save-default nil)
 
-	;; for resizing *Completions* buffer size
-	;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Temporary-Displays.html#index-temp_002dbuffer_002dresize_002dmode
-	(temp-buffer-resize-mode)
+	;; configure auto-saving to visited(actual) files
+	(setq auto-save-visited-interval 30) ;; seconds
+	(auto-save-visited-mode)
 	
 	;; elisp user site
 	(let* ((default-directory (expand-file-name "lisp" user-emacs-directory)))
@@ -158,18 +197,27 @@
 		(setq package-install-upgrade-built-in t)
 		(setq package-native-compile t))
 	
-	;; ediff
-	(setq-default ediff-split-window-function 'split-window-horizontally)
-	
-	;; yes or no
-	(fset 'yes-or-no-p 'y-or-n-p)
-	
+	;; https://www.reddit.com/r/emacs/comments/q0kmw3/psa_sentenceenddoublespace/
+	(setq-default sentence-end-double-space nil)
+
+	;; auto-revert. reflect changes made by other process
+	(global-auto-revert-mode t)
+
+	;; scratch buffer message
+	(setq initial-scratch-message ";; *scratch*\n")
+
+	;; dedupe minibuffer history
+	(setq history-delete-duplicates t)
+
 	;; disable ime on minibuffer
+	;; NOTE: unwork on windows
 	(add-hook 'minibuffer-setup-hook 'deactivate-input-method)
+
 
 	;; helpers
 	(defun my/pp (o) (mapc 'princ (list "###|" o "\n")))
 	(defun my/add-before-save-hook (f) (add-hook 'before-save-hook f nil 'local))
+
 	
 	;;;; key bindings
 	(define-key key-translation-map (kbd "C-h") (kbd "DEL"))
@@ -186,7 +234,7 @@
 				("M-p" . (lambda () (interactive) (other-window -1)))
 				;; toggle-input-method
 				("C-\\" . nil)
-				;; NOTE: disabled. currently using postframe style.
+				;; NOTE: disabled. currently using posframe style.
 				;; to display candidates for overlay by mozc, truncate-lines must be enabled.
 				;;(toggle-truncate-lines) 
 				;; input method
@@ -210,10 +258,32 @@
 ;;; basic packages
 ;;;
 
-;; hexl(builtint)
+;; hexl(builtin)
 (use-package hexl
 	:init
 	(setq hexl-bits 8))
+
+;; elec-pair(builtin). auto insert parens
+(use-package elec-pair
+	:hook
+	((prog-mode org-mode) . electric-pair-mode))
+
+;; paren(builtin). show pair of parens
+(use-package paren
+	:config
+	;; show paren when a cursor(|) at
+	;; (|setq hoge 1)
+	(setq show-paren-when-point-inside-paren t)
+	;; | (setq ...)
+	(setq show-paren-when-point-in-periphery t)
+	(show-paren-mode t))
+
+;; ediff(builtin). emacs differ
+(use-package ediff
+	:defer t
+	:config
+	(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+	(setq ediff-split-window-function 'split-window-horizontally))
 
 ;; uniquify(builtin). unique buffer names
 (use-package uniquify
@@ -241,10 +311,13 @@
 	(save-place-mode))
 
 ;; which-key(builtin from emacs30). showing keybinding in minibuffer
+;; NOTE: embark will set prefix-help-command to embark-prefix-help-command
 (use-package which-key
-	:ensure t
 	:config
-	(setq which-key-paging-key (kbd "DEL"))
+	(setq which-key-idle-delay 0.5)
+	;; NOTE: no need to set to DEL. just hit F1.
+	;;(setq which-key-paging-key (kbd "DEL"))
+	(setq which-key-compute-remaps t)
 	(which-key-setup-side-window-right)
 	(which-key-mode))
 
@@ -261,15 +334,14 @@
 ;; winner(builtin). window layout displacement undo/redo
 (use-package winner
 	:bind
-	(("C-q C-w p" . 'winner-undo)
-	 ("C-q C-w n" . 'winner-redo))
+	(("C-q C-w u" . winner-undo)
+	 ("C-q C-w r" . winner-redo))
 	:init
 	(setq winner-dont-bind-my-keys t)
 	:config
 	(winner-mode 1))
 
 ;; window-number. moving cursor by alt-1|2|3 
-;; NOTE: M-1, M-2, M-3
 (use-package window-number
 	:ensure t
 	:config
@@ -348,13 +420,6 @@
 (use-package wgrep
 	:ensure t)
 
-;; neotree
-(use-package neotree
-	:ensure t
-	:bind ("C-x d" . neotree-toggle)
-	:init
-	(setq neo-theme 'ascii))
-
 ;; vterm. fast terminal
 ;; NOTE: need external configuration to .bashrc
 (use-package vterm
@@ -393,27 +458,36 @@
 	(org-level-2 ((t (:extend t :weight bold :height 1.3))))
 	(org-level-3 ((t (:weight bold :height 1.1))))
 	:hook
-	;; global-hl-todo-mode is not effective
-	((org-mode . hl-todo-mode)
-	 (org-capture-after-finalize . (lambda ()
-																	 ;; HACK: if misc template invoked and that is aborted, delete a note file
-																	 (let* ((is-misc (org-capture-get :misc-note))
-																					(note-file-name (buffer-file-name (org-capture-get :buffer))))
-																		 (when (and is-misc
-																								org-note-abort
-																								(file-exists-p note-file-name))
-																			 (delete-file note-file-name))))))
+	(org-mode . hl-todo-mode) ;; global-hl-todo-mode is not effective on org-mode
+	(org-mode . (lambda () (setq-local completion-at-point-functions (list #'my/cape-defaults))))
+	(org-capture-after-finalize . (lambda ()
+																	;; HACK: if misc template invoked and that is aborted, delete a note file
+																	(let* ((is-misc (org-capture-get :misc-note))
+																				 (note-file-name (buffer-file-name (org-capture-get :buffer))))
+																		(when (and is-misc
+																							 org-note-abort
+																							 (file-exists-p note-file-name))
+																			(delete-file note-file-name)))))
 	:config
 	;; org-directory precedence
 	;; 1) ~/Dropbox/org/
 	;; 2) ~/.emacs.d/org/
 	;; 3) ~/org/ (org-directory default)
-	(mapc (lambda (v)
-					(let* ((d (expand-file-name "org/" v)))
+	(let* ((ds (if (eq system-type 'windows-nt)
+								 ;; org/ candidates for windows
+								 (let* ((win-home-dir (expand-file-name (getenv "HOMEPATH") (getenv "HOMEDRIVE"))))
+									 (list (expand-file-name "Dropbox" win-home-dir)
+												 user-emacs-directory
+												 win-home-dir))
+							 ;; org/ candidates for linux
+							 (list "~/Dropbox/"
+										 user-emacs-directory
+										 "~/"))))
+		(mapc (lambda (d)
 						(when (file-exists-p d)
-							(setq org-directory d))))
-				;; priority in reverse order
-				(list "~/" user-emacs-directory "~/Dropbox/"))
+							(setq org-directory d)))
+					(mapcar (apply-partially 'expand-file-name "org/") ds)))
+
 	(setq org-default-notes-file (expand-file-name "notes.org" org-directory))
 	(setq my/misc-notes-directory (expand-file-name "misc" org-directory))
 	(mkdir my/misc-notes-directory t)
@@ -437,10 +511,10 @@
 	(setq org-capture-templates
 				'(("n" "[N]otes" entry (file+headline "notes.org" "Notes")
 					 "* %T %?\n" 
-					 :empty-lines 1 :kill-buffer 1 :prepend t)
+					 :empty-lines 0 :kill-buffer 1 :prepend t)
 					("j" "[J]ournals" entry (file+headline "notes.org" "Journals")
 					 "* %T %?\n"
-					 :empty-lines 1 :kill-buffer t :prepend t)
+					 :empty-lines 0 :kill-buffer t :prepend t)
 					("d" "[D]iary" entry (file "diary.org")
 					 "* %T\n%?\n"
 					 :empty-lines-after 1 :prepend t :jump-to-captured t)
@@ -543,17 +617,7 @@
 		:requires org
 		:config
 		;;(setq org-id-link-to-org-use-id t)
-		(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id))
-
-	;; org-sidebar
-	(use-package org-sidebar
-		:ensure t
-		:requires org
-		:bind ("C-c s" . org-sidebar-toggle)
-		:config
-		(setq org-sidebar-side 'left)
-		(setq org-sidebar-default-fns '(org-sidebar-tree-view-buffer
-																		org-sidebar--todo-items))))
+		(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)))
 
 
 ;;;
@@ -610,12 +674,85 @@
 ;;; operability enhancement packages
 ;;;
 
+;; orderless. matching for completion candidates
+;; TODO: fine grained tuning
+;;       - orderless-matching-styles
+;;       - completion-category-overrides
+(use-package orderless
+	:ensure t
+	:config
+	;;(setq orderless-component-separator ",")
+
+	;; default matching styles
+	(orderless-define-completion-style my/orderless-default
+		(orderless-matching-styles '(orderless-literal
+																 orderless-regexp
+																 orderless-flex)))
+	(setq completion-styles '(my/orderless-default basic))
+	(setq completion-category-defaults nil)
+	(setq completion-category-overrides nil)
+	;; XXX: opening files by tramp(e.g.: /ssh:hoge@hoge:~/) will fail?
+	;;(setq completion-category-overrides '((file (styles basic))))
+
+	;; NOTE: temporary disabled. appended orderless-flex to default
+	;; define matching styles for in-buffer completion
+	;;(orderless-define-completion-style my/orderless-in-buffer
+	;;  (orderless-matching-styles '(orderless-flex)))
+	
+	;; disable eglot completion and use orderless
+	(setq completion-category-overrides '((eglot (styles my/orderless-default))
+																				(eglot-capf (styles my/orderless-default)))))
+
+;; NOTE: disabled. trying orderless
+;; prescient. matching for completion candidates
+(use-package prescient
+	:disabled
+	:ensure t
+	:custom-face
+	(prescient-primary-highlight
+	 ((t :foreground "#b3a3e9" :background "#2a273a" :weight ultra-bold)))
+	:init
+	;;	(add-to-list 'completion-styles-alist
+	;;             '(tab completion-basic-try-completion ignore
+	;;               "Completion style which provides TAB completion only."))
+	;;	(setq completion-styles '(tab basic))
+	;;	(setq completion-styles '(basic))
+	;;	;;(setq completion-styles '(prescient basic))
+	(setq prescient-sort-full-matches-first t)
+	:config
+	(prescient-persist-mode)
+
+	(use-package corfu-prescient
+		:ensure t
+		:after corfu
+		:init
+		(setq corfu-prescient-enable-filtering t)
+		(setq corfu-prescient-enable-sorting t)
+		:config
+		;; to enable corfu-expand.
+		;; HINT: https://github.com/minad/corfu/issues/170
+		;; HINT: https://github.com/minad/corfu?tab=readme-ov-file#expanding-to-the-common-candidate-prefix-with-tab
+		(add-to-list 'completion-styles-alist
+								 '(tab completion-basic-try-completion ignore
+											 "Completion style which provides TAB completion only."))
+		(setq corfu-prescient-completion-styles '(tab prescient basic))
+		(corfu-prescient-mode))
+
+	(use-package vertico-prescient
+		:ensure t
+		:after vertico
+		:init
+		(setq vertico-prescient-enable-filtering t)
+		(setq vertico-prescient-enable-sorting t)
+		:config
+		(vertico-prescient-mode)))
+
 ;; vertico. minibuffer completion UI
 (use-package vertico
 	:ensure t
 	:init
 	(setq vertico-cycle t)
-	(setq vertico-count 15)
+	(setq vertico-count 20)
 	(setq vertico-resize nil)
 	(setq vertico-preselect 'first)
 
@@ -638,19 +775,18 @@
 		:hook
 		(rfn-eshadow-update-overlay . vertico-directory-tidy)))
 
-
 ;; consult. minibuffer commands
 (use-package consult
 	:ensure t
-	:bind (;; C-c bindings in `mode-specific-map'
+	:bind (;; C-c bindings in mode-specific-map
 				 ("C-c M-x" . consult-mode-command)
 				 ;; ("C-c k" . consult-kmacro)
 				 ("C-c m" . consult-man)
 				 ;; org-mode
-				 ;; shortcut for opening org. experiment biding
+				 ;; shortcut for opening org. experiment
 				 ("C-c A" . consult-org-agenda)
-				 ("M-g o" . consult-org-heading)
-				 ;; C-x bindings in `ctl-x-map'
+				 ("C-c H" . consult-org-heading)
+				 ;; C-x bindings in ctl-x-map
 				 ("C-x M-:" . consult-complex-command) ;; orig. repeat-complex-command
 				 ("C-x b" . consult-buffer) ;; orig. switch-to-buffer
 				 ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
@@ -659,14 +795,14 @@
 				 ;;("C-x p b" . consult-project-buffer) ;; orig. project-switch-to-buffer
 
 				 ;; bindings for fast register access
-				 ("C-q r l" . consult-register-load)
-				 ("C-q r s" . consult-register-store) ;; orig. abbrev-prefix-mark (unrelated)
-				 ("C-q r r" . consult-register)
+				 ("C-x r s" . consult-register-store) ;; orig. copy-to-register
+				 ("C-x r j" . consult-register-load) ;; orig. jump-to-register
+				 ("C-x r r" . consult-register) ;; orig. copy-rectangle-to-register
 				 
 				 ;; yank
 				 ("M-y" . consult-yank-pop) ;; orig. yank-pop
 				 
-				 ;; M-g bindings in `goto-map'
+				 ;; M-g bindings in goto-map
 				 ;;("M-g e" . consult-compile-error)
 				 ;;("M-g f" . consult-flymake) ;; Alternative: consult-flycheck
 				 ("M-g g" . consult-goto-line) ;; orig. goto-line
@@ -677,29 +813,29 @@
 				 ("M-g i" . consult-imenu)
 				 ("M-g I" . consult-imenu-multi)
 				 
-				 ;; M-s bindings in `search-map'
+				 ;; M-s bindings in search-map
 				 ("M-s f" . consult-find)
 				 ("M-s l" . consult-locate)
 				 ("M-s g" . consult-grep)
 				 ("M-s G" . consult-git-grep)
 				 ("M-s r" . consult-ripgrep)
-				 ("C-;"	 . consult-line) ;; experiment binding
-				("M-s L" . consult-line-multi) ;; for multiple buffer
-				;;("M-s k" . consult-keep-lines) ;; actually editing
-				("M-s n" . consult-focus-lines) ;; narrowing
+				 ("C-;"	 . consult-line) ;; experiment
+				 ("M-s L" . consult-line-multi) ;; for multiple buffer
+				 ;;("M-s k" . consult-keep-lines) ;; actually editing
+				 ("M-s n" . consult-focus-lines) ;; narrowing
 
-				;; Isearch integration
-				:map isearch-mode-map
-				("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
-				("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
-				("M-s l" . consult-line) ;; needed by consult-line to detect isearch
-				("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
-				("M-s x" . consult-isearch-forward)
-				
-				;; Minibuffer history
-				:map minibuffer-local-map
-				("M-r" . consult-history) ;; orig. previous-matching-history-element
-				)
+				 ;; Isearch integration
+				 :map isearch-mode-map
+				 ("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
+				 ("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
+				 ("M-s l" . consult-line) ;; needed by consult-line to detect isearch
+				 ("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
+				 ("M-s x" . consult-isearch-forward)
+				 
+				 ;; Minibuffer history
+				 :map minibuffer-local-map
+				 ("M-h" . consult-history)
+				 )
 
 	:hook
 	;; enable preview at poin in the *Completion* buffer
@@ -734,7 +870,6 @@
 	;; Both < and C-+ work reasonably well.
 	(setq consult-narrow-key "<"))
 
-
 ;; experiment
 ;; marginalia. enrichment minibuffer annotations
 (use-package marginalia
@@ -745,7 +880,6 @@
 	:init
 	;; must be :init from official readme
 	(marginalia-mode))
-
 
 ;; experiment
 ;; embark. right-click context menu for emacs
@@ -769,7 +903,6 @@
 		:ensure t
 		:hook
 		(embark-collect-mode . consult-preview-at-point-mode)))
-
 
 ;; NOTE: disabled. currently using vertico.
 ;; NOTE: emacs 28 introduced fido-vertical-mode.
@@ -817,19 +950,21 @@
 		;; unworked :init (amx-backend 'ido) and :config (amx-backend 'ido)
 		:custom	(amx-backend 'ido)))
 
-;; corfu. inbuffer completion UI
+;; corfu. in-buffer completion UI
 (use-package corfu
 	:if window-system
 	:ensure t
 	:bind
 	(:map corfu-map
+				;; tab to next entry
 				;;("TAB" . corfu-next)
 				;;("<tab>" . corfu-next)
-				("TAB" . corfu-expand)
-				("<tab>" . corfu-expand)
+				
+				;;("C-j" . corfu-complete)
+				;;("C-j" . corfu-expand)
+				
 				;; C-a is bound to corfu-prompt-begging. so replace it to move-beginning-of-line.
 				([remap corfu-prompt-beginning] . move-beginning-of-line)
-				("C-j" . corfu-complete)
 				("M-SPC" . corfu-insert-separator)
 				("C-SPC" . corfu-insert-separator))
 	:init
@@ -854,7 +989,7 @@
 		;; disable icon
 		(setq kind-icon-use-icons nil)))
 
-;; company. traditional inbuffer completion UI
+;; company. traditional in-buffer completion UI
 (use-package company
 	:if (not window-system)
 	:ensure t
@@ -894,12 +1029,38 @@
 	;; make lsp-mode use company
 	(setq lsp-completion-provider :capf))
 
-
 ;; cape. completions sources
 (use-package cape
-	:after corfu
 	:ensure t
 	:config
+	(setq cape-dabbrev-min-length 6)
+	(setq cape-dabbrev-check-other-buffers #'cape--buffers-major-mode) ;; same-mode buffers
+
+	(defun my/cape-defaults ()
+		(cape-wrap-super
+		 #'cape-dabbrev
+		 #'cape-file
+		 #'cape-keyword))
+	(add-to-list 'completion-at-point-functions #'my/cape-defaults)
+
+	(defun my/cape-inside-string ()
+		(cape-wrap-inside-string
+		 (cape-capf-super
+			#'cape-file
+			#'cape-dabbrev)))
+
+	(defun my/cape-inside-comment ()
+		(cape-wrap-inside-comment
+		 (cape-capf-super
+			#'cape-file
+			#'cape-dabbrev)))
+
+	(defun my/cape-inside-code ()
+		(cape-wrap-inside-code
+		 (cape-capf-super
+			#'cape-keyword
+			#'cape-dabbrev)))
+
 	;; XXX: cape-capf-buster changes corfu previewing
 	;;      (cape-capf-buster (cape-capf-super #'cape-dabbrev #'cape-file))))
 	;; XXX: cape-wrap-super doesn't work
@@ -913,74 +1074,7 @@
 	;; the parent directory "/usr/" is erased.
 	;; (cape-capf-super (cape-company-to-capf #'company-files)) works well.
 	;; but it's a little bit slow.
-	
-	;;(add-to-list 'completion-at-point-functions
-	;;						 #'cape-file)
-	;;(add-to-list 'completion-at-point-functions
-	;;						 #'cape-dabbrev)
-	(add-to-list 'completion-at-point-functions
-							 (cape-capf-super #'cape-dabbrev
-																(cape-company-to-capf
-																 #'company-files))))
-
-
-;; NOTE: currently disabled. trying prescient
-;; orderless. matching for completion candidates
-(use-package orderless
-	:disabled
-	:ensure t
-	:init
-	;;(setq orderless-component-separator ",")
-	(setq orderless-matching-styles '(orderless-literal
-																		orderless-regexp
-																		orderless-prefixes))
-	(setq completion-styles '(orderless basic))
-	(setq completion-category-defaults nil)
-	;; TODO: consider fine-grained tuning per categories
-	(setq completion-category-overrides '((file (styles basic orderless)))))
-
-;; experiment
-;; prescient. matching for completion candidates
-(use-package prescient
-	:ensure t
-	:custom-face
-	(prescient-primary-highlight
-	 ((t :foreground "#b3a3e9" :background "#2a273a" :weight ultra-bold)))
-	:init
-;;	(add-to-list 'completion-styles-alist
-;;             '(tab completion-basic-try-completion ignore
-;;               "Completion style which provides TAB completion only."))
-;;	(setq completion-styles '(tab basic))
-;;	(setq completion-styles '(basic))
-;;	;;(setq completion-styles '(prescient basic))
-	(setq prescient-sort-full-matches-first t)
-	:config
-	(prescient-persist-mode)
-
-	(use-package corfu-prescient
-		:ensure t
-		:after corfu
-		:init
-		(setq corfu-prescient-enable-filtering t)
-		(setq corfu-prescient-enable-sorting t)
-		:config
-		;; to enable corfu-expand.
-		;; HINT: https://github.com/minad/corfu/issues/170
-		;; HINT: https://github.com/minad/corfu?tab=readme-ov-file#expanding-to-the-common-candidate-prefix-with-tab
-		(add-to-list 'completion-styles-alist
-								 '(tab completion-basic-try-completion ignore
-											 "Completion style which provides TAB completion only."))
-		(setq corfu-prescient-completion-styles '(tab prescient basic))
-		(corfu-prescient-mode))
-
-	(use-package vertico-prescient
-		:ensure t
-		:after vertico
-		:init
-		(setq vertico-prescient-enable-filtering t)
-		(setq vertico-prescient-enable-sorting t)
-		:config
-		(vertico-prescient-mode)))
+	)
 
 
 ;;;
@@ -999,7 +1093,7 @@
 (use-package dumb-jump
 	:ensure t
 	:config
-	;; replace xref I/F. e.g.: M-. , C-M-. , M-?
+	;; replace xref I/F. e.g.: M-.|C-M-.|M-?
 	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
 	(setq xref-show-definitions-function #'xref-show-definitions-completing-read))
 
@@ -1025,7 +1119,8 @@
 	(use-package flymake-diagnostic-at-point
 		:ensure t
 		:after flymake
-		:hook (flymake-mode . flymake-diagnostic-at-point-mode)))
+		:hook
+		(flymake-mode . flymake-diagnostic-at-point-mode)))
 
 ;; flycheck
 (use-package flycheck
@@ -1038,7 +1133,6 @@
 
 ;; yasnippet. snippet provider
 (use-package yasnippet
-	:disabled
 	:ensure t
 	:config
 	;; actual snippets
@@ -1054,25 +1148,38 @@
 ;; experiment
 ;; eglot(builtin). 
 (use-package eglot
-	:ensure t
 	:after cape
 	:hook
-	;; XXX: ensure use cape-file/cape-dabbrev in c/c++-mode.
-	;;      not sure, but falling back to global completion-at-point-functions
-	;;      won't work if it's in c/c++-mode?
-	(eglot-managed-mode . (lambda ()
-													(when (or (eq major-mode 'c-mode)
-																		(eq major-mode 'c++-mode))
-														(message "c/c++-mode fallback: modifying completion-at-point-functions")
-														(setq-local completion-at-point-functions
-																				(list (cape-capf-super #'eglot-completion-at-point
-																															 #'cape-dabbrev
-																															 #'cape-file)
-																							t)))))
+	(eglot-managed-mode . my/init-eglot)
 	:config
 	(setq eglot-ignored-server-capabilities '(:hoverProvider
 																						:inlayHintProvider))
-	(add-to-list 'eglot-stay-out-of 'flymake))
+	(add-to-list 'eglot-stay-out-of 'flymake)
+	(add-to-list 'eglot-stay-out-of 'eldoc)
+	
+	;; NOTE: it's recommended that wrap eglot-completion-at-point by cape-wrap-buster
+	;;       https://github.com/minad/corfu/wiki#configuring-corfu-for-eglot
+	;;       but, to use orderless-flex on in-buffer completion on corf,
+	;;       cape-wrap-buster must be disabled.
+	;;       currently, disabling cape-wrap-buster and using orderless-flex filterling.
+	;;(advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
+	
+	
+	(defun my/eglot-cape-inside-code ()
+		(cape-wrap-nonexclusive
+		 (cape-capf-inside-code
+			(cape-capf-super
+			 #'eglot-completion-at-point
+			 #'cape-dabbrev))))
+	
+	(defun my/init-eglot ()
+		(my/pp "eglot my init")
+		(setq-local completion-at-point-functions
+								(list
+								 #'my/eglot-cape-inside-code
+								 #'my/cape-inside-string
+								 #'my/cape-inside-comment)))
+	)
 
 ;; NOTE: disabled experimentally. trying eglot.
 ;; lsp-mode
@@ -1100,7 +1207,7 @@
 
 	;; settings per langs
 	(setq lsp-register-custom-settings
-	 '(("gopls.experimentalWorkspaceModule" t t)))
+				'(("gopls.experimentalWorkspaceModule" t t)))
 	
 	;; lsp-ui
 	(use-package lsp-ui
@@ -1108,7 +1215,8 @@
 		:ensure t
 		:after lsp-mode
 		:commands lsp-ui-mode
-		:hook (lsp-mode . lsp-ui-mode)
+		:hook
+		(lsp-mode . lsp-ui-mode)
 		:bind
 		(:map lsp-ui-mode-map
 					;; remap xref-find-defenitions function to lsp-ui-peek-find-definitions
@@ -1157,7 +1265,7 @@
 ;;; major-modes
 ;;;
 
-;; elisp-mode(builtint) 
+;; elisp-mode(builtin) 
 (use-package elisp-mode
 	;; ensure 1 ;; stucks
 	:config
@@ -1168,7 +1276,6 @@
 
 ;; cc-mode(builtin)
 (use-package cc-mode
-	:ensure t
 	;;:after (:and (:any lsp-mode eglot) cape)
 	:after cape
 	:hook
@@ -1213,7 +1320,9 @@
 	;;								 (my/add-before-save-hook 'lsp-format-buffer)
 	;;								 (if (executable-find "black")
 	;;										 (setq lsp-pylsp-plugins-black-enabled t))))
-	(python-mode . eglot-ensure))
+	(python-mode . eglot-ensure)
+	:init
+	(setq-default python-indent-offset 4))
 
 ;; rust-mode
 (use-package rust-mode
@@ -1273,7 +1382,7 @@
 (let* ((dir (expand-file-name "lisp" user-emacs-directory))
 			 ;; e.g.: 10-hoge.el
 			 (files (directory-files dir t "[[:digit:]]-.*\.el")))
-	(mapcar
+	(mapc
 	 #'load
 	 (sort files (lambda (r l)
 								 (< (string-to-number (file-name-nondirectory r))
