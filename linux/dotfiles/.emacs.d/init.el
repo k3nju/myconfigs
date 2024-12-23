@@ -8,7 +8,7 @@
 
 
 ;;; init.el debugging
-(when t
+(when nil
 	(setq initial-buffer-choice (lambda () (get-buffer "*Messages*")))
 	(setq debug-on-error t))
 
@@ -551,9 +551,10 @@
 																 orderless-regexp
 																 orderless-flex)))
 	
-	;; disable eglot completion and use orderless
-	(setq completion-category-overrides '((eglot (styles my/orderless-in-buffer))
-																				(eglot-capf (styles my/orderless-in-buffer)))))
+	;; disable eglot completion style function and use orderless
+	;;(setq completion-category-overrides '((eglot (styles my/orderless-in-buffer))
+	;;																			(eglot-capf (styles my/orderless-in-buffer))))
+	)
 
 ;; NOTE: disabled. trying orderless
 ;; prescient. matching for completion candidates
@@ -611,13 +612,14 @@
 				
 				;;("C-j" . corfu-complete)
 				;;("C-j" . corfu-expand)
+
+				("M-SPC" . corfu-insert-separator)
+				("C-SPC" . corfu-insert-separator)
 				
 				;; C-a is bound to corfu-prompt-begging. restore to default.
-				;; it used to work with move-beginning-of-line,
+				;; it used to work with '([remap corfu-prompt-beginning] . beginning-of-visual-line)'
 				;; but now it has to be beginning-of-visual-line.
-				([remap corfu-prompt-beginning] . beginning-of-visual-line)
-				("M-SPC" . corfu-insert-separator)
-				("C-SPC" . corfu-insert-separator))
+				("C-a" . beginning-of-visual-line))
 	:init
 	;;(setq corfu-separator " ") ;; need to be matched to orderless-component-separator
 	(setq corfu-cycle t)
@@ -642,17 +644,19 @@
 ;; cape. completions sources
 (use-package cape
 	:ensure t
-	:config
+	:init
 	(setq cape-dabbrev-min-length 6)
 	;; same-mode buffers
 	(setq cape-dabbrev-check-other-buffers #'cape--buffers-major-mode)
+
+	(add-to-list 'completion-at-point-functions #'cape-file)
 	
 	(defun my/cape-defaults ()
 		(cape-wrap-super
 		 #'cape-dabbrev
 		 #'cape-file
 		 #'cape-keyword))
-	(add-to-list 'completion-at-point-functions #'my/cape-defaults)
+	;;(add-to-list 'completion-at-point-functions #'my/cape-defaults)
 
 	(defun my/cape-inside-string ()
 		(cape-wrap-inside-string
@@ -1101,11 +1105,10 @@
 
 ;; eglot(builtin). 
 (use-package eglot
-	:disabled
-	:after cape
 	:hook
 	(eglot-managed-mode . my/init-eglot)
 	:config
+	(my/pp "eglot :config")
 	(setq eglot-ignored-server-capabilities '(:hoverProvider
 																						:inlayHintProvider))
 	(add-to-list 'eglot-stay-out-of 'flymake)
@@ -1127,12 +1130,14 @@
 			 #'cape-dabbrev))))
 	
 	(defun my/init-eglot ()
-		(my/pp "eglot my init")
-		(setq-local completion-at-point-functions
-								(list
-								 #'my/eglot-cape-inside-code
-								 #'my/cape-inside-string
-								 #'my/cape-inside-comment))))
+;;		(my/pp "eglot my init")
+;;		(setq-local completion-at-point-functions
+;;								(list
+;;								 #'my/eglot-cape-inside-code
+;;								 #'my/cape-inside-string
+;;								 #'my/cape-inside-comment))
+		)
+	)
 
 ;; NOTE: disabled experimentally. trying eglot.
 ;; lsp-mode
@@ -1449,8 +1454,8 @@
 			 (string-to-number (file-name-nondirectory r))))))
 
 
-;;(profiler-report)
 ;;(profiler-stop)
+;;(profiler-report)
 
 ;;; EOF
 
