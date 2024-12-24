@@ -198,7 +198,9 @@
 	(let* ((default-directory (expand-file-name "lisp" user-emacs-directory)))
 		(add-to-list 'load-path default-directory)
 		(when (file-exists-p default-directory)
-			(normal-top-level-add-subdirs-to-load-path)))
+			(normal-top-level-add-subdirs-to-load-path))
+		;; separate auto-saved
+		(setq custom-file (expand-file-name "0-auto-saved-custom.el" default-directory)))
 
 
 	;;; miscs
@@ -1191,7 +1193,7 @@
 	:bind
 	("M-+" . tempel-complete)
 	("M-*" . tempel-insert)
-	("<TAB>" . tempel-next)
+	("TAB" . tempel-next)
 	:hook
 	((prog-mode conf-mode text-mode) . #'my/init-tempel)
 	:init
@@ -1465,16 +1467,4 @@
 ;;(profiler-report)
 
 ;;; EOF
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-	 '(tempel-collection tempel yasnippet-snippets window-number which-key wgrep vterm-toggle vertico-prescient verilog-mode use-package undo-fu treesit-auto tramp spinner soap-client simple-modeline rust-mode projectile powershell popper paredit org-sidebar orderless neotree mozc-cand-posframe migemo markdown-mode marginalia lv kind-icon idlwave hl-todo goto-chg google-c-style go-mode ggtags faceup erc embark-consult ein eglot ef-themes dumb-jump doom-themes corfu-prescient company clang-format cape anzu aggressive-indent)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
