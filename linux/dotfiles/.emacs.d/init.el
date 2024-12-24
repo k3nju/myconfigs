@@ -323,9 +323,11 @@
 	:config
 	(save-place-mode t))
 
-;; which-key(builtin from emacs30). showing keybinding help
+;; which-key. showing keybinding help
+;; NOTE: will be builtin from emacs 30
 ;; NOTE: embark will set prefix-help-command to embark-prefix-help-command
 (use-package which-key
+	:ensure t
 	:demand t
 	:init
 	(setq which-key-idle-delay 0.5)
@@ -1192,9 +1194,10 @@
 (use-package tempel
 	:ensure t
 	:bind
-	("M-+" . tempel-complete)
-	("M-*" . tempel-insert)
-	("TAB" . tempel-next)
+	(("M-+" . tempel-complete)
+	 ("M-*" . tempel-insert)
+	 :map tempel-map
+	 ("TAB" . tempel-next))
 	:hook
 	((prog-mode conf-mode text-mode) . #'my/init-tempel)
 	:init
