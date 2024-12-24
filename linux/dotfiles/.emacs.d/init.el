@@ -1,6 +1,7 @@
 ;;;; init.el, from hell
 ;; TODO: consider using rotate. https://github.com/daichirata/emacs-rotate
 ;; TODO: consider create personal keymap
+;; TODO: tuning completion-at-point-functions. cape and eglot
 ;; TODO: use repeat-map
 ;; TODO: echo area. boxed string resize mode line. try describe-key and C-\ shows undefined
 
@@ -20,7 +21,7 @@
 ;;; .el related configs
 ;; prefer newer version .el over .elc
 (setq load-prefer-newer t)
-;; enable jit compile 
+;; enable jit compile
 (setq native-comp-jit-compilation t)
 
 
@@ -45,9 +46,9 @@
 	;;; workarounds
 	(setq byte-compile-warnings '(cl-functions))
 
-	
+
 	;;; UI/UX
-	;; TODO: consider using early-init.el	
+	;; TODO: consider using early-init.el
 	;; fullscreen
 	(add-to-list 'default-frame-alist '(fullscreen . maximized))
 	;; disable bars
@@ -77,8 +78,8 @@
 	(setq use-short-answers t)
 	;; use minibuffer to answer
 	(setq use-dialog-box nil)
-	
-	
+
+
 	;;; coding system
 	(set-language-environment 'utf-8)
 	(set-language-environment 'utf-8)
@@ -91,7 +92,7 @@
 		(setq-default default-process-coding-system '(utf-8 . japanese-cp932-dos)))
 	(setq default-input-method "japanese") ; needed?
 
-	
+
 	;;; font for linux
 	;;(set-frame-font "Office Code Pro 11")
 	(when (and (eq window-system 'x) (eq system-type 'gnu/linux))
@@ -105,15 +106,16 @@
 					 ;; mappings for charset and font name
 					 (mappings '(;; for alphabets
 											 (:charset ascii
-												:spec (:name "input mono condensed" :size 12.0))
+											  ;;:spec (:name "input mono condensed" :size 12.0))
+											  :spec (:name "input mono condensed"))
 											 ;; for japanese
 											 ;; XXX: should be used 'unicode
 											 ;; https://extra-vision.blogspot.com/2016/07/emacs.html
 											 (:charset japanese-jisx0213.2004-1
-												;;:spec (:name "ipaexgothic" :size 12.0)
-												:spec (:name "source han sans jp" :size 9.3)
-												;; to supress flicking)
-												:rescale 0.999))))
+												;;:spec (:name "ipaexgothic")
+												:spec (:name "source han sans jp")
+												;; resize for faces. e.g.: org heading lines
+												:rescale 0.81))))
 			(mapc
 			 (lambda (m)
 				 (let* ((charset (plist-get m :charset))
@@ -124,11 +126,11 @@
 					 (when rescale
 						 (add-to-list
 							'face-font-rescale-alist
-							(cons (format ".*%s.*" (plist-get (plist-get m :spec) :font))
+							(cons (format ".*%s.*" (plist-get (plist-get m :spec) :name))
 										rescale)))))
 			 mappings)
 			(add-to-list 'default-frame-alist '(font . "fontset-myfontset"))))
-	
+
 	;;; font for windows
 	(when (and (eq window-system 'w32) (eq system-type 'windows-nt))
 		;; on windows, must specify font names by using CamelCase. not "input mono condensed"
@@ -159,8 +161,6 @@
 	(setq select-enable-primary t) ; enable x-window primary selection
 	(setq select-enable-clipboard t)
 	(setq save-interprogram-paste-before-kill t)
-	;; typed text replaces the selection
-	(delete-selection-mode t)
 	;; scroll
 	(setq scroll-conservatively 1) ; scroll per lines
 	(setq scroll-margin 0) ; lines remaining to start scrolling
@@ -175,7 +175,7 @@
 	(global-auto-revert-mode t)
 	;; dedupe minibuffer history
 	(setq history-delete-duplicates t)
-	
+
 
 	;;; configurations of automatically created files
 	;; disable lock file(.#hoge.txt)
@@ -192,16 +192,16 @@
 	;; auto-saving to visited(actual) files
 	(setq auto-save-visited-interval 30) ;; seconds
 	(auto-save-visited-mode t)
-	
-	
+
+
 	;;; elisp user site
 	(let* ((default-directory (expand-file-name "lisp" user-emacs-directory)))
 		(add-to-list 'load-path default-directory)
 		(when (file-exists-p default-directory)
 			(normal-top-level-add-subdirs-to-load-path)))
-	
-	
-	;;; miscs 
+
+
+	;;; miscs
 	;; https://www.reddit.com/r/emacs/comments/q0kmw3/psa_sentenceenddoublespace/
 	(setq-default sentence-end-double-space nil)
 
@@ -216,8 +216,8 @@
 
 	;;; basic hooks
 	:hook
-	(;; disable electric-indent-mode always
-	 (after-change-major-mode . (lambda () (electric-indent-mode -1))))
+	;; disable electric-indent-mode always
+	(after-change-major-mode . (lambda () (electric-indent-mode -1)))
 
 
 	;;; basic key bindings
@@ -229,25 +229,25 @@
 				("C-z" . nil)
 				;; disable toggle-input-method
 				("C-\\" . nil)
-				
+
 				;; move cursor to next window
 				("M-n" . other-window)
 				;; move cursor to previous window
 				("M-p" . (lambda () (interactive) (other-window -1)))
-				
+
 				;; input method
 				("<zenkaku-hankaku>" . (lambda () (interactive) (toggle-input-method)))
-				
+
 				;; swap search key bindings
 				("C-s" . isearch-forward-regexp)
 				("C-r" . isearch-backward-regexp)
 				("C-M-s" . isearch-forward)
 				("C-M-r" . isearch-backword)
-				
+
 				;; switching buffer
 				("C-M-p" . previous-buffer)
 				("C-M-n" . next-buffer)
-				
+
 				;; personals
 				("C-q C-x r" . (lambda () (interactive) (load-file "~/.emacs.d/init.el")))))
 
@@ -270,13 +270,6 @@
 	(setq show-paren-when-point-in-periphery t)
 	:config
 	(show-paren-mode t))
-
-;; NOTE: noisy. disabled
-;; elec-pair(builtin). inserting parens automatically
-(use-package elec-pair
-	:disabled
-	:hook
-	((prog-mode org-mode) . electric-pair-mode))
 
 ;; dired(builtin). the directory editor
 (use-package dired
@@ -358,14 +351,14 @@
 (use-package winner
 	:disabled
 	:bind
-	(("C-q w u" . winner-undo)
-	 ("C-q w r" . winner-redo))
+	("C-q w u" . winner-undo)
+	("C-q w r" . winner-redo)
 	:init
 	(setq winner-dont-bind-my-keys t)
 	:config
 	(winner-mode t))
 
-;; window-number. moving the cursor on window by alt-1|2|3 
+;; window-number. moving the cursor on window by alt-1|2|3
 (use-package window-number
 	:ensure t
 	:demand t
@@ -424,29 +417,29 @@
 	:ensure t
 	:demand t
 	:bind
-	(("M-%" . anzu-isearch-query-replace)
-	 ("C-M-%" . anzu-isearch-query-replace-regexp))
+	("M-%" . anzu-isearch-query-replace)
+	("C-M-%" . anzu-isearch-query-replace-regexp)
 	:init
 	(setq anzu-search-threshold 999)
 	:config
 	(global-anzu-mode t))
 
-;; goto-chg. back to where edited in the past 
+;; goto-chg. back to where edited in the past
 (use-package goto-chg
 	:ensure t
 	:bind
-	(("C-q c p" . goto-last-change)
-	 ("C-q c n" . goto-last-change-reverse)))
+	("C-q c p" . goto-last-change)
+	("C-q c n" . goto-last-change-reverse))
 
 ;; undo-fu. undo/redo enhancements
 (use-package undo-fu
 	:ensure t
 	:bind
-	(("C-/" . undo-fu-only-undo)
-	 ;; M-/ orig. dabbrev-expand
-	 ("M-/" . undo-fu-only-redo)))
+	("C-/" . undo-fu-only-undo)
+	;; M-/ orig. dabbrev-expand
+	("M-/" . undo-fu-only-redo))
 
-;; wgrep. materializing grep results 
+;; wgrep. materializing grep results
 (use-package wgrep
 	:ensure t
 	:init
@@ -496,7 +489,7 @@
 		(mozc-cand-posframe-focused-face ((t (:inherit link :foreground unspecified :background unspecified))))
 		:init
 		(setq mozc-candidate-style 'posframe)))
-	
+
 ;; migemo. search japanese words in alphabets
 (use-package migemo
 	:ensure t
@@ -547,10 +540,17 @@
 
 	;; define matching styles for in-buffer completion
 	(orderless-define-completion-style my/orderless-in-buffer
-	  (orderless-matching-styles '(orderless-literal
+		(orderless-matching-styles '(orderless-literal
 																 orderless-regexp
 																 orderless-flex)))
-	
+
+	;; NOTE: using corfu-mode-hook instead of setting completion-category-overrides.
+	;;       when using orderless-flex for in-buffer completion
+	;;       by setting completion-category-overrides,
+	;;       eglot works well, but not others(e.g. elisp-mode).
+	;;       because of completion category is set to nil.
+	;;       to enable orderless-flex for all completions,
+	;;       use corfu-mode-hook and reset completion-styles when corfu-mode activated.
 	;; disable eglot completion style function and use orderless
 	;;(setq completion-category-overrides '((eglot (styles my/orderless-in-buffer))
 	;;																			(eglot-capf (styles my/orderless-in-buffer))))
@@ -604,22 +604,26 @@
 (use-package corfu
 	:if window-system
 	:ensure t
+	:requires orderless
 	:bind
 	(:map corfu-map
 				;; tab to next entry
 				;;("TAB" . corfu-next)
 				;;("<tab>" . corfu-next)
-				
+
 				;;("C-j" . corfu-complete)
 				;;("C-j" . corfu-expand)
 
 				("M-SPC" . corfu-insert-separator)
 				("C-SPC" . corfu-insert-separator)
-				
-				;; C-a is bound to corfu-prompt-begging. restore to default.
+
+				;; NOTE: C-a is bound to corfu-prompt-begging. restore to default.
 				;; it used to work with '([remap corfu-prompt-beginning] . beginning-of-visual-line)'
 				;; but now it has to be beginning-of-visual-line.
 				("C-a" . beginning-of-visual-line))
+	:hook
+	(corfu-mode . (lambda ()
+									(setq-local completion-styles '(my/orderless-in-buffer))))
 	:init
 	;;(setq corfu-separator " ") ;; need to be matched to orderless-component-separator
 	(setq corfu-cycle t)
@@ -631,7 +635,7 @@
 	(setq corfu-on-exact-match 'insert)
 	(setq corfu-quit-at-boundary 'separator)
 	(setq corfu-quit-no-match 'separator)
-	
+
 	;; must be in :init
 	(global-corfu-mode)
 	:config
@@ -645,51 +649,21 @@
 (use-package cape
 	:ensure t
 	:init
-	(setq cape-dabbrev-min-length 6)
+	(setq cape-dabbrev-min-length 3)
 	;; same-mode buffers
 	(setq cape-dabbrev-check-other-buffers #'cape--buffers-major-mode)
 
-	(add-to-list 'completion-at-point-functions #'cape-file)
-	
-	(defun my/cape-defaults ()
-		(cape-wrap-super
-		 #'cape-dabbrev
-		 #'cape-file
-		 #'cape-keyword))
-	;;(add-to-list 'completion-at-point-functions #'my/cape-defaults)
-
-	(defun my/cape-inside-string ()
-		(cape-wrap-inside-string
+	(defun my/cape-basics ()
+		(cape-wrap-nonexclusive
 		 (cape-capf-super
-			#'cape-file
-			#'cape-dabbrev)))
-
-	(defun my/cape-inside-comment ()
-		(cape-wrap-inside-comment
-		 (cape-capf-super
-			#'cape-file
-			#'cape-dabbrev)))
-
-	(defun my/cape-inside-code ()
-		(cape-wrap-inside-code
-		 (cape-capf-super
-			#'cape-keyword
-			#'cape-dabbrev)))
-
-	;; XXX: cape-capf-buster changes corfu previewing
-	;;      (cape-capf-buster (cape-capf-super #'cape-dabbrev #'cape-file))))
-	;; XXX: cape-wrap-super doesn't work
-	;;(defun my/cape-capfs ()
-	;;		(cape-wrap-super #'cape-dabbrev #'cape-file))
-	;; XXX: combining cape-capf-super and cape-file is buggy
-	;; (add-to-list 'completion-at-point-functions
-	;;              (cape-capf-super #'cape-file))
-	;; typing up to "/usr/bi", then "bin/" appears as a candidate.
-	;; but, then select it, "/usr/bi" replaced with only "bin/".
-	;; the parent directory "/usr/" is erased.
-	;; (cape-capf-super (cape-company-to-capf #'company-files)) works well.
-	;; but it's a little bit slow.
-	)
+			#'cape-dabbrev
+			#'cape-keyword)))
+	(add-to-list 'completion-at-point-functions #'my/cape-basics 'append)
+	;; NOTE: cape-file is multi-step completion, can't be wrapped in cape-wrap-super
+	(defun my/cape-file ()
+		(cape-wrap-nonexclusive
+		 #'cape-file))
+	(add-to-list 'completion-at-point-functions #'my/cape-file 'append))
 
 ;; vertico. minibuffer completion UI
 (use-package vertico
@@ -743,10 +717,10 @@
 				 ("C-x r s" . consult-register-store) ;; orig. copy-to-register
 				 ("C-x r j" . consult-register-load) ;; orig. jump-to-register
 				 ("C-x r r" . consult-register) ;; orig. copy-rectangle-to-register
-				 
+
 				 ;; yank
 				 ("M-y" . consult-yank-pop) ;; orig. yank-pop
-				 
+
 				 ;; M-g bindings in goto-map
 				 ;;("M-g e" . consult-compile-error)
 				 ;;("M-g f" . consult-flymake) ;; Alternative: consult-flycheck
@@ -757,7 +731,7 @@
 				 ("M-g M" . consult-global-mark)
 				 ("M-g i" . consult-imenu)
 				 ("M-g I" . consult-imenu-multi)
-				 
+
 				 ;; M-s bindings in search-map
 				 ("M-s f" . consult-find)
 				 ("M-s l" . consult-locate)
@@ -776,7 +750,7 @@
 				 ("M-s l" . consult-line) ;; needed by consult-line to detect isearch
 				 ("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
 				 ("M-s x" . consult-isearch-forward)
-				 
+
 				 ;; Minibuffer history
 				 :map minibuffer-local-map
 				 ("M-h" . consult-history))
@@ -795,7 +769,7 @@
 	 ;; applying emacs theme
 	 consult-theme
 	 :preview-key '(:debounce 0.2 any)
-	 
+
 	 ;; preview by M-.
 	 consult-ripgrep consult-git-grep consult-grep
 	 consult-bookmark consult-recent-file consult-xref
@@ -822,17 +796,17 @@
 (use-package embark
 	:ensure t
 	:bind
-	(("C-." . embark-act)
-	 ("C-," . embark-dwim)
-	 ("C-q C-e C-b" . embark-bindings))
+	("C-." . embark-act)
+	("C-," . embark-dwim)
+	("C-q C-e C-b" . embark-bindings)
 	:init
 	(setq prefix-help-command #'embark-prefix-help-command)
 	:config
 	;; Hide the mode line of the Embark live/completions buffers
 	(add-to-list 'display-buffer-alist
 							 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none))))
+								 nil
+								 (window-parameters (mode-line-format . none))))
 	(use-package embark-consult
 		:ensure t
 		:hook
@@ -862,7 +836,7 @@
 	(org-level-3 ((t (:weight bold :height 1.1))))
 	:hook
 	(org-mode . hl-todo-mode) ;; global-hl-todo-mode is not effective on org-mode
-	(org-mode . (lambda () (setq-local completion-at-point-functions (list #'my/cape-defaults))))
+	(org-mode . (lambda () (setq-local completion-at-point-functions (list #'my/cape-basics))))
 	(org-capture-after-finalize . (lambda ()
 																	;; HACK: if misc template invoked and that is aborted, delete a note file
 																	(let* ((is-misc (org-capture-get :misc-note))
@@ -910,10 +884,10 @@
 			(while (file-exists-p filename)
 				(setq filename (funcall get-filename)))
 			filename))
-	
+
 	(setq org-capture-templates
 				'(("n" "[N]otes" entry (file+headline "notes.org" "Notes")
-					 "* %T %? \n" 
+					 "* %T %? \n"
 					 :empty-lines 0 :kill-buffer 1 :prepend t)
 					("j" "[J]ournals" entry (file+headline "notes.org" "Journals")
 					 "* %T %? \n"
@@ -928,7 +902,7 @@
 					("b" "[B]log pages" plain (file (lambda () (my/get-note-name my/blog-pages-directory)))
 					 "#+title: %? \n#+date: %T\n\n* {{{date}}} | {{{title}}}\n"
 					 :misc-note t :empty-lines-after 2 :jump-to-captured t)))
-	
+
 	;; agenda config
 	(setq org-agenda-files (list org-directory my/misc-notes-directory))
 	(setq org-agenda-custom-commands
@@ -1007,7 +981,7 @@
 
 	(setq org-src-tab-acts-natively t)
 	(setq org-src-preserve-indentation t)
-	
+
 	;; enable underline to EOL on headings
 	(setq org-fontify-whole-heading-line t)
 
@@ -1044,13 +1018,13 @@
 
 ;; project(builtin). project management ops
 (use-package project
-	:config
+	:init
 	(setq project-vc-extra-root-markers '(".projectile"
 																				".project"
 																				"requirements.txt"
 																				"go.mod")))
 
-;; NOTE: currently, using project.el
+;; NOTE: disabled. currently, using project.el
 ;; projectile. project management
 ;; still usefull even though project.el is in emacs
 (use-package projectile
@@ -1088,56 +1062,49 @@
 	:config
 	(global-flycheck-mode))
 
-;; NOTE: disabled. trying tempel
-;; yasnippet. snippet provider
-(use-package yasnippet
-	:disabled
-	:ensure t
-	:config
-	;; actual snippets
-	(use-package yasnippet-snippets
-		:ensure t
-		:init
-		(setq yas-prompt-functions '(yas-ido-prompt))
-		:config
-		(yas-global-mode t)
-		(yas-reload-all)))
-
-;; eglot(builtin). 
+;; eglot(builtin).
 (use-package eglot
 	:hook
 	(eglot-managed-mode . my/init-eglot)
-	:config
-	(my/pp "eglot :config")
+	:init
 	(setq eglot-ignored-server-capabilities '(:hoverProvider
 																						:inlayHintProvider))
+	:config
 	(add-to-list 'eglot-stay-out-of 'flymake)
 	(add-to-list 'eglot-stay-out-of 'eldoc)
-	
+
+	;; NOTE: 
 	;; NOTE: it's recommended that wrap eglot-completion-at-point by cape-wrap-buster
 	;;       https://github.com/minad/corfu/wiki#configuring-corfu-for-eglot
 	;;       but, to use orderless-flex on in-buffer completion on corf,
 	;;       cape-wrap-buster must be disabled.
 	;;       currently, disabling cape-wrap-buster and using orderless-flex filterling.
 	;;(advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
-	
-	
+
+	(defun my/eglot-cape-inside-string ()
+		(cape-wrap-nonexclusive
+		 (cape-capf-inside-string
+			#'cape-file)))
+
+	(defun my/eglot-cape-inside-comment ()
+		(cape-wrap-nonexclusive
+		 (cape-capf-inside-comment
+			#'cape-dabbrev)))
+
 	(defun my/eglot-cape-inside-code ()
 		(cape-wrap-nonexclusive
 		 (cape-capf-inside-code
 			(cape-capf-super
 			 #'eglot-completion-at-point
-			 #'cape-dabbrev))))
-	
+			 #'tempel-complete
+			 #'cape-dabbrev
+			 #'cape-keyword))))
+
 	(defun my/init-eglot ()
-;;		(my/pp "eglot my init")
-;;		(setq-local completion-at-point-functions
-;;								(list
-;;								 #'my/eglot-cape-inside-code
-;;								 #'my/cape-inside-string
-;;								 #'my/cape-inside-comment))
-		)
-	)
+		(setq-local completion-at-point-functions
+								(list #'my/eglot-cape-inside-code
+											#'my/eglot-cape-inside-string
+											#'my/eglot-cape-inside-comment))))
 
 ;; NOTE: disabled experimentally. trying eglot.
 ;; lsp-mode
@@ -1158,15 +1125,15 @@
 	(setq lsp-signature-auto-activate nil)
 	;;(setq lsp-completion-provider :capf) ;; for company mode
 	(setq lsp-completion-provider :none)
-	
+
 	;; clangd args
 	;; set log=verbose for debug
 	(setq lsp-clients-clangd-args '("-j=2" "--background-index" "--log=error"))
-	
+
 	;; settings per langs
 	(setq lsp-register-custom-settings
 				'(("gopls.experimentalWorkspaceModule" t t)))
-	
+
 	;; lsp-ui
 	(use-package lsp-ui
 		:disabled
@@ -1174,27 +1141,27 @@
 		:after lsp-mode
 		:commands lsp-ui-mode
 		:hook
-		(lsp-mode															. lsp-ui-mode)
+		(lsp-mode	. lsp-ui-mode)
 		:bind
 		(:map lsp-ui-mode-map
 					;; remap xref-find-defenitions function to lsp-ui-peek-find-definitions
 					([remap xref-find-definitions]	. lsp-ui-peek-find-definitions) ;; M-.
 					([remap xref-find-references]		. lsp-ui-peek-find-references) ;; M-?
 					("C-q C-u C-m"									. lsp-ui-imenu))
-		
+
 		:custom-face
 		(lsp-ui-sideline-symbol-info ((t (:background "default"))))
 		;; background face of sideline and doc
 		(markdown-code-face ((t (:background "grey10"))))
 		:config
 		(setq lsp-lens-enable t)
-		
+
 		;; lsp-ui-doc
 		(setq lsp-ui-doc-enable nil)
 		(setq lsp-ui-doc-header t)
 		(setq lsp-ui-doc-include-signature t)
 		(setq lsp-ui-doc-delay 2)
-		
+
 		;; lsp-ui-sideline
 		(setq lsp-ui-sideline-enable t)
 		(setq lsp-ui-sideline-show-code-actions t)
@@ -1204,7 +1171,7 @@
 		(setq lsp-ui-sideline-show-diagnostics t)
 		(setq lsp-ui-sideline-diagnostic-max-lines 10)
 		(setq lsp-ui-sideline-diagnostic-max-line-length 150)
-		
+
 		;; lsp-ui-peek
 		(setq lsp-ui-peek-always-show t)))
 
@@ -1218,35 +1185,43 @@
 	(treesit-auto-add-to-auto-mode-alist 'all)
 	(global-treesit-auto-mode))
 
-;; experiment
-;; paredit. structual editing for lisp
-(use-package paredit
+;; tempel. snippet provider
+(use-package tempel
 	:ensure t
-	:hook
-	((lisp-data-mode . enable-paredit-mode)))
-
-;; experiment
-;; popper. show buffers in popup
-(use-package popper
-	:ensure t
-	:demand t
 	:bind
-	(("C-q C-p C-p" . popper-toggle)
-	 ("C-q C-p C-n" . popper-cycle))
+	("M-+" . tempel-complete)
+	("M-*" . tempel-insert)
+	("<TAB>" . tempel-next)
+	:hook
+	((prog-mode conf-mode text-mode) . #'my/init-tempel)
 	:init
-  (setq popper-reference-buffers
-				'("\\*Messages\\*"
-					"\\*scratch*\\*"
-					"^\\*.*vterm.*\\*$" vterm-mode))
-	(setq popper-display-control nil)
+	(defun my/init-tempel ()
+		(add-to-list 'completion-at-point-functions
+								 (cape-capf-nonexclusive #'tempel-complete))))
+
+;; tempel-collection. snippet collection
+(use-package tempel-collection
+	:ensure t)
+
+;; NOTE: disabled. trying tempel
+;; yasnippet. traditional snippet provider
+(use-package yasnippet
+	:disabled
+	:ensure t
 	:config
-	(popper-mode)
-	(popper-echo-mode))
+	;; actual snippets
+	(use-package yasnippet-snippets
+		:ensure t
+		:init
+		(setq yas-prompt-functions '(yas-ido-prompt))
+		:config
+		(yas-global-mode t)
+		(yas-reload-all)))
 
 
 ;;; programming language modes
 
-;; elisp-mode(builtin) 
+;; elisp-mode(builtin)
 (use-package elisp-mode
 	:config
 	;; NOTE: disabled. too agressive
@@ -1255,6 +1230,14 @@
 		:ensure t
 		:hook
 		(emacs-lisp-mode . aggressive-indent-mode)))
+
+;; experiment
+;; paredit. structual editing for lisp
+(use-package paredit
+	:disabled
+	:ensure t
+	:hook
+	(lisp-data-mode . enable-paredit-mode))
 
 ;; cc-mode(builtin)
 (use-package cc-mode
@@ -1271,8 +1254,8 @@
 	(use-package clang-format
 		:ensure t
 		:bind
-		(("C-q C-f C-b" . clang-format-buffer)
-		 ("C-q C-f C-r" . clang-format-region))
+		("C-q C-f C-b" . clang-format-buffer)
+		("C-q C-f C-r" . clang-format-region)
 		:hook
 		(c-mode-common . (lambda ()
 											 (my/add-before-save-hook 'clang-format-buffer)))
@@ -1282,6 +1265,7 @@
 
 ;; go-mode
 (use-package go-mode
+	:disabled
 	:ensure t
 	:hook
 	;;(go-mode . (lambda ()
@@ -1342,13 +1326,13 @@
 		:ensure t
 		:init
 		(message "ido-vertical init")
-		
+
 		:config
 		(message "ido-vertical config")
 		(ido-vertical-mode t)
 		(setq ido-vertical-show-count t)
 		(setq ido-vertical-define-keys 'C-n-and-C-p-only))
-	
+
 	;; ido-completing-read+
 	(use-package ido-completing-read+
 		:ensure t
@@ -1358,10 +1342,13 @@
 	;; amx
 	(use-package amx
 		:ensure t
-		:bind ("M-x" . amx)
-		:config	(amx-mode)
+		:bind
+		("M-x" . amx)
+		:config
+		(amx-mode)
 		;; unworked :init (amx-backend 'ido) and :config (amx-backend 'ido)
-		:custom	(amx-backend 'ido)))
+		:custom
+		(amx-backend 'ido)))
 
 ;; company. traditional in-buffer completion UI
 (use-package company
@@ -1386,7 +1373,7 @@
 					(company-dabbrev-code
 					 company-gtags
 					 company-keywords)))
-	
+
 	;;(setq company-search-regexp-function #'company-search-flex-regexp)
 	(setq company-minimum-prefix-length 1)
 	(setq company-idle-delay 0)
@@ -1402,6 +1389,26 @@
 	:config
 	;; make lsp-mode use company
 	(setq lsp-completion-provider :capf))
+
+
+;;; highly experimentals
+
+;; popper. show buffers in popup
+(use-package popper
+	:ensure t
+	:demand t
+	:bind
+	("C-q C-p C-p" . popper-toggle)
+	("C-q C-p C-n" . popper-cycle)
+	:init
+	(setq popper-reference-buffers
+				'("\\*Messages\\*"
+					"\\*scratch*\\*"
+					"^\\*.*vterm.*\\*$" vterm-mode))
+	(setq popper-display-control nil)
+	:config
+	(popper-mode)
+	(popper-echo-mode))
 
 
 ;;; themes
@@ -1438,7 +1445,7 @@
 ;;; load customizations
 (mapc
  #'load
- (sort 
+ (sort
 	(directory-files
 	 ;; ~/.emacs.d/lisp/
 	 (expand-file-name "lisp" user-emacs-directory) ;
@@ -1448,7 +1455,7 @@
 	 "[[:digit:]]-.*\.el"
 	 ;; nosort
 	 t)
-	;; numeric sort  
+	;; numeric sort
 	(lambda (l r)
 		(< (string-to-number (file-name-nondirectory l))
 			 (string-to-number (file-name-nondirectory r))))))
@@ -1458,4 +1465,16 @@
 ;;(profiler-report)
 
 ;;; EOF
-
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+	 '(tempel-collection tempel yasnippet-snippets window-number which-key wgrep vterm-toggle vertico-prescient verilog-mode use-package undo-fu treesit-auto tramp spinner soap-client simple-modeline rust-mode projectile powershell popper paredit org-sidebar orderless neotree mozc-cand-posframe migemo markdown-mode marginalia lv kind-icon idlwave hl-todo goto-chg google-c-style go-mode ggtags faceup erc embark-consult ein eglot ef-themes dumb-jump doom-themes corfu-prescient company clang-format cape anzu aggressive-indent)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
