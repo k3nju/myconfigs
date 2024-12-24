@@ -4,6 +4,7 @@
 ;; TODO: tuning completion-at-point-functions. cape and eglot
 ;; TODO: use repeat-map
 ;; TODO: echo area. boxed string resize mode line. try describe-key and C-\ shows undefined
+;; TODO: consider embark-consult
 
 ;;(profiler-start 'cpu)
 
@@ -1416,32 +1417,39 @@
 ;;; themes
 
 ;; theme for linux
-(use-package doom-themes
-	:if (eq system-type 'gnu/linux)
-	:ensure t
-	:demand t
-	:init
-	(setq doom-themes-enable-bold t)
-	;; NOTE: currently, treemacs is unused
-	;;(setq doom-themes-treemacs-theme "doom-one")
-	;; treemacs integration requires icons
-	;;(doom-themes-treemacs-config)
-	:config
-	(doom-themes-org-config)
-	(load-theme
-	 (if window-system
-			 'doom-tokyo-night
-		 'doom-badger)
-	 t))
+(when (eq system-type 'gnu/linux)
+	(use-package doom-themes
+		:ensure t
+		:demand t
+		:init
+		(setq doom-themes-enable-bold t)
+		;; NOTE: currently, treemacs is unused
+		;;(setq doom-themes-treemacs-theme "doom-one")
+		;; treemacs integration requires icons
+		;;(doom-themes-treemacs-config)
+		:config
+		(doom-themes-org-config)
+		(load-theme
+		 (if window-system
+				 'doom-tokyo-night
+			 'doom-badger)
+		 t)))
 
 ;; theme for windows
 ;; alt alect-themes
-(use-package ef-themes
-	:if (and (eq window-system 'w32) (eq system-type 'windows-nt))
-	:ensure t
-	:demand t
-	:config
-	(load-theme 'ef-tritanopia-dark t))
+(when (eq system-type 'windows-nt)
+	(use-package doom-themes
+		:ensure t
+		:demand t
+		:config
+		(load-theme 'doom-1337 t))
+	(use-package ef-themes
+		:disabled
+		:ensure t
+		:demand t
+		:config
+		(load-theme 'ef-tritanopia-dark t)))
+		
 
 
 ;;; load customizations
