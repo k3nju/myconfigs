@@ -306,10 +306,8 @@
 													"ido.last"
 													"bookmarks"
 													,(expand-file-name package-user-dir)))
-	:hook
-	(after-init . recentf-mode))
-;;	:config
-;;	(recentf-mode t))
+	:config
+	(recentf-mode t))
 
 ;; savehist(builtin). minibuffer history
 (use-package savehist
