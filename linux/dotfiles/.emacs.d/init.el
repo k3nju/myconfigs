@@ -4,7 +4,6 @@
 ;; TODO: tuning completion-at-point-functions. cape and eglot
 ;; TODO: use repeat-map
 ;; TODO: echo area. boxed string resize mode line. try describe-key and C-\ shows undefined
-;; TODO: consider embark-consult
 
 ;;(profiler-start 'cpu)
 
@@ -83,15 +82,14 @@
 
 	;;; coding system
 	(set-language-environment 'utf-8)
-	(set-language-environment 'utf-8)
-	(prefer-coding-system 'utf-8)
 	(set-default-coding-systems 'utf-8)
 	(set-terminal-coding-system 'utf-8)
 	(set-keyboard-coding-system 'utf-8)
+	(prefer-coding-system 'utf-8)
 	(setq-default buffer-file-coding-system 'utf-8)
 	(when (eq system-type 'windows-nt)
 		(setq-default default-process-coding-system '(utf-8 . japanese-cp932-dos)))
-	(setq default-input-method "japanese") ; needed?
+	(setq default-input-method "japanese")
 
 
 	;;; font for linux
@@ -176,6 +174,8 @@
 	(global-auto-revert-mode t)
 	;; dedupe minibuffer history
 	(setq history-delete-duplicates t)
+	;; set cursor on help window when help occurred
+	(setq help-window-select t)
 
 
 	;;; configurations of automatically created files
@@ -256,6 +256,12 @@
 
 
 ;;; basic packages
+
+;; repeat-mode(builtin). make repeating keys easy
+(use-package repeat
+	:demand t
+	:config
+	(repeat-mode t))
 
 ;; hexl(builtin)
 (use-package hexl
@@ -430,9 +436,13 @@
 ;; goto-chg. back to where edited in the past
 (use-package goto-chg
 	:ensure t
+	:preface
 	:bind
-	("C-q c p" . goto-last-change)
-	("C-q c n" . goto-last-change-reverse))
+	(("C-q c p" . goto-last-change)
+	 ("C-q c n" . goto-last-change-reverse)
+	 :repeat-map my/goto-chg-repeat-map
+	 ("p" . goto-last-change)
+	 ("n" . goto-last-change-reverse)))
 
 ;; undo-fu. undo/redo enhancements
 (use-package undo-fu
@@ -469,11 +479,10 @@
 
 
 ;;; jp env packages
-;; TODO: refine mozc. see https://apribase.net/2024/07/25/emacs-language-environment-linux/
+;; SIDENOTE: https://apribase.net/2024/07/25/emacs-language-environment-linux/
 
 ;; mozc.el. japanese input
 (use-package mozc
-	:disabled
 	:if window-system
 	:ensure t
 	:init
@@ -611,7 +620,6 @@
 	:bind
 	(:map corfu-map
 				;; tab to next entry
-				;;("TAB" . corfu-next)
 				;;("<tab>" . corfu-next)
 
 				;;("C-j" . corfu-complete)
@@ -700,63 +708,64 @@
 (use-package consult
 	:ensure t
 	:demand t
-	:bind (;; C-c bindings in mode-specific-map
-				 ("C-c M-x" . consult-mode-command)
-				 ;; ("C-c k" . consult-kmacro)
-				 ("C-c m" . consult-man)
-				 ;; org-mode
-				 ;; shortcut for opening org. experiment
-				 ("C-c A" . consult-org-agenda)
-				 ("C-c H" . consult-org-heading)
-				 ;; C-x bindings in ctl-x-map
-				 ("C-x M-:" . consult-complex-command) ;; orig. repeat-complex-command
-				 ("C-x b" . consult-buffer) ;; orig. switch-to-buffer
-				 ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-				 ("C-x 5 b" . consult-buffer-other-frame) ;; orig. switch-to-buffer-other-frame
-				 ("C-x r b" . consult-bookmark) ;; orig. bookmark-jump
-				 ;;("C-x p b" . consult-project-buffer) ;; orig. project-switch-to-buffer
+	:bind
+	(;; C-c bindings in mode-specific-map
+	 ("C-c M-x" . consult-mode-command)
+	 ;; ("C-c k" . consult-kmacro)
+	 ("C-c m" . consult-man)
+	 ;; org-mode
+	 ;; shortcut for opening org. experiment
+	 ("C-c A" . consult-org-agenda)
+	 ("C-c H" . consult-org-heading)
+	 ;; C-x bindings in ctl-x-map
+	 ("C-x M-:" . consult-complex-command) ;; orig. repeat-complex-command
+	 ("C-x b" . consult-buffer) ;; orig. switch-to-buffer
+	 ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+	 ("C-x 5 b" . consult-buffer-other-frame) ;; orig. switch-to-buffer-other-frame
+	 ("C-x r b" . consult-bookmark) ;; orig. bookmark-jump
+	 ;;("C-x p b" . consult-project-buffer) ;; orig. project-switch-to-buffer
 
-				 ;; bindings for fast register access
-				 ("C-x r s" . consult-register-store) ;; orig. copy-to-register
-				 ("C-x r j" . consult-register-load) ;; orig. jump-to-register
-				 ("C-x r r" . consult-register) ;; orig. copy-rectangle-to-register
+	 ;; bindings for fast register access
+	 ("C-x r s" . consult-register-store) ;; orig. copy-to-register
+	 ("C-x r j" . consult-register-load) ;; orig. jump-to-register
+	 ("C-x r r" . consult-register) ;; orig. copy-rectangle-to-register
 
-				 ;; yank
-				 ("M-y" . consult-yank-pop) ;; orig. yank-pop
+	 ;; yank
+	 ("M-y" . consult-yank-pop) ;; orig. yank-pop
 
-				 ;; M-g bindings in goto-map
-				 ;;("M-g e" . consult-compile-error)
-				 ;;("M-g f" . consult-flymake) ;; Alternative: consult-flycheck
-				 ("M-g g" . consult-goto-line) ;; orig. goto-line
-				 ("M-g M-g" . consult-goto-line) ;; orig. goto-line
-				 ("M-g o" . consult-outline) ;; Alternative: consult-org-heading
-				 ("M-g m" . consult-mark)
-				 ("M-g M" . consult-global-mark)
-				 ("M-g i" . consult-imenu)
-				 ("M-g I" . consult-imenu-multi)
+	 ;; M-g bindings in goto-map
+	 ;;("M-g e" . consult-compile-error)
+	 ;;("M-g f" . consult-flymake) ;; Alternative: consult-flycheck
+	 ("M-g g" . consult-goto-line) ;; orig. goto-line
+	 ("M-g M-g" . consult-goto-line) ;; orig. goto-line
+	 ("M-g o" . consult-outline) ;; Alternative: consult-org-heading
+	 ("M-g m" . consult-mark)
+	 ("M-g M" . consult-global-mark)
+	 ("M-g i" . consult-imenu)
+	 ("M-g I" . consult-imenu-multi)
 
-				 ;; M-s bindings in search-map
-				 ("M-s f" . consult-find)
-				 ("M-s l" . consult-locate)
-				 ("M-s g" . consult-grep)
-				 ("M-s G" . consult-git-grep)
-				 ("M-s r" . consult-ripgrep)
-				 ("C-;"	 . consult-line) ;; experiment
-				 ("M-s L" . consult-line-multi) ;; for multiple buffer
-				 ;;("M-s k" . consult-keep-lines) ;; actually editing
-				 ("M-s n" . consult-focus-lines) ;; narrowing
+	 ;; M-s bindings in search-map
+	 ("M-s f" . consult-find)
+	 ("M-s l" . consult-locate)
+	 ("M-s g" . consult-grep)
+	 ("M-s G" . consult-git-grep)
+	 ("M-s r" . consult-ripgrep)
+	 ("C-;"	 . consult-line) ;; experiment
+	 ("M-s L" . consult-line-multi) ;; for multiple buffer
+	 ;;("M-s k" . consult-keep-lines) ;; actually editing
+	 ("M-s n" . consult-focus-lines) ;; narrowing
 
-				 ;; Isearch integration
-				 :map isearch-mode-map
-				 ("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
-				 ("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
-				 ("M-s l" . consult-line) ;; needed by consult-line to detect isearch
-				 ("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
-				 ("M-s x" . consult-isearch-forward)
+	 ;; Isearch integration
+	 :map isearch-mode-map
+	 ("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
+	 ("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
+	 ("M-s l" . consult-line) ;; needed by consult-line to detect isearch
+	 ("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
+	 ("M-s x" . consult-isearch-forward)
 
-				 ;; Minibuffer history
-				 :map minibuffer-local-map
-				 ("M-h" . consult-history))
+	 ;; Minibuffer history
+	 :map minibuffer-local-map
+	 ("M-h" . consult-history))
 	:hook
 	;; enable preview at point in the *Completion* buffer
 	(completion-list-mode . consult-preview-at-point-mode)
@@ -812,6 +821,7 @@
 								 (window-parameters (mode-line-format . none))))
 	(use-package embark-consult
 		:ensure t
+		:demand t
 		:hook
 		(embark-collect-mode . consult-preview-at-point-mode)))
 
@@ -1195,7 +1205,7 @@
 	(("M-+" . tempel-complete)
 	 ("M-*" . tempel-insert)
 	 :map tempel-map
-	 ("TAB" . tempel-next))
+	 ("<tab>" . tempel-next))
 	:hook
 	((prog-mode conf-mode text-mode) . #'my/init-tempel)
 	:init
@@ -1362,7 +1372,7 @@
 	(prog-mode . global-company-mode)
 	:bind
 	(("C-M-i" . company-complete)
-	 ;;("TAB" . company-indent-or-complete-common)
+	 ;;("<tab>" . company-indent-or-complete-common)
 	 :map company-active-map
 	 ("C-n" . company-select-next)
 	 ("C-p" . company-select-previous)
@@ -1397,19 +1407,35 @@
 
 ;;; highly experimentals
 
+;; rotate
+(use-package rotate
+	:ensure t
+	:demand t
+	:preface
+	(defun my/rotate-window ()
+		(interactive) (rotate-window))
+	:bind
+	(("C-q C-w" . my/rotate-window)
+	 :repeat-map my/window-rotate-repeat-map
+	 ("w" . my/rotate-window)))
+
 ;; popper. show buffers in popup
 (use-package popper
 	:ensure t
 	:demand t
 	:bind
-	("C-q C-p C-p" . popper-toggle)
-	("C-q C-p C-n" . popper-cycle)
+	(;;("C-q C-p p" . popper-toggle)
+	 ("C-q C-p c" . popper-cycle)
+	 :repeat-map my/popper-repeat-map
+	 ;;("p" . popper-toggle)
+	 ("c" . popper-cycle))
 	:init
 	(setq popper-reference-buffers
 				'("\\*Messages\\*"
-					"\\*scratch*\\*"
-					"^\\*.*vterm.*\\*$" vterm-mode))
+					"\\*scratch\\*"
+					"^\\*vterm.*\\*$" vterm-mode))
 	(setq popper-display-control nil)
+	(setq popper-mode-line nil)
 	:config
 	(popper-mode)
 	(popper-echo-mode))
