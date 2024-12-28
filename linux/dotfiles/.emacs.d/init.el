@@ -1,17 +1,26 @@
 ;;;; init.el, from hell
-;; TODO: consider using rotate. https://github.com/daichirata/emacs-rotate
 ;; TODO: consider create personal keymap
 ;; TODO: tuning completion-at-point-functions. cape and eglot
 ;; TODO: use repeat-map
+;; TODO: dumb-jump working ?
 ;; TODO: echo area. boxed string resize mode line. try describe-key and C-\ shows undefined
+;; TODO: consider using rotate. https://github.com/daichirata/emacs-rotate
 
-;;(profiler-start 'cpu)
+
+;; (profiler-start 'cpu)
 
 
 ;;; init.el debugging
 (when nil
 	(setq initial-buffer-choice (lambda () (get-buffer "*Messages*")))
-	(setq debug-on-error t))
+	(setq debug-on-error t)
+	;; debugging tips
+	;; https://github.com/jdtsmith/kind-icon/blob/main/README.md#debugging-tips
+	(advice-add 'corfu--post-command :around
+							(lambda (func)
+								(condition-case err
+										(funcall func)
+									((debug error) (signal (car err) (cdr err)))))))
 
 
 ;;; supress gc
@@ -176,8 +185,8 @@
 	(setq history-delete-duplicates t)
 	;; set cursor on help window when help occurred
 	(setq help-window-select t)
-
-
+	
+	
 	;;; configurations of automatically created files
 	;; disable lock file(.#hoge.txt)
 	(setq create-lockfiles nil)
@@ -262,6 +271,14 @@
 	:demand t
 	:config
 	(repeat-mode t))
+
+;; dabbrev
+;; NOTE: need to load to suppress errors in cape--dabbrev-bounds
+(use-package dabbrev
+	:demand t
+	:init
+	;; limit candidates that matches to
+	(setq dabbrev-abbrev-char-regexp "[A-Za-z0-9-_/:]"))
 
 ;; hexl(builtin)
 (use-package hexl
@@ -557,8 +574,7 @@
 																 orderless-flex)))
 
 	;; NOTE: using corfu-mode-hook instead of setting completion-category-overrides.
-	;;       when using orderless-flex for in-buffer completion
-	;;       by setting completion-category-overrides,
+	;;       when using orderless-flex for in-buffer completion by setting completion-category-overrides,
 	;;       eglot works well, but not others(e.g. elisp-mode).
 	;;       because of completion category is set to nil.
 	;;       to enable orderless-flex for all completions,
@@ -1029,6 +1045,16 @@
 	;; e.g.: M-.|C-M-.|M-?
 	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
+;; symbol-overlay. highlight symbols
+(use-package symbol-overlay
+	:ensure t
+	:demand t
+	:bind
+	(("C-q s" . symbol-overlay-put);; orig. tab-to-tab-stop
+	 :map symbol-overlay-map
+	 ("q" . symbol-overlay-remove-all)
+	 ("C-g" . symbol-overlay-remove-all)))
+
 ;; project(builtin). project management ops
 (use-package project
 	:init
@@ -1039,7 +1065,7 @@
 
 ;; NOTE: disabled. currently, using project.el
 ;; projectile. project management
-;; still usefull even though project.el is in emacs
+;; still useful even though project.el is in emacs
 (use-package projectile
 	:disabled
 	:ensure t
@@ -1083,6 +1109,10 @@
 	(setq eglot-ignored-server-capabilities '(:hoverProvider
 																						:inlayHintProvider))
 	:config
+	;; XXX: still useful?
+	(setq eglot-sync-connect 0)
+	(setq eglot-events-buffer-size 0)
+	
 	(add-to-list 'eglot-stay-out-of 'flymake)
 	(add-to-list 'eglot-stay-out-of 'eldoc)
 
@@ -1279,7 +1309,6 @@
 
 ;; go-mode
 (use-package go-mode
-	:disabled
 	:ensure t
 	:hook
 	;;(go-mode . (lambda ()
@@ -1316,7 +1345,7 @@
 	(setq powershell-indent 2))
 
 
-;;; traditional packages, still usefull.
+;;; traditional packages, still useful.
 
 ;; NOTE: disabled. currently using vertico.
 ;; NOTE: emacs 28 introduced fido-vertical-mode.
@@ -1424,10 +1453,10 @@
 	:ensure t
 	:demand t
 	:bind
-	(;;("C-q C-p p" . popper-toggle)
+	(("C-q C-p p" . popper-toggle)
 	 ("C-q C-p c" . popper-cycle)
 	 :repeat-map my/popper-repeat-map
-	 ;;("p" . popper-toggle)
+	 ("p" . popper-toggle)
 	 ("c" . popper-cycle))
 	:init
 	(setq popper-reference-buffers
@@ -1498,8 +1527,8 @@
 			 (string-to-number (file-name-nondirectory r))))))
 
 
-;;(profiler-stop)
-;;(profiler-report)
-
+;; (profiler-stop)
+;; (profiler-report)
+(profiler-start 'cpu)
 ;;; EOF
 
