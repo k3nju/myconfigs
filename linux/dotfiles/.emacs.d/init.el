@@ -114,16 +114,16 @@
 					 ;; mappings for charset and font name
 					 (mappings '(;; for alphabets
 											 (:charset ascii
-											  ;;:spec (:name "input mono condensed" :size 12.0))
-											  :spec (:name "input mono condensed"))
+																 ;;:spec (:name "input mono condensed" :size 12.0))
+																 :spec (:name "input mono condensed" :size 12.0))
 											 ;; for japanese
 											 ;; XXX: should be used 'unicode
 											 ;; https://extra-vision.blogspot.com/2016/07/emacs.html
 											 (:charset japanese-jisx0213.2004-1
-												;;:spec (:name "ipaexgothic")
-												:spec (:name "source han sans jp")
-												;; resize for faces. e.g.: org heading lines
-												:rescale 0.81))))
+																 :spec (:name "ipaexgothic")
+																 ;;:spec (:name "source han sans jp") ;; line flicking occurred
+																 ;; resize for faces. e.g.: org heading lines
+																 :rescale 0.999))))
 			(mapc
 			 (lambda (m)
 				 (let* ((charset (plist-get m :charset))
@@ -163,7 +163,7 @@
 
 	;; use C-h as backspace
 	(define-key key-translation-map (kbd "C-h") (kbd "DEL"))
-		;; stop cursor on per humps for CamelCase
+	;; stop cursor on per humps for CamelCase
 	(global-subword-mode t)
 	;; copy & paste
 	(setq select-enable-primary t) ; enable x-window primary selection
@@ -185,8 +185,8 @@
 	(setq history-delete-duplicates t)
 	;; set cursor on help window when help occurred
 	(setq help-window-select t)
-	
-	
+
+
 	;;; configurations of automatically created files
 	;; disable lock file(.#hoge.txt)
 	(setq create-lockfiles nil)
@@ -574,10 +574,10 @@
 																 orderless-flex)))
 
 	;; NOTE: using corfu-mode-hook instead of setting completion-category-overrides.
-	;;       when using orderless-flex for in-buffer completion by setting completion-category-overrides,
-	;;       eglot works well, but not others(e.g. elisp-mode).
-	;;       because of completion category is set to nil.
-	;;       to enable orderless-flex for all completions,
+	;;       to use orderless-flex for in-buffer completion,
+	;;       setting completion-category-overrides does not work well.
+	;;       eglot works well, but not others(e.g. elisp-mode), completion category is set to nil.
+	;;       to enable orderless-flex for all in-buffer completions,
 	;;       use corfu-mode-hook and reset completion-styles when corfu-mode activated.
 	;; disable eglot completion style function and use orderless
 	;;(setq completion-category-overrides '((eglot (styles my/orderless-in-buffer))
@@ -1112,11 +1112,11 @@
 	;; XXX: still useful?
 	(setq eglot-sync-connect 0)
 	(setq eglot-events-buffer-size 0)
-	
+
 	(add-to-list 'eglot-stay-out-of 'flymake)
 	(add-to-list 'eglot-stay-out-of 'eldoc)
 
-	;; NOTE: 
+	;; NOTE:
 	;; NOTE: it's recommended that wrap eglot-completion-at-point by cape-wrap-buster
 	;;       https://github.com/minad/corfu/wiki#configuring-corfu-for-eglot
 	;;       but, to use orderless-flex on in-buffer completion on corf,
@@ -1262,6 +1262,18 @@
 		(yas-global-mode t)
 		(yas-reload-all)))
 
+;; format-all. format on saving
+(use-package format-all
+	:ensure t
+	:hook
+	(prog-mode . format-all-mode)
+	:config
+	(setq-default
+	 format-all-formatters
+	 '(("C" (clang-format "--style=file" "--fallback-style=google"))
+		 ("C++" (clang-format "--style=file" "--fallback-style=google"))
+		 ("Python" black))))
+
 
 ;;; programming language modes
 
@@ -1294,8 +1306,10 @@
 		:ensure t
 		:hook
 		(c-mode-common . google-set-c-style))
+	;; NOTE: currently disabled. alt, format-all
 	;; clang-format
 	(use-package clang-format
+		:disabled
 		:ensure t
 		:bind
 		("C-q C-f C-b" . clang-format-buffer)
@@ -1505,7 +1519,7 @@
 		:demand t
 		:config
 		(load-theme 'ef-tritanopia-dark t)))
-		
+
 
 
 ;;; load customizations
@@ -1529,6 +1543,5 @@
 
 ;; (profiler-stop)
 ;; (profiler-report)
-(profiler-start 'cpu)
-;;; EOF
 
+;;; EOF
