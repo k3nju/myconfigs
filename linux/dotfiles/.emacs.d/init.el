@@ -137,7 +137,8 @@
 							(cons (format ".*%s.*" (plist-get (plist-get m :spec) :name))
 										rescale)))))
 			 mappings)
-			(add-to-list 'default-frame-alist '(font . "fontset-myfontset"))))
+			(add-to-list 'default-frame-alist '(font . "fontset-myfontset"))
+			(setq default-text-properties '(line-height (1.15 1.0)))))
 
 	;;; font for windows
 	(when (and (eq window-system 'w32) (eq system-type 'windows-nt))
