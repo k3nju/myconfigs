@@ -114,31 +114,36 @@
 					 ;; mappings for charset and font name
 					 (mappings '(;; for alphabets
 											 (:charset ascii
-																 ;;:spec (:name "input mono condensed" :size 12.0))
-																 :spec (:name "input mono condensed" :size 12.0))
+												;;:spec (:name "input mono condensed" :size 12.0))
+												:spec (:name "input mono condensed" :size 12.0))
 											 ;; for japanese
 											 ;; XXX: should be used 'unicode
 											 ;; https://extra-vision.blogspot.com/2016/07/emacs.html
+ 											 ;;(:charset japanese-jisx0213.2004-1
+											 ;;:spec (:name "ipaexgothic")
+											 ;;:rescale 0.999)
 											 (:charset japanese-jisx0213.2004-1
-																 :spec (:name "ipaexgothic")
-																 ;;:spec (:name "source han sans jp") ;; line flicking occurred
-																 ;; resize for faces. e.g.: org heading lines
-																 :rescale 0.999))))
+											  :spec (:name "source han sans jp")
+												;; resize for faces. e.g.: org heading lines
+												:rescale 0.999
+												;; line height to supress flicking
+												;; NOTE: https://www.gnu.org/software/emacs/manual/html_node/elisp/Line-Height.html
+												:text-props (line-height (1.23 1.1))))))
 			(mapc
 			 (lambda (m)
 				 (let* ((charset (plist-get m :charset))
-								(fspec (apply #'font-spec (plist-get m :spec)))
-								(rescale (plist-get m :rescale)))
+								(fspec (apply #'font-spec (plist-get m :spec))))
 					 (when (find-font fspec)
-						 (set-fontset-font myfontset charset fspec))
-					 (when rescale
-						 (add-to-list
-							'face-font-rescale-alist
-							(cons (format ".*%s.*" (plist-get (plist-get m :spec) :name))
-										rescale)))))
+						 (set-fontset-font myfontset charset fspec)
+						 (when-let* ((rescale (plist-get m :rescale)))
+							 (add-to-list
+								'face-font-rescale-alist
+								(cons (format ".*%s.*" (plist-get (plist-get m :spec) :name))
+											rescale)))
+						 (when-let* ((text-props (plist-get m :text-props)))
+							 (setq default-text-properties text-props)))))
 			 mappings)
-			(add-to-list 'default-frame-alist '(font . "fontset-myfontset"))
-			(setq default-text-properties '(line-height (1.15 1.0)))))
+			(add-to-list 'default-frame-alist '(font . "fontset-myfontset"))))
 
 	;;; font for windows
 	(when (and (eq window-system 'w32) (eq system-type 'windows-nt))
