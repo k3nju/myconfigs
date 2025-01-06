@@ -119,16 +119,19 @@
 											 ;; for japanese
 											 ;; XXX: should be used 'unicode
 											 ;; https://extra-vision.blogspot.com/2016/07/emacs.html
- 											 ;;(:charset japanese-jisx0213.2004-1
-											 ;;:spec (:name "ipaexgothic")
-											 ;;:rescale 0.999)
-											 (:charset japanese-jisx0213.2004-1
-											  :spec (:name "source han sans jp")
-												;; resize for faces. e.g.: org heading lines
-												:rescale 0.999
-												;; line height to supress flicking
-												;; NOTE: https://www.gnu.org/software/emacs/manual/html_node/elisp/Line-Height.html
-												:text-props (line-height (1.23 1.1))))))
+ 											 (:charset japanese-jisx0213.2004-1
+												:spec (:name "ipaexgothic")
+												:rescale 0.999)
+											 ;; NOTE: controlling line-height is really hard, currently unused.
+											 ;; https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-04/msg00203.html
+											 ;;:charset japanese-jisx0213.2004-1
+											 ;;:spec (:name "source han sans jp")
+											 ;;;; resize for faces. e.g.: org heading lines
+											 ;;:rescale 0.999
+											 ;;;; line height to supress flicking
+											 ;;;; NOTE: https://www.gnu.org/software/emacs/manual/html_node/elisp/Line-Height.html
+											 ;;:text-props (line-height (1.23 1.1)))
+											 )))
 			(mapc
 			 (lambda (m)
 				 (let* ((charset (plist-get m :charset))
@@ -1277,7 +1280,8 @@
 	:ensure t
 	:hook
 	(prog-mode . format-all-mode)
-	:config
+	:init
+	(setq format-all-show-errors 'never)
 	(setq-default
 	 format-all-formatters
 	 '(("C" (clang-format "--style=file" "--fallback-style=google"))
