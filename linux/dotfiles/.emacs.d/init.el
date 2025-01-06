@@ -99,8 +99,8 @@
 	(when (eq system-type 'windows-nt)
 		(setq-default default-process-coding-system '(utf-8 . japanese-cp932-dos)))
 	(setq default-input-method "japanese")
-
-
+	
+	
 	;;; font for linux
 	;;(set-frame-font "Office Code Pro 11")
 	(when (and (eq window-system 'x) (eq system-type 'gnu/linux))
@@ -702,6 +702,10 @@
 (use-package vertico
 	:ensure t
 	:demand t
+	:hook
+	;; fix line height on minibuffer window to suppress line flicking
+	(minibuffer-setup . (lambda ()
+												(setq-local default-text-properties nil)))
 	:init
 	(setq vertico-cycle t)
 	(setq vertico-count 20)
@@ -929,7 +933,7 @@
 					 :empty-lines 0 :kill-buffer t :prepend t)
 					("d" "[D]iary" entry (file "diary.org")
 					 "* %T\n%? \n"
-					 :empty-lines-after 1 :prepend t :jump-to-captured t)
+					 :empty-lines-after 0 :prepend t :jump-to-captured t)
 					;; NOTE: plain cant refile to other org files
 					("m" "[M]isc notes" plain (file (lambda () (my/get-note-name my/misc-notes-directory)))
 					 "* %T %? :misc:\n"
