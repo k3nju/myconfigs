@@ -70,6 +70,8 @@
 	(setq inhibit-startup-screen t)
 	;;(setq inhibit-startup-echo-area-message (user-login-name)) ; unwork
 	(fset 'display-startup-echo-area-message 'ignore)
+	;; supress echo area flicking. same as (setq resize-mini-windows nil)
+	(setq max-mini-window-height 1)
 	;; scratch buffer message
 	(setq initial-scratch-message ";; *scratch*\n")
 	;; show line numers
@@ -705,10 +707,6 @@
 (use-package vertico
 	:ensure t
 	:demand t
-	:hook
-	;; fix line height on minibuffer window to suppress line flicking
-	(minibuffer-setup . (lambda ()
-												(setq-local default-text-properties nil)))
 	:init
 	(setq vertico-cycle t)
 	(setq vertico-count 20)
@@ -1286,7 +1284,9 @@
 	 format-all-formatters
 	 '(("C" (clang-format "--style=file" "--fallback-style=google"))
 		 ("C++" (clang-format "--style=file" "--fallback-style=google"))
-		 ("Python" black))))
+		 ("Python" black)
+		 ("Go" goimports)))
+	)
 
 
 ;;; programming language modes
@@ -1339,11 +1339,7 @@
 (use-package go-mode
 	:ensure t
 	:hook
-	;;(go-mode . (lambda ()
-	;;						 (my/add-before-save-hook
-	;;							(lambda ()
-	;;											 (lsp-organize-imports)
-	;;											 (lsp-format-buffer))))
+	;; NOTE: for formatting, using format-all package. not configured here.
 	(go-mode . eglot-ensure))
 
 ;; python-mode
