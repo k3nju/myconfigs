@@ -670,8 +670,8 @@
 	(setq corfu-auto-delay 0)
 	(setq corfu-auto-prefix 1)
 	(setq corfu-preselect 'directory)
-	;; TODO: consider using 'show. using 'insert with tempel is a bit annoying.
-	(setq corfu-on-exact-match 'insert)
+	;; NOTE: currently using 'show. 'insert with tempel is a bit annoying.
+	(setq corfu-on-exact-match 'show)
 	(setq corfu-quit-at-boundary 'separator)
 	(setq corfu-quit-no-match 'separator)
 
