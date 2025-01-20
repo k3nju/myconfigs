@@ -289,7 +289,7 @@
 	:demand t
 	:init
 	;; limit candidates that matches to
-	(setq dabbrev-abbrev-char-regexp "[A-Za-z0-9-_/:]"))
+	(setq dabbrev-abbrev-char-regexp "[A-Za-z0-9-_/]"))
 
 ;; hexl(builtin)
 (use-package hexl
@@ -670,6 +670,7 @@
 	(setq corfu-auto-delay 0)
 	(setq corfu-auto-prefix 1)
 	(setq corfu-preselect 'directory)
+	;; TODO: consider using 'show. using 'insert with tempel is a bit annoying.
 	(setq corfu-on-exact-match 'insert)
 	(setq corfu-quit-at-boundary 'separator)
 	(setq corfu-quit-no-match 'separator)
