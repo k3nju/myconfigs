@@ -101,8 +101,8 @@
 	(when (eq system-type 'windows-nt)
 		(setq-default default-process-coding-system '(utf-8 . japanese-cp932-dos)))
 	(setq default-input-method "japanese")
-	
-	
+
+
 	;;; font for linux
 	;;(set-frame-font "Office Code Pro 11")
 	(when (and (eq window-system 'x) (eq system-type 'gnu/linux))
@@ -1257,6 +1257,7 @@
 
 ;; tempel-collection. snippet collection
 (use-package tempel-collection
+	:disabled
 	:ensure t)
 
 ;; NOTE: disabled. trying tempel
@@ -1285,9 +1286,8 @@
 	 format-all-formatters
 	 '(("C" (clang-format "--style=file" "--fallback-style=google"))
 		 ("C++" (clang-format "--style=file" "--fallback-style=google"))
-		 ("Python" black)
-		 ("Go" goimports)))
-	)
+		 ("Python" ruff)
+		 ("Go" goimports))))
 
 
 ;;; programming language modes
