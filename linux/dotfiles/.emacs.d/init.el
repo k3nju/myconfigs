@@ -494,6 +494,10 @@
 	:ensure t
 	:hook
 	(vterm-mode . (lambda () (setq-local global-hl-line-mode nil)))
+	:bind
+	(:map vterm-mode-map
+				("M-n" . other-window)
+				("M-p" . (lambda () (interactive) (other-window -1))))
 	:init
 	;; vterm-toggle. make vterm toggle-able
 	(use-package vterm-toggle
