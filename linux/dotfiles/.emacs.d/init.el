@@ -691,6 +691,8 @@
 ;; cape. completions sources
 (use-package cape
 	:ensure t
+	:hook
+	((prog-mode conf-mode text-mode) . #'my/init-cape)
 	:init
 	(setq cape-dabbrev-min-length 3)
 	;; same-mode buffers
@@ -701,12 +703,15 @@
 		 (cape-capf-super
 			#'cape-dabbrev
 			#'cape-keyword)))
-	(add-to-list 'completion-at-point-functions #'my/cape-basics 'append)
+
 	;; NOTE: cape-file is multi-step completion, can't be wrapped in cape-wrap-super
 	(defun my/cape-file ()
 		(cape-wrap-nonexclusive
 		 #'cape-file))
-	(add-to-list 'completion-at-point-functions #'my/cape-file 'append))
+
+	(defun my/init-cape ()
+			(add-to-list 'completion-at-point-functions #'my/cape-basics 'append)
+			(add-to-list 'completion-at-point-functions #'my/cape-file 'append)))
 
 ;; vertico. minibuffer completion UI
 (use-package vertico
@@ -881,7 +886,6 @@
 	(org-level-3 ((t (:weight bold :height 1.1))))
 	:hook
 	(org-mode . hl-todo-mode) ;; global-hl-todo-mode is not effective on org-mode
-	(org-mode . (lambda () (setq-local completion-at-point-functions (list #'my/cape-basics))))
 	(org-capture-after-finalize . (lambda ()
 																	;; HACK: if misc template invoked and that is aborted, delete a note file
 																	(let* ((is-misc (org-capture-get :misc-note))
@@ -1132,7 +1136,6 @@
 	(add-to-list 'eglot-stay-out-of 'flymake)
 	(add-to-list 'eglot-stay-out-of 'eldoc)
 
-	;; NOTE:
 	;; NOTE: it's recommended that wrap eglot-completion-at-point by cape-wrap-buster
 	;;       https://github.com/minad/corfu/wiki#configuring-corfu-for-eglot
 	;;       but, to use orderless-flex on in-buffer completion on corf,
@@ -1143,12 +1146,16 @@
 	(defun my/eglot-cape-inside-string ()
 		(cape-wrap-nonexclusive
 		 (cape-capf-inside-string
-			#'cape-file)))
+			(cape-capf-super
+			 #'tempel-complete
+			 #'cape-file))))
 
 	(defun my/eglot-cape-inside-comment ()
 		(cape-wrap-nonexclusive
 		 (cape-capf-inside-comment
-			#'cape-dabbrev)))
+			(cape-capf-super
+			 #'tempel-complete
+			 #'cape-dabbrev))))
 
 	(defun my/eglot-cape-inside-code ()
 		(cape-wrap-nonexclusive
