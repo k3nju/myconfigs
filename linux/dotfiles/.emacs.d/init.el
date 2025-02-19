@@ -1262,9 +1262,12 @@
 	:hook
 	((prog-mode conf-mode text-mode) . #'my/init-tempel)
 	:init
+	(defun my/tempel-complete ()
+			(cape-wrap-nonexclusive
+			 #'tempel-complete))
+	
 	(defun my/init-tempel ()
-		(add-to-list 'completion-at-point-functions
-								 (cape-capf-nonexclusive #'tempel-complete))))
+		(add-to-list 'completion-at-point-functions #'my/tempel-complete 'append)))
 
 ;; tempel-collection. snippet collection
 (use-package tempel-collection
