@@ -356,10 +356,8 @@
 	(save-place-mode t))
 
 ;; which-key. showing keybinding help
-;; NOTE: will be builtin from emacs 30
 ;; NOTE: embark will set prefix-help-command to embark-prefix-help-command
 (use-package which-key
-	:ensure t
 	:demand t
 	:init
 	(setq which-key-idle-delay 0.5)
