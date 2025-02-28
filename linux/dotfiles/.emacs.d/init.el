@@ -289,6 +289,7 @@
 	:demand t
 	:init
 	;; limit candidates that matches to
+	(setq dabbrev-case-fold-search nil)
 	(setq dabbrev-abbrev-char-regexp "[A-Za-z0-9-_/]"))
 
 ;; hexl(builtin)
