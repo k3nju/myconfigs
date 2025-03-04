@@ -678,6 +678,11 @@
 	(setq corfu-quit-at-boundary 'separator)
 	(setq corfu-quit-no-match 'separator)
 
+	;; disable ispell
+	;; > ;; Emacs 30 and newer: Disable Ispell completion function.
+  ;; > ;; Try `cape-dict' as an alternative.
+	(setq text-mode-ispell-word-completion nil)
+
 	;; must be in :init
 	(global-corfu-mode)
 	:config
@@ -709,8 +714,8 @@
 		 #'cape-file))
 
 	(defun my/init-cape ()
-			(add-to-list 'completion-at-point-functions #'my/cape-basics 'append)
-			(add-to-list 'completion-at-point-functions #'my/cape-file 'append)))
+		(add-to-list 'completion-at-point-functions #'my/cape-basics 'append)
+		(add-to-list 'completion-at-point-functions #'my/cape-file 'append)))
 
 ;; vertico. minibuffer completion UI
 (use-package vertico
