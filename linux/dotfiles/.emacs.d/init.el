@@ -696,7 +696,7 @@
 (use-package cape
 	:ensure t
 	:hook
-	((prog-mode conf-mode text-mode) . #'my/init-cape)
+	((prog-mode conf-mode text-mode) . #'my/init-cape-capf)
 	:init
 	(setq cape-dabbrev-min-length 3)
 	;; same-mode buffers
@@ -713,7 +713,7 @@
 		(cape-wrap-nonexclusive
 		 #'cape-file))
 
-	(defun my/init-cape ()
+	(defun my/init-cape-capf ()
 		(add-to-list 'completion-at-point-functions #'my/cape-basics 'append)
 		(add-to-list 'completion-at-point-functions #'my/cape-file 'append)))
 
@@ -1128,7 +1128,7 @@
 ;; eglot(builtin).
 (use-package eglot
 	:hook
-	(eglot-managed-mode . my/init-eglot)
+	(eglot-managed-mode . my/init-eglot-capf)
 	:init
 	(setq eglot-ignored-server-capabilities '(:hoverProvider
 																						:inlayHintProvider))
@@ -1170,7 +1170,7 @@
 			 #'cape-dabbrev
 			 #'cape-keyword))))
 
-	(defun my/init-eglot ()
+	(defun my/init-eglot-capf ()
 		(setq-local completion-at-point-functions
 								(list #'my/eglot-cape-inside-code
 											#'my/eglot-cape-inside-string
@@ -1264,18 +1264,17 @@
 	 :map tempel-map
 	 ("<tab>" . tempel-next))
 	:hook
-	((prog-mode conf-mode text-mode) . #'my/init-tempel)
+	((prog-mode conf-mode text-mode) . #'my/init-tempel-capf)
 	:init
 	(defun my/tempel-complete ()
 			(cape-wrap-nonexclusive
 			 #'tempel-complete))
 	
-	(defun my/init-tempel ()
+	(defun my/init-tempel-capf ()
 		(add-to-list 'completion-at-point-functions #'my/tempel-complete 'append)))
 
 ;; tempel-collection. snippet collection
 (use-package tempel-collection
-	:disabled
 	:ensure t)
 
 ;; NOTE: disabled. trying tempel
@@ -1386,6 +1385,16 @@
 	(powershell-mode . eglot-ensure)
 	:init
 	(setq powershell-indent 2))
+
+;; makefile(builtin)
+(use-package make-mode
+	:hook
+	(makefile-mode . (lambda () (my/init-make-capf)))
+	:init
+	(defun my/init-make-capf ()
+		;; reset capf to ignore makefile-completions-at-point
+		(setq-local completion-at-point-functions
+								'(my/tempel-complete my/cape-basics my/cape-file))))
 
 
 ;;; traditional packages, still useful.
