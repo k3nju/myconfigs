@@ -11,7 +11,9 @@
 
 
 ;;; init.el debugging
-(when nil
+(setq my/debug nil)
+
+(when my/debug
 	(setq initial-buffer-choice (lambda () (get-buffer "*Messages*")))
 	(setq debug-on-error t)
 	;; debugging tips
@@ -46,7 +48,8 @@
 
 
 ;;; use-package configs
-(setq use-package-always-defer t)
+(when (not my/debug)
+	(setq use-package-always-defer t))
 
 
 ;;; emacs basics
@@ -1385,6 +1388,13 @@
 	(powershell-mode . eglot-ensure)
 	:init
 	(setq powershell-indent 2))
+
+;; markdown
+(use-package markdown-mode
+	:bind
+	(:map markdown-mode-map
+				("M-n" . other-window)
+				("M-p" . (lambda () (interactive) (other-window -1)))))
 
 ;; makefile(builtin)
 (use-package make-mode
