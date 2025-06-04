@@ -126,10 +126,10 @@ dotfiles:
 #   |-< pkg_aur
 
 .PHONY: pkg_all
-pkg_all: pkg_update pkg_core pkg_system pkg_desktop pkg_app pkg_aur pkg_uninstall
+pkg_all: pkg_update pkg_core pkg_system pkg_desktop pkg_app pkg_yay pkg_aur pkg_uninstall
 
 .PHONY: pkg_min
-pkg_min: pkg_update pkg_core pkg_uninstall
+pkg_min: pkg_update pkg_core pkg_yay pkg_uninstall
 
 .PHONY: pkg_min_desktop
 pkg_min_desktop: pkg_update pkg_desktop pkg_uninstall
