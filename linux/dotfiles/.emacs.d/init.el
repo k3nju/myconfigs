@@ -103,7 +103,8 @@
 	(setq-default buffer-file-coding-system 'utf-8)
 	(when (eq system-type 'windows-nt)
 		(setq-default default-process-coding-system '(utf-8 . japanese-cp932-dos)))
-	(setq default-input-method "japanese")
+	;; use OS standard IME as default
+	(setq default-input-method nil)
 
 
 	;;; font for linux
@@ -495,7 +496,10 @@
 	:if (eq system-type 'gnu/linux)
 	:ensure t
 	:hook
-	(vterm-mode . (lambda () (setq-local global-hl-line-mode nil)))
+	(vterm-mode . (lambda ()
+									(setq-local global-hl-line-mode nil)
+									;; mozc doesn't work well, fallback
+									(setq-local default-input-method "japanese")))
 	:bind
 	(:map vterm-mode-map
 				("M-n" . other-window)
@@ -1497,6 +1501,22 @@
 
 
 ;;; highly experimentals
+
+
+;; claude code
+(use-package claude-code
+	:vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
+	:ensure t
+	:demand t
+	:hook
+	(claude-code-start . (lambda ()
+												 ;; mozc doesn't work well, fallback
+												 (setq-local default-input-method "japanese")))
+	:bind-keymap
+	("C-q C-a" . claude-code-command-map)
+	:init
+	(claude-code-mode)
+	)
 
 ;; rotate
 (use-package rotate
