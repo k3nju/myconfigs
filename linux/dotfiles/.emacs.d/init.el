@@ -120,13 +120,12 @@
 					 ;; mappings for charset and font name
 					 (mappings '(;; for alphabets
 											 (:charset ascii
-												;;:spec (:name "input mono condensed" :size 12.0))
 												:spec (:name "input mono condensed" :size 12.0))
 											 ;; for japanese
 											 ;; XXX: should be used 'unicode
 											 ;; https://extra-vision.blogspot.com/2016/07/emacs.html
  											 (:charset japanese-jisx0213.2004-1
-												:spec (:name "ipaexgothic")
+												:spec (:name "bizudgothic" :size 10.5)
 												:rescale 0.999)
 											 ;; NOTE: controlling line-height is really hard, currently unused.
 											 ;; https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-04/msg00203.html
