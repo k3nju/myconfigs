@@ -24,6 +24,9 @@
 										(funcall func)
 									((debug error) (signal (car err) (cdr err)))))))
 
+(defun my/pp (&rest vals)
+	(mapc (lambda (v) (princ (format "###|%s\n" v))) vals)
+	nil)
 
 ;;; supress gc
 (setq gc-cons-threshold (* 64 1024 1024))
@@ -120,13 +123,15 @@
 					 ;; mappings for charset and font name
 					 (mappings '(;; for alphabets
 											 (:charset ascii
-												:spec (:name "input mono condensed" :size 12.0))
+												;; :name must be lowercase and space separated as formal name in ttf 
+												:spec (:name "input mono condensed")
+												:rescale 1.01)
 											 ;; for japanese
 											 ;; XXX: should be used 'unicode
 											 ;; https://extra-vision.blogspot.com/2016/07/emacs.html
  											 (:charset japanese-jisx0213.2004-1
-												:spec (:name "bizudgothic" :size 10.5)
-												:rescale 0.999)
+												:spec (:name "biz udgothic")
+												:rescale 0.991)
 											 ;; NOTE: controlling line-height is really hard, currently unused.
 											 ;; https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-04/msg00203.html
 											 ;;:charset japanese-jisx0213.2004-1
@@ -161,6 +166,7 @@
 					(set-frame-font name)
 				;; fallback
 				(set-frame-font "MS Gothic 12" nil t))))
+
 
 
 	;;; editing visibilities/operabilities
@@ -233,9 +239,6 @@
 
 
 	;;; helpers
-	(defun my/pp (&rest vals)
-		(mapc (lambda (v) (princ (format "###|%s\n" v))) vals)
-		nil)
 	(defun my/add-before-save-hook (f)
 		(add-hook 'before-save-hook f nil 'local))
 
