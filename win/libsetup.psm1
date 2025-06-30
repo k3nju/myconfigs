@@ -17,6 +17,14 @@ Add-Type -AssemblyName System.Web.Extensions
 Define-Global _JSSerDe ([System.Web.Script.Serialization.JavaScriptSerializer]::new())
 
 
+function Test-Defined{
+	param($val, $assertion)
+	if($val -eq $null){
+		throw "Test-Defined failed: $assertion"
+	}
+}
+
+
 function New-PathLayout{
 	param([string]$baseDir)
 	
@@ -45,7 +53,7 @@ function New-PathLayout{
 
 function Init-LibSetup{
 	param([string]$baseDir,
-			[Credential]$userCred)
+				[Credential]$userCred)
 	
 	Define-Global PL (New-PathLayout $baseDir)
 	Define-Global Logger ([Logger]::new($global:PL.LogFilePath))
@@ -75,6 +83,7 @@ function Init-LibSetup{
 	Define-Global StateFile ([DataStore]::new($global:PL.StateFilePath))
 	Define-Global TaskFactory ([TaskFactory]::new())
 	Define-Global TaskExecutor ([TaskExecutor]::new())
+	Define-Global DefinedTasks ([TaskContainer]::new())
 }
 
 
@@ -261,7 +270,7 @@ class ExecutionContext{
 		return [RunMode]$mode
 	}
 
-	# define Creredential for future work
+	# define Credential for future work
 	[Credential] Credential(){
 		$name = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 		return [Credential]::new($name)
@@ -749,16 +758,45 @@ class TaskFactory{
 
 
 # task helpers
+function New-Task {
+	param(
+		[TaskType]$taskType,
+		[Credential]$cred,
+		[string]$name,
+		[ScriptBlock]$script
+	)
+
+	return $global:TaskFactory.Create($taskType, $name, $cred.Username(), $script)
+}
+
+function Add-Task {
+	param([string]$name)
+
+	$task = $global:DefinedTasks.GetTask($name)
+	$global:TaskExecutor.AddTask($task)
+}
+
+
 function Task {
 	param(
 		[string]$name,
 		[ScriptBlock]$script
 	)
 
-	$cred = $global:ExecCtx.Credential()
-	$task = $global:TaskFactory.Create([TaskType]::GENERIC, $name, $cred.Username(), $script)
+	$task = New-Task ([TaskType]::GENERIC) $global:ExecCtx.Credential() $name $script
 	$global:TaskExecutor.AddTask($task)
 }
+
+function Define-Task {
+	param(
+		[string]$name,
+		[ScriptBlock]$script
+	)
+
+	$task = New-Task ([TaskType]::GENERIC) $global:ExecCtx.Credential() $name $script
+	$global:DefinedTasks.AddTask($task)
+}
+
 
 function UserTask {
 	param(
@@ -766,9 +804,20 @@ function UserTask {
 		[ScriptBlock]$script
 	)
 
-	$task = $global:TaskFactory.Create([TaskType]::USER, $name, $global:UserCred.Username(), $script)
+	$task = New-Task ([TaskType]::USER) $global:UserCred $name $script
 	$global:TaskExecutor.AddTask($task)
 }
+
+function Define-UserTask {
+	param(
+		[string]$name,
+		[ScriptBlock]$script
+	)
+
+	$task = New-Task ([TaskType]::USER) $global:UserCred $name $script
+	$global:DefinedTasks.AddTask($task)
+}
+
 
 function SystemTask {
 	param(
@@ -776,8 +825,43 @@ function SystemTask {
 		[ScriptBlock]$script
 	)
 
-	$task = $global:TaskFactory.Create([TaskType]::USER, $name, "system", $script)
+	$task = $global:TaskFactory.Create([TaskType]::SYSTEM, $name, "system", $script)
 	$global:TaskExecutor.AddTask($task)
+}
+
+
+function Define-SystemTask {
+	param(
+		[string]$name,
+		[ScriptBlock]$script
+	)
+
+	$task = New-Task ([TaskType]::SYSTEM) "system" $name $script
+	$global:DefinedTasks.AddTask($task)
+}
+
+
+class TaskContainer{
+	hidden [hashtable]$tasks_ = @{}
+
+	TaskContainer(){
+		$this.tasks_ = @{}
+	}
+
+	[void] AddTask($task){
+		if($this.tasks_.ContainsKey($task.Name())){
+			throw "task already registered: $($task.Name())"
+		}
+		$this.tasks_[$task.Name()] = $task
+	}
+
+	[TaskBase] GetTask([string]$name){
+		if(-not $this.tasks_.ContainsKey($name)){
+			throw "no task defined: $name"
+		}
+		
+		return $this.tasks_[$name]
+	}
 }
 
 
