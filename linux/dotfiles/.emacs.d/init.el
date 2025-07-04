@@ -1506,9 +1506,9 @@
 
 ;;; highly experimentals
 
-
-;; claude code
+;; claude-code
 (use-package claude-code
+	:if (executable-find "git")
 	:vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
 	:ensure t
 	:demand t
@@ -1519,8 +1519,7 @@
 	:bind-keymap
 	("C-q C-a" . claude-code-command-map)
 	:init
-	(claude-code-mode)
-	)
+	(claude-code-mode))
 
 ;; rotate
 (use-package rotate
@@ -1574,7 +1573,7 @@
 		(load-theme
 		 (if window-system
 				 'doom-tokyo-night
-			 'doom-badger)
+			 'doom-city-lights)
 		 t)))
 
 ;; theme for windows
