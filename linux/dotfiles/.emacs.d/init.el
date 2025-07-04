@@ -861,6 +861,8 @@
 	("C-." . embark-act)
 	("C-," . embark-dwim)
 	("C-q C-e C-b" . embark-bindings)
+	(:map embark-general-map
+				("r" . consult-ripgrep))
 	:init
 	(setq prefix-help-command #'embark-prefix-help-command)
 	:config
