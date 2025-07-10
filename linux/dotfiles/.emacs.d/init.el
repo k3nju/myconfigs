@@ -893,7 +893,9 @@
 	 ;; change "C-c ,"(org-priority) to org-insert-structure-template and
 	 ;; rebind "C-c p" to org-priority
 	 ("C-c ," . org-insert-structure-template)
-	 ("C-c p" . org-priority))
+	 ("C-c p" . org-priority)
+	 ("C-c M-f" . org-metaright)
+	 ("C-c M-b" . org-metaleft))
 	:custom-face
 	;; :extend uneffected?
 	(org-level-1 ((t (:extend t :underline t :weight ultra-bold :height 1.5))))
