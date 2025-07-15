@@ -897,12 +897,18 @@
 	 ("C-c M-f" . org-metaright)
 	 ("C-c M-b" . org-metaleft))
 	:custom-face
-	;; :extend uneffected?
+	;; XXX: setting :extend in :custom-face is not working. using hook to set :extend.
 	(org-level-1 ((t (:extend t :underline t :weight ultra-bold :height 1.5))))
-	(org-level-2 ((t (:extend t :weight bold :height 1.3))))
+	(org-level-2 ((t (:extend nil :underline t :weight bold :height 1.3))))
 	(org-level-3 ((t (:weight bold :height 1.1))))
 	:hook
 	(org-mode . hl-todo-mode) ;; global-hl-todo-mode is not effective on org-mode
+	(org-mode . (lambda ()
+								;; WORKAROUND: :extend property can't be set in :custom-face.
+								;; :extend t -> whole line
+								(set-face-attribute 'org-level-1 nil :extend t)
+								;; :extend nil -> only chars 
+								(set-face-attribute 'org-level-2 nil :extend nil)))
 	(org-capture-after-finalize . (lambda ()
 																	;; HACK: if misc template invoked and that is aborted, delete a note file
 																	(let* ((is-misc (org-capture-get :misc-note))
@@ -1409,7 +1415,8 @@
 ;; makefile(builtin)
 (use-package make-mode
 	:hook
-	(makefile-mode . (lambda () (my/init-make-capf)))
+	;(makefile-mode . (lambda () (my/init-make-capf)))
+	(makefile-mode . my/init-make-capf)
 	:init
 	(defun my/init-make-capf ()
 		;; reset capf to ignore makefile-completions-at-point
