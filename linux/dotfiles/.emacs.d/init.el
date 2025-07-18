@@ -1588,18 +1588,11 @@
 ;; theme for windows
 ;; alt alect-themes
 (when (eq system-type 'windows-nt)
-	(use-package doom-themes
-		:ensure t
-		:demand t
-		:config
-		(load-theme 'doom-1337 t))
 	(use-package ef-themes
-		:disabled
 		:ensure t
 		:demand t
 		:config
-		(load-theme 'ef-tritanopia-dark t)))
-
+		(load-theme 'ef-maris-light t)))
 
 
 ;;; load customizations
