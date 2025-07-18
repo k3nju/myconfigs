@@ -168,7 +168,6 @@
 				(set-frame-font "MS Gothic 12" nil t))))
 
 
-
 	;;; editing visibilities/operabilities
 	;; truncate lines
 	(setq-default truncate-lines t)
@@ -894,8 +893,11 @@
 	 ;; rebind "C-c p" to org-priority
 	 ("C-c ," . org-insert-structure-template)
 	 ("C-c p" . org-priority)
-	 ("C-c M-f" . org-metaright)
-	 ("C-c M-b" . org-metaleft))
+	 ("C-c f" . org-metaright)
+	 ("C-c b" . org-metaleft)
+	 :repeat-map my/org-repat-map
+	 ("f" . org-metaright)
+	 ("b" . org-metaleft))
 	:custom-face
 	;; XXX: setting :extend in :custom-face is not working. using hook to set :extend.
 	(org-level-1 ((t (:extend t :underline t :weight ultra-bold :height 1.5))))
