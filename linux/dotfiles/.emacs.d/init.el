@@ -1549,16 +1549,16 @@
 	:ensure t
 	:demand t
 	:bind
-	(("C-q C-p p" . popper-toggle)
-	 ("C-q C-p c" . popper-cycle)
+	(("C-q p" . popper-toggle)
+	 ("C-q c" . popper-cycle)
 	 :repeat-map my/popper-repeat-map
 	 ("p" . popper-toggle)
 	 ("c" . popper-cycle))
 	:init
 	(setq popper-reference-buffers
-				'("\\*Messages\\*"
-					"\\*scratch\\*"
-					"^\\*vterm.*\\*$" vterm-mode))
+				'("^\\*vterm\\*$" vterm-mode
+					"^\\*Messages\\*$"
+					"^\\*scratch\\*$"))
 	(setq popper-display-control nil)
 	(setq popper-mode-line nil)
 	:config
