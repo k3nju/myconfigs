@@ -1314,8 +1314,12 @@
 		(yas-global-mode t)
 		(yas-reload-all)))
 
+;; NOTE: disabled. changed to reformatter.
+;;       when a file is open in two windows, running the format causes
+;;       the cursor in the other window to move to begining of the file.
 ;; format-all. format on saving
 (use-package format-all
+	:disabled
 	:ensure t
 	:hook
 	(prog-mode . format-all-mode)
@@ -1327,6 +1331,27 @@
 		 ("C++" (clang-format "--style=file" "--fallback-style=google"))
 		 ("Python" ruff)
 		 ("Go" goimports))))
+
+;; reformatter. format on saving
+(use-package reformatter
+	:ensure t
+	:init
+	(reformatter-define
+	 cc
+	 :program "clang-format"
+	 ;; args are copied from format-all
+	 :args `("-assume-filename" ,(buffer-file-name)
+					 "--style=file"
+					 "--fallback-style=google"))
+	(reformatter-define
+		go
+		:program "gofmt")
+	(reformatter-define
+		python
+	 :program "ruff"
+	 :args `("format"
+					 "--stdin-filename" ,(buffer-file-name)
+					 "-")))
 
 
 ;;; programming language modes
@@ -1354,9 +1379,11 @@
 	;;:after (:and (:any lsp-mode eglot) cape)
 	:hook
 	(c-mode-common . eglot-ensure)
+	(c-mode-common . cc-on-save-mode)
 	:config
 	;; google-c-style
 	(use-package google-c-style
+		:disabled
 		:ensure t
 		:hook
 		(c-mode-common . google-set-c-style))
@@ -1380,7 +1407,8 @@
 	:ensure t
 	:hook
 	;; NOTE: for formatting, using format-all package. not configured here.
-	(go-mode . eglot-ensure))
+	(go-mode . eglot-ensure)
+	(go-mode . go-on-save-mode))
 
 ;; python-mode
 (use-package python
@@ -1391,6 +1419,7 @@
 	;;								 (if (executable-find "black")
 	;;										 (setq lsp-pylsp-plugins-black-enabled t))))
 	(python-mode . eglot-ensure)
+	(python-mode . python-on-save-mode)
 	:init
 	(setq-default python-indent-offset 4))
 
