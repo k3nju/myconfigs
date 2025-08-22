@@ -1020,6 +1020,7 @@
 	(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
 	(setq org-refile-use-outline-path 'full-file-path)
 	(setq org-refile-allow-creating-parent-nodes 'confirm)
+	(setq org-reverse-note-order t)
 	(setq org-outline-path-complete-in-steps nil)
 	(setq org-archive-location (format "%s/%%s_archive::" (expand-file-name "archive" org-directory)))
 
