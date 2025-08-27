@@ -28,8 +28,12 @@
 	(mapc (lambda (v) (princ (format "###|%s\n" v))) vals)
 	nil)
 
-;;; supress gc
+;;; emacs basic optimizations
+;; suppress gc
 (setq gc-cons-threshold (* 64 1024 1024))
+;; increse chunk size for reading from subprocess
+;; NOTE: should not exceed /proc/sys/fs/pipe-max-size
+(setq read-process-output-max (* 1024 1024))
 
 
 ;;; .el related configs
@@ -1336,6 +1340,7 @@
 (use-package reformatter
 	:ensure t
 	:init
+	;; define cc-on-save-mode
 	(reformatter-define
 	 cc
 	 :program "clang-format"
@@ -1343,9 +1348,11 @@
 	 :args `("-assume-filename" ,(buffer-file-name)
 					 "--style=file"
 					 "--fallback-style=google"))
+	;; define go-on-save-mode
 	(reformatter-define
 		go
 		:program "gofmt")
+	;; define python-on-save-mode
 	(reformatter-define
 		python
 	 :program "ruff"
