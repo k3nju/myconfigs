@@ -3,8 +3,9 @@
 ;; TODO: tuning completion-at-point-functions. cape and eglot
 ;; TODO: use repeat-map
 ;; TODO: dumb-jump working ?
-;; TODO: echo area. boxed string resize mode line. try describe-key and C-\ shows undefined
 ;; TODO: consider using rotate. https://github.com/daichirata/emacs-rotate
+;; TODO: consider consult-flycheck
+;; TODO: use eldoc-box and try scrolling in the childframe
 
 
 ;; (profiler-start 'cpu)
@@ -788,7 +789,7 @@
 
 	 ;; M-g bindings in goto-map
 	 ;;("M-g e" . consult-compile-error)
-	 ;;("M-g f" . consult-flymake) ;; Alternative: consult-flycheck
+	 ("M-g f" . consult-flymake) ;; Alternative: consult-flycheck
 	 ("M-g g" . consult-goto-line) ;; orig. goto-line
 	 ("M-g M-g" . consult-goto-line) ;; orig. goto-line
 	 ("M-g o" . consult-outline) ;; Alternative: consult-org-heading
@@ -1124,22 +1125,19 @@
 	:bind-keymap
 	("C-x p" . projectile-command-map))
 
-;; NOTE: disabled. tuning required for eglot
 ;; flymake(builtin). flymake can use eglot as a backend.
 (use-package flymake
-	:disabled
 	:bind
 	(:map flymake-mode-map
-				("C-q C-p" . flymake-goto-prev-error)
-				("C-q C-n" . flymake-goto-next-error))
+				("C-q f p" . flymake-goto-prev-error)
+				("C-q f n" . flymake-goto-next-error)
+				("C-c f b" . flymake-show-buffer-diagnostics)
+				("C-c f p" . flymake-show-project-diagnostics))
 	:hook
 	(prog-mode . flymake-mode)
-	:config
-	(use-package flymake-diagnostic-at-point
-		:ensure t
-		:after flymake
-		:hook
-		(flymake-mode . flymake-diagnostic-at-point-mode)))
+	:init
+	(setq flymake-show-diagnostics-at-end-of-line t) ;; a bit noisy
+	(setq flymake-no-changes-timeout 0.1))
 
 ;; NOTE: disabled. tuning required for eglot
 ;; flycheck
@@ -1156,14 +1154,17 @@
 	:hook
 	(eglot-managed-mode . my/init-eglot-capf)
 	:init
-	(setq eglot-ignored-server-capabilities '(:hoverProvider
-																						:inlayHintProvider))
-	:config
+	;; XXX: adjusting
+	;; (setq eglot-ignored-server-capabilities '(:hoverProvider
+	;;																					:inlayHintProvider))
+
 	;; XXX: still useful?
 	(setq eglot-sync-connect 0)
 	(setq eglot-events-buffer-size 0)
 
-	(add-to-list 'eglot-stay-out-of 'flymake)
+	;; currently, using flymake again
+	;;(add-to-list 'eglot-stay-out-of 'flymake)
+	;; use eldoc-box instead
 	(add-to-list 'eglot-stay-out-of 'eldoc)
 
 	;; NOTE: it's recommended that wrap eglot-completion-at-point by cape-wrap-buster
@@ -1601,6 +1602,13 @@
 	:config
 	(popper-mode)
 	(popper-echo-mode))
+
+;; eldoc-box. display eldoc on childframe
+(use-package eldoc-box
+	:ensure t
+	:demand t
+	:bind
+	("C-q e" . eldoc-box-help-at-point))
 
 
 ;;; themes
