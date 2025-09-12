@@ -475,8 +475,8 @@
 	:ensure t
 	:preface
 	:bind
-	(("C-q c p" . goto-last-change)
-	 ("C-q c n" . goto-last-change-reverse)
+	(("C-q g p" . goto-last-change)
+	 ("C-q g n" . goto-last-change-reverse)
 	 :repeat-map my/goto-chg-repeat-map
 	 ("p" . goto-last-change)
 	 ("n" . goto-last-change-reverse)))
@@ -1157,10 +1157,8 @@
 	;; XXX: adjusting
 	;; (setq eglot-ignored-server-capabilities '(:hoverProvider
 	;;																					:inlayHintProvider))
-
-	;; XXX: still useful?
+	:config
 	(setq eglot-sync-connect 0)
-	(setq eglot-events-buffer-size 0)
 
 	;; currently, using flymake again
 	;;(add-to-list 'eglot-stay-out-of 'flymake)
@@ -1586,22 +1584,27 @@
 (use-package popper
 	:ensure t
 	:demand t
+	:hook
+	;; delay enabling popper to include *scratch* correctly
+	(emacs-startup . my/enable-popper-mode)
 	:bind
-	(("C-q p" . popper-toggle)
-	 ("C-q c" . popper-cycle)
+	(("C-q w p" . popper-toggle)
+	 ("C-q w c" . popper-cycle)
 	 :repeat-map my/popper-repeat-map
 	 ("p" . popper-toggle)
 	 ("c" . popper-cycle))
 	:init
 	(setq popper-reference-buffers
-				'("^\\*vterm\\*$" vterm-mode
-					"^\\*Messages\\*$"
-					"^\\*scratch\\*$"))
+				'(vterm-mode
+					"\\*scratch\\*"
+					"\\*Messages\\*"
+					))
 	(setq popper-display-control nil)
 	(setq popper-mode-line nil)
-	:config
-	(popper-mode)
-	(popper-echo-mode))
+
+	(defun my/enable-popper-mode ()
+		(popper-mode)
+		(popper-echo-mode)))
 
 ;; eldoc-box. display eldoc on childframe
 (use-package eldoc-box
