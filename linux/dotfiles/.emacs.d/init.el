@@ -1134,7 +1134,7 @@
 	:hook
 	(prog-mode . flymake-mode)
 	:init
-	(setq flymake-show-diagnostics-at-end-of-line t) ;; a bit noisy
+	(setq flymake-show-diagnostics-at-end-of-line nil) ;; a bit noisy
 	(setq flymake-no-changes-timeout 0.1))
 
 ;; NOTE: disabled. tuning required for eglot
