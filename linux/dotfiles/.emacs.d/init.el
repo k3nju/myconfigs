@@ -397,8 +397,8 @@
 (use-package winner
 	:disabled
 	:bind
-	("C-q w u" . winner-undo)
-	("C-q w r" . winner-redo)
+	(("C-q w u" . winner-undo)
+	 ("C-q w r" . winner-redo))
 	:init
 	(setq winner-dont-bind-my-keys t)
 	:config
@@ -463,8 +463,8 @@
 	:ensure t
 	:demand t
 	:bind
-	("M-%" . anzu-isearch-query-replace)
-	("C-M-%" . anzu-isearch-query-replace-regexp)
+	(("M-%" . anzu-isearch-query-replace)
+	 ("C-M-%" . anzu-isearch-query-replace-regexp))
 	:init
 	(setq anzu-search-threshold 999)
 	:config
@@ -485,9 +485,9 @@
 (use-package undo-fu
 	:ensure t
 	:bind
-	("C-/" . undo-fu-only-undo)
-	;; M-/ orig. dabbrev-expand
-	("M-/" . undo-fu-only-redo))
+	(("C-/" . undo-fu-only-undo)
+	 ;; M-/ orig. dabbrev-expand
+	 ("M-/" . undo-fu-only-redo)))
 
 ;; wgrep. materializing grep results
 (use-package wgrep
@@ -862,11 +862,9 @@
 (use-package embark
 	:ensure t
 	:bind
-	("C-." . embark-act)
-	("C-," . embark-dwim)
-	("C-q C-e C-b" . embark-bindings)
-	(:map embark-general-map
-				("r" . consult-ripgrep))
+	(("C-." . embark-act)
+	 ("C-," . embark-dwim)
+	 ("C-q C-e C-b" . embark-bindings))
 	:init
 	(setq prefix-help-command #'embark-prefix-help-command)
 	:config
@@ -1162,8 +1160,8 @@
 
 	;; currently, using flymake again
 	;;(add-to-list 'eglot-stay-out-of 'flymake)
-	;; use eldoc-box instead
-	(add-to-list 'eglot-stay-out-of 'eldoc)
+	;; to use eldoc-box or embark, don't ignore eldoc
+	;;(add-to-list 'eglot-stay-out-of 'eldoc)
 
 	;; NOTE: it's recommended that wrap eglot-completion-at-point by cape-wrap-buster
 	;;       https://github.com/minad/corfu/wiki#configuring-corfu-for-eglot
@@ -1399,8 +1397,8 @@
 		:disabled
 		:ensure t
 		:bind
-		("C-q C-f C-b" . clang-format-buffer)
-		("C-q C-f C-r" . clang-format-region)
+		(("C-q C-f C-b" . clang-format-buffer)
+		 ("C-q C-f C-r" . clang-format-region))
 		:hook
 		(c-mode-common . (lambda ()
 											 (my/add-before-save-hook 'clang-format-buffer)))
@@ -1605,13 +1603,6 @@
 	(defun my/enable-popper-mode ()
 		(popper-mode)
 		(popper-echo-mode)))
-
-;; eldoc-box. display eldoc on childframe
-(use-package eldoc-box
-	:ensure t
-	:demand t
-	:bind
-	("C-q e" . eldoc-box-help-at-point))
 
 
 ;;; themes
