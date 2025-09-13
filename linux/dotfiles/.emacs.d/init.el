@@ -1,11 +1,11 @@
 ;;;; init.el, from hell
+;; TODO: use embark more
 ;; TODO: consider create personal keymap
 ;; TODO: tuning completion-at-point-functions. cape and eglot
 ;; TODO: use repeat-map
 ;; TODO: dumb-jump working ?
 ;; TODO: consider using rotate. https://github.com/daichirata/emacs-rotate
 ;; TODO: consider consult-flycheck
-;; TODO: use eldoc-box and try scrolling in the childframe
 
 
 ;; (profiler-start 'cpu)
