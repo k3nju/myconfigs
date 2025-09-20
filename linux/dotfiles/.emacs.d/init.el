@@ -1578,32 +1578,6 @@
 	 :repeat-map my/window-rotate-repeat-map
 	 ("w" . my/rotate-window)))
 
-;; popper. show buffers in popup
-(use-package popper
-	:ensure t
-	:demand t
-	:hook
-	;; delay enabling popper to include *scratch* correctly
-	(emacs-startup . my/enable-popper-mode)
-	:bind
-	(("C-q w p" . popper-toggle)
-	 ("C-q w c" . popper-cycle)
-	 :repeat-map my/popper-repeat-map
-	 ("p" . popper-toggle)
-	 ("c" . popper-cycle))
-	:init
-	(setq popper-reference-buffers
-				'(vterm-mode
-					"\\*scratch\\*"
-					"\\*Messages\\*"
-					))
-	(setq popper-display-control nil)
-	(setq popper-mode-line nil)
-
-	(defun my/enable-popper-mode ()
-		(popper-mode)
-		(popper-echo-mode)))
-
 
 ;;; themes
 
