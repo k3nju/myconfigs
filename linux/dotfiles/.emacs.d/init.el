@@ -6,6 +6,7 @@
 ;; TODO: dumb-jump working ?
 ;; TODO: consider using rotate. https://github.com/daichirata/emacs-rotate
 ;; TODO: consider consult-flycheck
+;; TODO: https://github.com/jamescherti/minimal-emacs.d?tab=readme-ov-file
 
 
 ;; (profiler-start 'cpu)
