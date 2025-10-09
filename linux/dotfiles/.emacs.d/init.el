@@ -527,6 +527,7 @@
 ;; SIDENOTE: https://apribase.net/2024/07/25/emacs-language-environment-linux/
 
 ;; mozc.el. japanese input
+;; NOTE: requires emacs-mozc package
 (use-package mozc
 	:if window-system
 	:ensure t
