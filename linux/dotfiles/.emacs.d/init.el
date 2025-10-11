@@ -422,9 +422,10 @@
 					 simple-modeline-segment-modified
 					 simple-modeline-segment-buffer-name
 					 simple-modeline-segment-vc)
-					(simple-modeline-segment-major-mode
-					 simple-modeline-segment-eol
-					 simple-modeline-segment-encoding)))
+					(simple-modeline-segment-misc-info
+					 simple-modeline-segment-major-mode
+					 simple-modeline-segment-encoding
+					 simple-modeline-segment-eol)))
 	:config
 	(simple-modeline-mode t))
 
