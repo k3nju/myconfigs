@@ -382,6 +382,7 @@
 
 ;; window(builtin). window layout management
 (use-package window
+	:demand t
 	:init
 	(setq display-buffer-alist
 				'(("\\*Warnings\\*"
@@ -853,7 +854,6 @@
 ;; marginalia. enrichment minibuffer annotations
 (use-package marginalia
 	:ensure t
-	:demand t
 	:bind
 	(:map minibuffer-local-map
 				("M-A" . marginalia-cycle))
@@ -1461,6 +1461,10 @@
 		;; reset capf to ignore makefile-completions-at-point
 		(setq-local completion-at-point-functions
 								'(my/tempel-complete my/cape-basics my/cape-file))))
+
+;; mermaid
+(use-package mermaid-mode
+	:ensure t)
 
 
 ;;; traditional packages, still useful.
