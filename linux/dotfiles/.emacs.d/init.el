@@ -228,6 +228,10 @@
 	(setq auto-save-visited-interval 30) ;; seconds
 	(auto-save-visited-mode t)
 
+	;;; .dir-locals.el
+	(setq enable-local-variables :all)
+	;; for tramp
+	(setq enable-remote-dir-locals t)
 
 	;;; elisp user site
 	(let* ((default-directory (expand-file-name "lisp" user-emacs-directory)))
@@ -1355,10 +1359,10 @@
 	;; define python-on-save-mode
 	(reformatter-define
 		python
-	 :program "ruff"
-	 :args `("format"
-					 "--stdin-filename" ,(buffer-file-name)
-					 "-")))
+		:program "ruff"
+		:args `("format"
+						"--stdin-filename" ,(buffer-file-name)
+						"-")))
 
 
 ;;; programming language modes
@@ -1421,12 +1425,11 @@
 (use-package python
 	:ensure t
 	:hook
-	;;(python-mode . (lambda ()
-	;;								 (my/add-before-save-hook 'lsp-format-buffer)
-	;;								 (if (executable-find "black")
-	;;										 (setq lsp-pylsp-plugins-black-enabled t))))
 	(python-mode . eglot-ensure)
-	(python-mode . python-on-save-mode)
+	(python-mode . (lambda ()
+									 (if (file-remote-p default-directory)
+											 (my/add-before-save-hook 'eglot-format-buffer)
+										 (python-on-save-mode))))
 	:init
 	(setq-default python-indent-offset 4))
 
