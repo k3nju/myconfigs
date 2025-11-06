@@ -1160,8 +1160,9 @@
 	(eglot-managed-mode . my/init-eglot-capf)
 	:init
 	;; XXX: adjusting
-	;; (setq eglot-ignored-server-capabilities '(:hoverProvider
-	;;																					:inlayHintProvider))
+	(setq eglot-ignored-server-capabilities '(:hoverProvider
+																						:inlayHintProvider
+																						:codeActionProvider))
 	:config
 	(setq eglot-sync-connect 0)
 
