@@ -445,23 +445,27 @@
 (use-package hl-todo
 	:ensure t
 	:demand t
-	:init
-	(setq hl-todo-keyword-faces
+	:config
+	;; HACK: when loading ef-themes using load-theme, hl-todo is reloaded and settings are lost.
+	;;       to reapply hl-todo settings, separated settings into a function.
+	(defun my/hl-todo ()
+		(setq hl-todo-keyword-faces
 				'(("NOTE" . "firebrick")
 					("SIDENOTE" . "tomato")
 					("XXX" . "firebrick")
 					("HACK" . "firebrick")
 					("TODO" . "firebrick")
 					("DONE" . "steelblue")
+					("DONT" . "firebrick")
 					("FIXME" . "firebrick")
 					("WORKAROUND" . "firebrick")
 					("EXPERIMENT" . "firebrick")
 					("DECIDED" . "mediumseagreen")
 					("UNDECIDED" . "firebrick")))
-	(setq hl-todo-highlight-punctuation ":")
-	(setq hl-todo-require-punctuation t)
-	:config
-	(global-hl-todo-mode t))
+		(setq hl-todo-highlight-punctuation ":")
+		(setq hl-todo-require-punctuation t)
+		(global-hl-todo-mode t))
+	(my/hl-todo))
 
 ;; NOTE: disabled. not used much
 ;; anzu. display current matchs and total matchs
@@ -1618,7 +1622,8 @@
 		:ensure t
 		:demand t
 		:config
-		(load-theme 'ef-maris-light t)))
+		(load-theme 'ef-maris-light t)
+		(my/hl-todo)))
 
 
 ;;; load customizations
