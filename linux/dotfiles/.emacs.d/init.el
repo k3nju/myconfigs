@@ -1611,7 +1611,8 @@
 		(doom-themes-org-config)
 		(load-theme
 		 (if window-system
-				 'doom-tokyo-night
+				 ;;'doom-tokyo-night
+				 'modus-vivendi-tinted
 			 'doom-city-lights)
 		 t)))
 
@@ -1622,7 +1623,8 @@
 		:ensure t
 		:demand t
 		:config
-		(load-theme 'ef-maris-light t)
+		;;(load-theme 'ef-maris-light t)
+		(load-theme 'ef-winter t)
 		(my/hl-todo)))
 
 
