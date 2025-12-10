@@ -260,34 +260,41 @@
 
 	;;; basic key bindings
 	:bind
-	(:map global-map
-				;; disable quoted-insert
-				("C-q" . nil)
-				;; disable suspend-frame
-				("C-z" . nil)
-				;; disable toggle-input-method
-				("C-\\" . nil)
+	((:map global-map
+				 ;; disable quoted-insert
+				 ("C-q" . nil)
+				 ;; disable suspend-frame
+				 ("C-z" . nil)
+				 ;; disable toggle-input-method
+				 ("C-\\" . nil)
 
-				;; move cursor to next window
-				("M-n" . other-window)
-				;; move cursor to previous window
-				("M-p" . (lambda () (interactive) (other-window -1)))
+				 ;; move cursor to next window
+				 ("M-n" . other-window)
+				 ;; move cursor to previous window
+				 ("M-p" . (lambda () (interactive) (other-window -1)))
 
-				;; input method
-				("<zenkaku-hankaku>" . (lambda () (interactive) (toggle-input-method)))
+				 ;; input method
+				 ("<zenkaku-hankaku>" . (lambda () (interactive) (toggle-input-method)))
 
-				;; swap search key bindings
-				("C-s" . isearch-forward-regexp)
-				("C-r" . isearch-backward-regexp)
-				("C-M-s" . isearch-forward)
-				("C-M-r" . isearch-backword)
+				 ;; swap search key bindings
+				 ("C-s" . isearch-forward-regexp)
+				 ("C-r" . isearch-backward-regexp)
+				 ("C-M-s" . isearch-forward)
+				 ("C-M-r" . isearch-backword)
 
-				;; switching buffer
-				("C-M-p" . previous-buffer)
-				("C-M-n" . next-buffer)
+				 ;; switching buffer
+				 ("C-M-p" . previous-buffer)
+				 ("C-M-n" . next-buffer)
 
-				;; personals
-				("C-q C-x r" . (lambda () (interactive) (load-file "~/.emacs.d/init.el")))))
+				 ;; personals
+				 ("C-q C-x r" . (lambda () (interactive) (load-file "~/.emacs.d/init.el"))))
+	 (:map isearch-mode-map
+				 ;; in isearch-mode, japanese-mozc doesn't work well.
+				 ;; set "japanese" to default-input-method as a fallback.
+				 ("<zenkaku-hankaku>" . (lambda ()
+																	(interactive)
+																	(let* ((default-input-method "japanese"))
+																		(isearch-toggle-input-method)))))))
 
 
 ;;; basic packages
@@ -822,12 +829,12 @@
 	 ("M-s n" . consult-focus-lines) ;; narrowing
 
 	 ;; Isearch integration
+	 ("M-s e" . consult-isearch-history)
 	 :map isearch-mode-map
-	 ("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
-	 ("M-s e" . consult-isearch-history) ;; orig. isearch-edit-string
+	 ;;("M-e" . consult-isearch-history) ;; orig. isearch-edit-string
+	 ("M-s h" . consult-isearch-history) ;; orig. isearch-edit-string
 	 ("M-s l" . consult-line) ;; needed by consult-line to detect isearch
 	 ("M-s L" . consult-line-multi) ;; needed by consult-line to detect isearch
-	 ("M-s x" . consult-isearch-forward)
 
 	 ;; Minibuffer history
 	 :map minibuffer-local-map
