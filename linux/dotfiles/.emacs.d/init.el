@@ -1632,6 +1632,7 @@
 (when (eq system-type 'windows-nt)
 	(use-package doric-themes
 		:ensure t
+		:demand t
 		:config
 		(doric-themes-select 'doric-siren)
 		))
