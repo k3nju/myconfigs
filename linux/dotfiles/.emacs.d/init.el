@@ -1605,34 +1605,43 @@
 
 ;; theme for linux
 (when (eq system-type 'gnu/linux)
-	(use-package doom-themes
+	(use-package modus-themes
 		:ensure t
 		:demand t
-		:init
-		(setq doom-themes-enable-bold t)
-		;; NOTE: currently, treemacs is unused
-		;;(setq doom-themes-treemacs-theme "doom-one")
-		;; treemacs integration requires icons
-		;;(doom-themes-treemacs-config)
 		:config
-		(doom-themes-org-config)
-		(load-theme
-		 (if window-system
-				 ;;'doom-tokyo-night
-				 'modus-vivendi-tinted
-			 'doom-city-lights)
-		 t)))
+		(load-theme 'modus-vivendi-tinted t)))
+;;	(use-package doom-themes
+;;		:ensure t
+;;		:demand t
+;;		:init
+;;		(setq doom-themes-enable-bold t)
+;;		;; NOTE: currently, treemacs is unused
+;;		;;(setq doom-themes-treemacs-theme "doom-one")
+;;		;; treemacs integration requires icons
+;;		;;(doom-themes-treemacs-config)
+;;		:config
+;;		(doom-themes-org-config)
+;;		(load-theme
+;;		 (if window-system
+;;				 'doom-tokyo-night
+;;			 'doom-city-lights)
+;;		 t)))
 
 ;; theme for windows
 ;; alt alect-themes
 (when (eq system-type 'windows-nt)
-	(use-package ef-themes
+	(use-package doric-themes
 		:ensure t
-		:demand t
 		:config
-		;;(load-theme 'ef-maris-light t)
-		(load-theme 'ef-winter t)
-		(my/hl-todo)))
+		(doric-themes-select 'doric-siren)
+		))
+;;	(use-package ef-themes
+;;		:ensure t
+;;		:demand t
+;;		:config
+;;		;;(load-theme 'ef-maris-light t)
+;;		(load-theme 'ef-winter t)
+;;		(my/hl-todo)))
 
 
 ;;; load customizations
