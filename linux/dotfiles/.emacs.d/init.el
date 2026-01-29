@@ -1355,6 +1355,7 @@
 	:ensure t
 	:init
 	;; define cc-on-save-mode
+	;; NOTE: install clang
 	(reformatter-define
 	 cc
 	 :program "clang-format"
@@ -1363,16 +1364,26 @@
 					 "--style=file"
 					 "--fallback-style=google"))
 	;; define go-on-save-mode
+	;; NOTE: install go
 	(reformatter-define
 		go
 		:program "gofmt")
 	;; define python-on-save-mode
+	;; NOTE: install ruff
 	(reformatter-define
 		python
 		:program "ruff"
 		:args `("format"
 						"--stdin-filename" ,(buffer-file-name)
-						"-")))
+						"-"))
+	;; define dprint-on-save-mode
+	;; NOTE: install dprint
+	(reformatter-define
+		dprint
+		:program "dprint"
+		:args `("fmt"
+						"--stdin"
+						,(buffer-file-name))))
 
 
 ;;; programming language modes
@@ -1459,15 +1470,25 @@
 
 ;; markdown
 (use-package markdown-mode
+	:ensure t
 	:bind
 	(:map markdown-mode-map
 				("M-n" . other-window)
-				("M-p" . (lambda () (interactive) (other-window -1)))))
+				("M-p" . (lambda () (interactive) (other-window -1))))
+	:custom-face
+	(markdown-header-face-1 ((t (:height 2.0 :weight ultra-bold :inherit markdown-header-face))))
+	(markdown-header-face-2 ((t (:height 1.3 :weight bold :underline t :inherit markdown-header-face))))
+	(markdown-header-face-3 ((t (:height 1.1 :weight bold :underline t :inherit markdown-header-face))))
+	(markdown-header-face-4 ((t (:height 1.0 :weight bold :underline t :inherit markdown-header-face))))
+	:hook
+	(markdown-mode . dprint-on-save-mode)
+	:init
+	(setq markdown-fontify-whole-heading-line t)
+	(setq markdown-fontify-code-blocks-natively t))
 
 ;; makefile(builtin)
 (use-package make-mode
 	:hook
-	;(makefile-mode . (lambda () (my/init-make-capf)))
 	(makefile-mode . my/init-make-capf)
 	:init
 	(defun my/init-make-capf ()
