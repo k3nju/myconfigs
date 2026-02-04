@@ -1478,8 +1478,8 @@
 	:custom-face
 	(markdown-header-face-1 ((t (:height 2.0 :weight ultra-bold :inherit markdown-header-face))))
 	(markdown-header-face-2 ((t (:height 1.3 :weight bold :underline t :inherit markdown-header-face))))
-	(markdown-header-face-3 ((t (:height 1.1 :weight bold :underline t :inherit markdown-header-face))))
-	(markdown-header-face-4 ((t (:height 1.0 :weight bold :underline t :inherit markdown-header-face))))
+	(markdown-header-face-3 ((t (:height 1.0 :weight bold :underline t :inherit markdown-header-face))))
+	(markdown-header-face-4 ((t (:height 1.0 :weight bold :inherit markdown-header-face))))
 	:hook
 	(markdown-mode . dprint-on-save-mode)
 	:init
