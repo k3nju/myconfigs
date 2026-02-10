@@ -1488,6 +1488,7 @@
 
 ;; makefile(builtin)
 (use-package make-mode
+	:ensure t
 	:hook
 	(makefile-mode . my/init-make-capf)
 	:init
