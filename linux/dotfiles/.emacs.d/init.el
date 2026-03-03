@@ -488,6 +488,23 @@
 	:config
 	(global-anzu-mode t))
 
+;; symbol-overlay. highlight symbols
+(use-package symbol-overlay
+	:ensure t
+	:demand t
+	:bind
+	(("C-q s" . symbol-overlay-put);; orig. tab-to-tab-stop
+	 :map symbol-overlay-map
+	 ("q" . symbol-overlay-remove-all)
+	 ("C-g" . symbol-overlay-remove-all)))
+
+;; iedit. multi-cursor editing
+(use-package iedit
+	:ensure t
+	:demand t
+	:bind
+	(("C-q i" . iedit-mode)))
+
 ;; goto-chg. back to where edited in the past
 (use-package goto-chg
 	:ensure t
@@ -1109,16 +1126,6 @@
 	;; replace xref I/F.
 	;; e.g.: M-.|C-M-.|M-?
 	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
-
-;; symbol-overlay. highlight symbols
-(use-package symbol-overlay
-	:ensure t
-	:demand t
-	:bind
-	(("C-q s" . symbol-overlay-put);; orig. tab-to-tab-stop
-	 :map symbol-overlay-map
-	 ("q" . symbol-overlay-remove-all)
-	 ("C-g" . symbol-overlay-remove-all)))
 
 ;; project(builtin). project management ops
 (use-package project
