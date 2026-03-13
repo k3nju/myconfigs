@@ -45,7 +45,7 @@ endef
 define create_emacs_launcher
 if [[ ! -e $(1) ]]; then \
 	echo '#! /usr/bin/bash' | sudo tee -a $(1); \
-	echo 'if [[ ! -z $${DISPLAY} ]]; then' | sudo tee -a $(1); \
+	echo 'if [[ ! -z $${DISPLAY} && -z $${WSL_DISTRO_NAME} ]]; then' | sudo tee -a $(1); \
 	echo '/usr/bin/emacs $$@ &' | sudo tee -a $(1); \
 	echo 'else' | sudo tee -a $(1); \
 	echo '/usr/bin/emacs -nw $$@' | sudo tee -a $(1); \
