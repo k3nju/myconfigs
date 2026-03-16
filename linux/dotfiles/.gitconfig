@@ -4,7 +4,7 @@
 [core]
 	editor=emacs
 [alias]
-	l=log --name-status --oneline --decorate --graph
+	l=log --name-status --oneline --decorate --graph --all
 
 [filter "lfs"]
 	clean = git-lfs clean -- %f
