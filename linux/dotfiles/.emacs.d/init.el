@@ -405,7 +405,7 @@
 					("\\*vterm\\*"
 					 (display-buffer-reuse-window display-buffer-below-selected))
 					("\\*Org Agenda\\*"
-					 (display-buffer-reuse-window display-buffer-in-side-window)
+					 (display-buffer-reuse-window display-buffer-in-direction)
 					 (side . right)
 					 (window-width . fit-window-to-buffer)))))
 
