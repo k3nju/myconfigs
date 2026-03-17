@@ -398,12 +398,16 @@
 	(setq display-buffer-alist
 				'(("\\*Warnings\\*"
 					 (display-buffer-reuse-mode-window display-buffer-below-selected))
-					("\\*Help\\*"
-					 (display-buffer-reuse-window display-buffer-in-side-window)
-					 (side . left)
+					("\\*\\(?:Help\\|Metahelp\\|Apropos\\)\\*"
+					 (display-buffer-reuse-window display-buffer-in-direction)
+					 (direction . right)
 					 (window-width . fit-window-to-buffer))
 					("\\*vterm\\*"
-					 (display-buffer-reuse-window display-buffer-below-selected)))))
+					 (display-buffer-reuse-window display-buffer-below-selected))
+					("\\*Org Agenda\\*"
+					 (display-buffer-reuse-window display-buffer-in-side-window)
+					 (side . right)
+					 (window-width . fit-window-to-buffer)))))
 
 ;; NOTE: disabled. not used much
 ;; winner(builtin). window layout displacement undo/redo
