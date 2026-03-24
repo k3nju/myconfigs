@@ -64,7 +64,7 @@
 ;;; emacs basics
 (use-package emacs
 	:init
-	;;; workarounds
+	;; workarounds
 	(setq byte-compile-warnings '(cl-functions))
 
 
@@ -1396,6 +1396,14 @@
 						"--stdin"
 						,(buffer-file-name))))
 
+;; poke. for using poked
+(use-package poke
+	:if (eq system-type 'gnu/linux)
+	:ensure t
+	:commands poke
+	:config
+	(poke-frame-layout-1))
+
 
 ;;; programming language modes
 
@@ -1511,6 +1519,11 @@
 ;; mermaid
 (use-package mermaid-mode
 	:ensure t)
+
+;; poke-mode. for editing .pk files
+(use-package poke-mode
+	:ensure t
+	:mode "\\.pk\\'")
 
 
 ;;; traditional packages, still useful.
