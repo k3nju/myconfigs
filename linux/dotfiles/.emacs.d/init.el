@@ -492,6 +492,13 @@
 	:config
 	(global-anzu-mode t))
 
+;; PCRE for emacs
+(use-package pcre2el
+	:ensure t
+	:demand t
+	:config
+	(pcre-mode))
+
 ;; symbol-overlay. highlight symbols
 (use-package symbol-overlay
 	:ensure t
