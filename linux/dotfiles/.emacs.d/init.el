@@ -7,6 +7,7 @@
 ;; TODO: consider using rotate. https://github.com/daichirata/emacs-rotate
 ;; TODO: consider consult-flycheck
 ;; TODO: https://github.com/jamescherti/minimal-emacs.d?tab=readme-ov-file
+;; TODO: too many demand: t.
 
 
 ;; (profiler-start 'cpu)
@@ -519,7 +520,6 @@
 ;; goto-chg. back to where edited in the past
 (use-package goto-chg
 	:ensure t
-	:preface
 	:bind
 	(("C-q g p" . goto-last-change)
 	 ("C-q g n" . goto-last-change-reverse)
@@ -547,6 +547,7 @@
 (use-package vterm
 	:if (eq system-type 'gnu/linux)
 	:ensure t
+	:demand t
 	:hook
 	(vterm-mode . (lambda ()
 									(setq-local global-hl-line-mode nil)
