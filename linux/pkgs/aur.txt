@@ -1,3 +1,4 @@
+gnu-netcat
 systemd-boot-pacman-hook
 nvidia-470xx-dkms
 nvidia-470xx-utils
@@ -7,4 +8,3 @@ ratslap
 fcitx5-mozc-ut
 emacs-mozc
 cmigemo-git
-
