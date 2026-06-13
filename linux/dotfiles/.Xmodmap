@@ -1,9 +1,13 @@
-! configure orcer: remove -> assign -> add
+! configure order: remove-> assign -> add
 
 
+! ### remove assignments
 ! remove caps assignment from lock
 remove lock = Caps_Lock
 
+
+! ### assign keys
+! NOTE: keycode X = <unmodified> <Shift+Key> <Mode_switch(AltGr)+Key> <Shift+Mode_switch+Key>
 
 ! swap ctrl and caps
 keycode 66 = Control_L
@@ -15,10 +19,12 @@ keycode 102 = Alt_L Meta_L Alt_L Meta_L
 ! henkan as enter, shift + henkan as backspace
 keycode 100 = Return BackSpace Return
 
-! kana as backspace
-keycode 101 = BackSpace BackSpace BackSpace BackSpace
+! kana as escape
+! old: keycode 101 = BackSpace BackSpace BackSpace BackSpace
+keycode 101 = Escape Escape Escape Escape
 
 
+! ### add keys
 ! assign ctrl as control keymodifier
 add control = Control_L
 
