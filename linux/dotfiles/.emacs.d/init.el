@@ -252,6 +252,13 @@
 	(defun my/add-before-save-hook (f)
 		(add-hook 'before-save-hook f nil 'local))
 
+	(defun my/next-window (arg)
+		(interactive "p")
+		(other-window arg))
+	
+	(defun my/previous-window ()
+		(interactive)
+		(other-window -1))
 
 	;;; basic hooks
 	:hook
@@ -270,9 +277,9 @@
 				 ("C-\\" . nil)
 
 				 ;; move cursor to next window
-				 ("M-n" . other-window)
+				 ("M-n" . my/next-window)
 				 ;; move cursor to previous window
-				 ("M-p" . (lambda () (interactive) (other-window -1)))
+				 ("M-p" . my/previous-window)
 
 				 ;; input method
 				 ("<zenkaku-hankaku>" . (lambda () (interactive) (toggle-input-method)))
@@ -556,8 +563,8 @@
 									(setq-local default-input-method "japanese")))
 	:bind
 	(:map vterm-mode-map
-				("M-n" . other-window)
-				("M-p" . (lambda () (interactive) (other-window -1))))
+				("M-n" . my/next-window)
+				("M-p" . my/previous-window))
 	:init
 	;; vterm-toggle. make vterm toggle-able
 	(use-package vterm-toggle
@@ -1434,6 +1441,17 @@
 	:hook
 	(lisp-data-mode . enable-paredit-mode))
 
+;; lisp-interaction mode(builtin) for scratch buffer
+(use-package lisp-interaction
+	:ensure nil ;; builtin
+	:bind
+	(:map lisp-interaction-mode-map
+				("C-j" . newline)
+				("M-RET" . (lambda ()
+										 (interactive)
+										 (eval-print-last-sexp)
+										 (newline)))))
+
 ;; cc-mode(builtin)
 (use-package cc-mode
 	;;:after (:and (:any lsp-mode eglot) cape)
@@ -1501,8 +1519,8 @@
 	:ensure t
 	:bind
 	(:map markdown-mode-map
-				("M-n" . other-window)
-				("M-p" . (lambda () (interactive) (other-window -1))))
+				("M-n" . my/next-window)
+				("M-p" . my/previous-window))
 	:custom-face
 	(markdown-header-face-1 ((t (:height 2.0 :weight ultra-bold :inherit markdown-header-face))))
 	(markdown-header-face-2 ((t (:height 1.3 :weight bold :underline t :inherit markdown-header-face))))
@@ -1626,12 +1644,25 @@
 
 ;;; highly experimentals
 
+;; agent-shell
+;; NOTE: requires:
+;;         - claude: claude-code claude-agent-acp
+(use-package agent-shell
+	:ensure t
+	:bind
+	(:map agent-shell-mode-map
+				("RET" . newline)
+				("M-RET" . comint-send-input)
+				("M-n" . my/next-window)
+				("M-p" . my/previous-window)
+				("M-S-n" . comint-next-input)
+				("M-S-p" . comint-previous-input)))
+
 ;; claude-code
 (use-package claude-code
 	:if (executable-find "git")
 	:vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
 	:ensure t
-	:demand t
 	:hook
 	(claude-code-start . (lambda ()
 												 ;; mozc doesn't work well, fallback
@@ -1639,6 +1670,7 @@
 	:bind-keymap
 	("C-q C-a" . claude-code-command-map)
 	:init
+	(setq claude-code-terminal-backend 'vterm)
 	(claude-code-mode))
 
 ;; rotate
