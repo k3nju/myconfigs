@@ -1648,6 +1648,7 @@
 ;; NOTE: requires:
 ;;         - claude: claude-code claude-agent-acp
 (use-package agent-shell
+	:if (eq system-type 'gnu/linux)
 	:ensure t
 	:bind
 	(:map agent-shell-mode-map
@@ -1660,7 +1661,8 @@
 
 ;; claude-code
 (use-package claude-code
-	:if (executable-find "git")
+	:if (and (eq system-type 'gnu/linux)
+					 (executable-find "git"))
 	:vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
 	:ensure t
 	:hook
