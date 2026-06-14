@@ -17,7 +17,7 @@ keycode 37 = Caps_Lock NoSymbol Caps_Lock
 keycode 102 = Alt_L Meta_L Alt_L Meta_L
 
 ! henkan as enter, shift + henkan as backspace
-keycode 100 = Return BackSpace Return
+keycode 100 = Return Return Return Return
 
 ! kana as escape
 ! old: keycode 101 = BackSpace BackSpace BackSpace BackSpace
