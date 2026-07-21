@@ -899,7 +899,9 @@
 	;; narrowing on consult-buffer
 	;; Optionally configure the narrowing key.
 	;; Both < and C-+ work reasonably well.
-	(setq consult-narrow-key "<"))
+	(setq consult-narrow-key "<")
+	;; minimum length to trigger consult-ripgrep
+	(setq consult-async-min-input 2))
 
 ;; marginalia. enrichment minibuffer annotations
 (use-package marginalia
