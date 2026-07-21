@@ -112,7 +112,10 @@
 	(prefer-coding-system 'utf-8)
 	(setq-default buffer-file-coding-system 'utf-8)
 	(when (eq system-type 'windows-nt)
-		(setq-default default-process-coding-system '(utf-8 . japanese-cp932-dos)))
+		;; HACK: -dos and tramp.
+		;; japanese-cp932-dos would be the correct value for cdr(encoding) of default-process-coding-system in windows.
+		;; but -dos makes tramp hang. so using -unix for now
+		(setq-default default-process-coding-system '(utf-8 . japanese-cp932-unix)))
 	;; use OS standard IME as default
 	(setq default-input-method nil)
 
