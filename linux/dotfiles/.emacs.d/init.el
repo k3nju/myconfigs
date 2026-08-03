@@ -316,7 +316,7 @@
 	:config
 	(repeat-mode t))
 
-;; dabbrev
+;; dabbrev(builtin)
 ;; NOTE: need to load to suppress errors in cape--dabbrev-bounds
 (use-package dabbrev
 	:demand t
@@ -413,7 +413,7 @@
 					 (display-buffer-reuse-window display-buffer-in-direction)
 					 (direction . right)
 					 (window-width . fit-window-to-buffer))
-					("\\*vterm\\*"
+					("\\*\\(?:vterm\\|eat\\)\\*"
 					 (display-buffer-reuse-window display-buffer-below-selected))
 					("\\*Org Agenda\\*"
 					 ;; EXPERIMENT: using side window instead of display-buffer-in-direction
@@ -504,7 +504,7 @@
 	:config
 	(global-anzu-mode t))
 
-;; PCRE for emacs
+;; pcre2el. PCRE for emacs
 (use-package pcre2el
 	:ensure t
 	:demand t
@@ -524,7 +524,6 @@
 ;; iedit. multi-cursor editing
 (use-package iedit
 	:ensure t
-	:demand t
 	:bind
 	(("C-q i" . iedit-mode)))
 
@@ -556,9 +555,9 @@
 ;; vterm. fast terminal
 ;; NOTE: need external configuration to .bashrc
 (use-package vterm
-	:if (eq system-type 'gnu/linux)
 	:ensure t
-	:demand t
+	:if (eq system-type 'gnu/linux)
+	:demand t ;; must be loaded before remapping vterm-mode-map in vterm-toggle 
 	:hook
 	(vterm-mode . (lambda ()
 									(setq-local global-hl-line-mode nil)
@@ -567,54 +566,66 @@
 	:bind
 	(:map vterm-mode-map
 				("M-n" . my/next-window)
-				("M-p" . my/previous-window))
-	:init
-	;; vterm-toggle. make vterm toggle-able
-	(use-package vterm-toggle
-		:if (eq system-type 'gnu/linux)
-		:ensure t
-		:bind
-		(("C-t" . vterm-toggle)
-		 ("C-c C-t" . vterm-toggle-cd)
-		 :map vterm-mode-map
-		 ("C-t" . vterm-toggle))))
+				("M-p" . my/previous-window)))
+
+;; vterm-toggle. make vterm toggle-able
+(use-package vterm-toggle
+	:ensure t
+	:if (eq system-type 'gnu/linux)
+	:after vterm
+	:bind
+	(("C-t" . vterm-toggle)
+	 ("C-c C-t" . vterm-toggle-cd)
+	 :map vterm-mode-map
+	 ("C-t" . vterm-toggle)))
+
+;; eat. pure elisp terminal
+(use-package eat
+	:ensure t
+	:if (eq system-type 'gnu/linux))
 
 
 ;;; jp env packages
 ;; SIDENOTE: https://apribase.net/2024/07/25/emacs-language-environment-linux/
 
 ;; mozc.el. japanese input
-;; NOTE: requires emacs-mozc package
+;; NOTE: requires emacs-mozc(yay)
 (use-package mozc
-	:if window-system
 	:ensure t
+	:if window-system
 	:init
 	(setq default-input-method "japanese-mozc")
-	;; NOTE: doen't work well when truncate-lines is t.
-	;;       use posframe insted of overlaying.
+	;; NOTE: doesn't work well when truncate-lines is t.
+	;;       use posframe instead of overlaying.
 	;;(setq mozc-candidate-style 'overlay))
-	:config
-	;; mozc-cand-posframe. show japanese candidates in in-buffer
-	(use-package mozc-cand-posframe
-		:ensure t
-		:demand t ; required "demand t" to load mozc-cand-posframe on mozc :config section executed
-		:after mozc
-		:custom-face
-		(mozc-cand-posframe-normal-face ((t (:foreground unspecified :background unspecified))))
-		(mozc-cand-posframe-focused-face ((t (:inherit link :foreground unspecified :background unspecified))))
-		:init
-		(setq mozc-candidate-style 'posframe)))
+	)
+
+;; mozc-cand-posframe. show japanese candidates in in-buffer
+;; NOTE: ":after mozc" and ":demand t"
+;;   this package has no autoloads; it only registers itself into
+;;   mozc-candidate-dispatch-table at load time, so it must be
+;;   loaded explicitly once mozc is available.
+(use-package mozc-cand-posframe
+	:ensure t
+	:if window-system
+	:after mozc ;; every keyword following ':after' is wrapped in "(eval-after-load 'mozc ...)"
+	:demand t   ;; cancel defer and emitting "(require 'mozc-cand-posframe ...)"
+	:custom-face
+	(mozc-cand-posframe-normal-face ((t (:foreground unspecified :background unspecified))))
+	(mozc-cand-posframe-focused-face ((t (:inherit link :foreground unspecified :background unspecified))))
+	:init
+	(setq mozc-candidate-style 'posframe))
 
 ;; migemo. search japanese words in alphabets
 (use-package migemo
 	:ensure t
-	:demand t
 	:preface
 	(defun my/find-migemo ()
 		(let* ((exec-path (cons (expand-file-name "cmigemo-default-win64" user-emacs-directory)
 														exec-path)))
 			(executable-find "cmigemo")))
 	:if (my/find-migemo)
+	:demand t
 	:init
 	(setq migemo-command (my/find-migemo))
 	(setq migemo-options '("-q" "--emacs"))
@@ -716,9 +727,8 @@
 
 ;; corfu. in-buffer completion UI
 (use-package corfu
-	:if window-system
 	:ensure t
-	:requires orderless
+	:if window-system
 	:bind
 	(:map corfu-map
 				;; tab to next entry
@@ -756,13 +766,15 @@
 	(setq text-mode-ispell-word-completion nil)
 
 	;; must be in :init
-	(global-corfu-mode)
-	:config
-	(use-package kind-icon
-		:ensure t
-		:init
-		;; disable icon
-		(setq kind-icon-use-icons nil)))
+	(global-corfu-mode))
+
+;; kind-icon. installed to disable icons used by corfu
+(use-package kind-icon
+	:ensure t
+	:after corfu
+	:init
+	;; disable icon
+	(setq kind-icon-use-icons nil))
 
 ;; cape. completions sources
 (use-package cape
@@ -803,19 +815,20 @@
 	(setq read-buffer-completion-ignore-case t)
 	(setq completion-ignore-case t)
 	:config
-	(vertico-mode)
-	;; vertico-directory is bundled within vertico extensions.
-	(use-package vertico-directory
-		:ensure nil
-		:bind
-		(:map vertico-map
-					;; disable invoking dired by RET. alt, M-RET invokes dired.
-					("RET" . vertico-directory-enter)
-					("C-j" . vertico-directory-enter)
-					("DEL" . vertico-directory-delete-char)
-					("M-DEL" . vertico-directory-delete-word))
-		:hook
-		(rfn-eshadow-update-overlay . vertico-directory-tidy)))
+	(vertico-mode))
+
+;; vertico-directory. bundled within vertico extensions.
+(use-package vertico-directory
+	:after vertico
+	:bind
+	(:map vertico-map
+				;; disable invoking dired by RET. alt, M-RET invokes dired.
+				("RET" . vertico-directory-enter)
+				("C-j" . vertico-directory-enter)
+				("DEL" . vertico-directory-delete-char)
+				("M-DEL" . vertico-directory-delete-word))
+	:hook
+	(rfn-eshadow-update-overlay . vertico-directory-tidy))
 
 ;; consult. minibuffer commands
 (use-package consult
@@ -930,12 +943,14 @@
 	(add-to-list 'display-buffer-alist
 							 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
 								 nil
-								 (window-parameters (mode-line-format . none))))
-	(use-package embark-consult
-		:ensure t
-		:demand t
-		:hook
-		(embark-collect-mode . consult-preview-at-point-mode)))
+								 (window-parameters (mode-line-format . none)))))
+
+;; embark-consult. integrate embark and consult.
+(use-package embark-consult
+	:ensure t
+	:after (embark consult)
+	:hook
+	(embark-collect-mode . consult-preview-at-point-mode))
 
 
 ;;; the org-mode
@@ -1123,14 +1138,14 @@
 
 	;; timestamp
 	(setq-default org-display-custom-times t)
-	(setq org-time-stamp-custom-formats '("<%Y/%m/%d>" . "<%Y/%m/%d %H:%M:%S>"))
+	(setq org-time-stamp-custom-formats '("<%Y/%m/%d>" . "<%Y/%m/%d %H:%M:%S>")))
 
-	;; org-id(builtin)
-	(use-package org-id
-		:demand t
-		:config
-		;;(setq org-id-link-to-org-use-id t)
-		(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)))
+;; org-id(builtin)
+(use-package org-id
+	:demand t
+	:config
+	;;(setq org-id-link-to-org-use-id t)
+	(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id))
 
 
 ;;; development packages
@@ -1248,85 +1263,6 @@
 											#'my/eglot-cape-inside-string
 											#'my/eglot-cape-inside-comment))))
 
-;; NOTE: disabled experimentally. trying eglot.
-;; lsp-mode
-;; NOTE: Resuires language servers individually.
-;;			 C/C++: pacman -S clang
-;;			 python: install python-lsp-server[all] for each project
-;;			 golang: go get golang.org./x/tools/gopls@latest
-(use-package lsp-mode
-	:disabled
-	:ensure t
-	:hook
-	(prog-mode . lsp-deferred)
-	:init
-	(setq lsp-keymap-prefix "C-q C-l")
-	:config
-	;;(setq lsp-log-io t) ;; for debug
-	(setq lsp-warn-no-matched-clients nil)
-	(setq lsp-signature-auto-activate nil)
-	;;(setq lsp-completion-provider :capf) ;; for company mode
-	(setq lsp-completion-provider :none)
-
-	;; clangd args
-	;; set log=verbose for debug
-	(setq lsp-clients-clangd-args '("-j=2" "--background-index" "--log=error"))
-
-	;; settings per langs
-	(setq lsp-register-custom-settings
-				'(("gopls.experimentalWorkspaceModule" t t)))
-
-	;; lsp-ui
-	(use-package lsp-ui
-		:disabled
-		:ensure t
-		:after lsp-mode
-		:commands lsp-ui-mode
-		:hook
-		(lsp-mode	. lsp-ui-mode)
-		:bind
-		(:map lsp-ui-mode-map
-					;; remap xref-find-defenitions function to lsp-ui-peek-find-definitions
-					([remap xref-find-definitions]	. lsp-ui-peek-find-definitions) ;; M-.
-					([remap xref-find-references]		. lsp-ui-peek-find-references) ;; M-?
-					("C-q C-u C-m"									. lsp-ui-imenu))
-
-		:custom-face
-		(lsp-ui-sideline-symbol-info ((t (:background "default"))))
-		;; background face of sideline and doc
-		(markdown-code-face ((t (:background "grey10"))))
-		:config
-		(setq lsp-lens-enable t)
-
-		;; lsp-ui-doc
-		(setq lsp-ui-doc-enable nil)
-		(setq lsp-ui-doc-header t)
-		(setq lsp-ui-doc-include-signature t)
-		(setq lsp-ui-doc-delay 2)
-
-		;; lsp-ui-sideline
-		(setq lsp-ui-sideline-enable t)
-		(setq lsp-ui-sideline-show-code-actions t)
-		(setq lsp-ui-sideline-show-hover nil)
-		(setq lsp-ui-sideline-delay 0		.	2)
-		;;(lsp-ui-sideline-update-mode 'line)
-		(setq lsp-ui-sideline-show-diagnostics t)
-		(setq lsp-ui-sideline-diagnostic-max-lines 10)
-		(setq lsp-ui-sideline-diagnostic-max-line-length 150)
-
-		;; lsp-ui-peek
-		(setq lsp-ui-peek-always-show t)))
-
-;; treesit-auto. tree-sitter lang bundles manager
-(use-package treesit-auto
-	:if (executable-find "git")
-	:ensure t
-	:init
-	(setq treesit-auto-install 'prompt)
-	:config
-	(treesit-auto-add-to-auto-mode-alist 'all)
-	(global-treesit-auto-mode))
-
 ;; tempel. snippet provider
 (use-package tempel
 	:ensure t
@@ -1349,25 +1285,10 @@
 (use-package tempel-collection
 	:ensure t)
 
-;; NOTE: disabled. trying tempel
-;; yasnippet. traditional snippet provider
-(use-package yasnippet
-	:disabled
-	:ensure t
-	:config
-	;; actual snippets
-	(use-package yasnippet-snippets
-		:ensure t
-		:init
-		(setq yas-prompt-functions '(yas-ido-prompt))
-		:config
-		(yas-global-mode t)
-		(yas-reload-all)))
-
+;; format-all. format on saving
 ;; NOTE: disabled. changed to reformatter.
 ;;       when a file is open in two windows, running the format causes
 ;;       the cursor in the other window to move to begining of the file.
-;; format-all. format on saving
 (use-package format-all
 	:disabled
 	:ensure t
@@ -1419,8 +1340,8 @@
 
 ;; poke. for using poked
 (use-package poke
-	:if (eq system-type 'gnu/linux)
 	:ensure t
+	:if (eq system-type 'gnu/linux)
 	:commands poke
 	:config
 	(poke-frame-layout-1))
@@ -1428,15 +1349,8 @@
 
 ;;; programming language modes
 
-;; elisp-mode(builtin)
-(use-package elisp-mode
-	:config
-	;; NOTE: disabled. too agressive
-	(use-package aggressive-indent
-		:disabled
-		:ensure t
-		:hook
-		(emacs-lisp-mode . aggressive-indent-mode)))
+;; elisp-mode(builtin,preload)
+(use-package elisp-mode)
 
 ;; experiment
 ;; paredit. structual editing for lisp
@@ -1459,31 +1373,31 @@
 
 ;; cc-mode(builtin)
 (use-package cc-mode
-	;;:after (:and (:any lsp-mode eglot) cape)
 	:hook
 	(c-mode-common . eglot-ensure)
-	(c-mode-common . cc-on-save-mode)
-	:config
-	;; google-c-style
-	(use-package google-c-style
-		:disabled
-		:ensure t
-		:hook
-		(c-mode-common . google-set-c-style))
-	;; NOTE: currently disabled. alt, format-all
-	;; clang-format
-	(use-package clang-format
-		:disabled
-		:ensure t
-		:bind
-		(("C-q C-f C-b" . clang-format-buffer)
-		 ("C-q C-f C-r" . clang-format-region))
-		:hook
-		(c-mode-common . (lambda ()
-											 (my/add-before-save-hook 'clang-format-buffer)))
-		:init
-		(setq clang-format-style "file")
-		(setq clang-format-fallback-style "google")))
+	(c-mode-common . cc-on-save-mode))
+
+;; google-c-style
+(use-package google-c-style
+	:disabled
+	:ensure t
+	:hook
+	(c-mode-common . google-set-c-style))
+
+;; clang-format
+;; NOTE: currently disabled. alt, format-all
+(use-package clang-format
+	:disabled
+	:ensure t
+	:bind
+	(("C-q C-f C-b" . clang-format-buffer)
+	 ("C-q C-f C-r" . clang-format-region))
+	:hook
+	(c-mode-common . (lambda ()
+										 (my/add-before-save-hook 'clang-format-buffer)))
+	:init
+	(setq clang-format-style "file")
+	(setq clang-format-fallback-style "google"))
 
 ;; go-mode
 (use-package go-mode
@@ -1560,56 +1474,55 @@
 
 ;;; traditional packages, still useful.
 
+;; ido(builtin). minibuffer completion UI
 ;; NOTE: disabled. currently using vertico.
 ;; NOTE: emacs 28 introduced fido-vertical-mode.
 ;;       consider using this
-;; ido(builtin). minibuffer completion UI
 (use-package ido
 	:disabled
-	:init
-	(message "ido init")
+	:demand t
 	:config
-	(message "ido config")
-	(ido-mode t)
 	(setq ido-everywhere t)
 	(setq ido-enable-flex-matching t)
 	(setq ido-use-virtual-buffers t)
 	(setq ido-use-filename-at-point 'guess)
 	(setq ido-enable-regexp t)
+	(ido-mode t))
 
-	;; ido-vertical-mode
-	(use-package ido-vertical-mode
-		:ensure t
-		:init
-		(message "ido-vertical init")
+;; ido-vertical-mode
+(use-package ido-vertical-mode
+	:disabled
+	:ensure t
+	:demand t
+	:config
+	(setq ido-vertical-show-count t)
+	(setq ido-vertical-define-keys 'C-n-and-C-p-only)
+	(ido-vertical-mode t))
 
-		:config
-		(message "ido-vertical config")
-		(ido-vertical-mode t)
-		(setq ido-vertical-show-count t)
-		(setq ido-vertical-define-keys 'C-n-and-C-p-only))
+;; ido-completing-read+
+(use-package ido-completing-read+
+	:disabled
+	:ensure t
+	:demand t
+	:config
+	(ido-ubiquitous-mode t))
 
-	;; ido-completing-read+
-	(use-package ido-completing-read+
-		:ensure t
-		:config
-		(ido-ubiquitous-mode t))
-
-	;; amx
-	(use-package amx
-		:ensure t
-		:bind
-		("M-x" . amx)
-		:config
-		(amx-mode)
-		;; unworked :init (amx-backend 'ido) and :config (amx-backend 'ido)
-		:custom
-		(amx-backend 'ido)))
+;; amx
+(use-package amx
+	:disabled
+	:ensure t
+	:bind
+	("M-x" . amx)
+	:config
+	(amx-mode)
+	;; unworked :init (amx-backend 'ido) and :config (amx-backend 'ido)
+	:custom
+	(amx-backend 'ido))
 
 ;; company. traditional in-buffer completion UI
 (use-package company
-	:if (not window-system)
 	:ensure t
+	:if (not window-system)
 	:hook
 	(prog-mode . global-company-mode)
 	:bind
@@ -1650,11 +1563,10 @@
 ;;; highly experimentals
 
 ;; agent-shell
-;; NOTE: requires:
-;;         - claude: claude-code claude-agent-acp
+;; NOTE: requires: claude-code(sh) claude-agent-acp(npm)
 (use-package agent-shell
-	:if (eq system-type 'gnu/linux)
 	:ensure t
+	:if (eq system-type 'gnu/linux)
 	:bind
 	(:map agent-shell-mode-map
 				("RET" . newline)
@@ -1664,20 +1576,30 @@
 				("M-S-n" . comint-next-input)
 				("M-S-p" . comint-previous-input)))
 
-;; claude-code
+;; claude-code-ide.el
+(use-package claude-code-ide
+	:if (and (eq system-type 'gnu/linux)
+					 (executable-find "git"))
+  :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
+  :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
+  :config
+  (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
+
+;; claude-code.el
+;; NOTE: requires: inheritenv
 (use-package claude-code
 	:if (and (eq system-type 'gnu/linux)
 					 (executable-find "git"))
 	:vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
-	:ensure t
 	:hook
 	(claude-code-start . (lambda ()
 												 ;; mozc doesn't work well, fallback
 												 (setq-local default-input-method "japanese")))
 	:bind-keymap
-	("C-q C-a" . claude-code-command-map)
+	("C-q C-c" . claude-code-command-map)
 	:init
 	(setq claude-code-terminal-backend 'vterm)
+	:config
 	(claude-code-mode))
 
 ;; rotate
@@ -1696,45 +1618,49 @@
 ;;; themes
 
 ;; theme for linux
-(when (eq system-type 'gnu/linux)
-	(use-package modus-themes
-		:ensure t
-		:demand t
-		:config
-		(load-theme 'modus-vivendi-tinted t)))
-;;	(use-package doom-themes
-;;		:ensure t
-;;		:demand t
-;;		:init
-;;		(setq doom-themes-enable-bold t)
-;;		;; NOTE: currently, treemacs is unused
-;;		;;(setq doom-themes-treemacs-theme "doom-one")
-;;		;; treemacs integration requires icons
-;;		;;(doom-themes-treemacs-config)
-;;		:config
-;;		(doom-themes-org-config)
-;;		(load-theme
-;;		 (if window-system
-;;				 'doom-tokyo-night
-;;			 'doom-city-lights)
-;;		 t)))
+(use-package modus-themes
+	:ensure t
+	:if (eq system-type 'gnu/linux)
+	:demand t
+	:config
+	(load-theme 'modus-vivendi-tinted t))
+
+(use-package doom-themes
+	:disabled
+	:ensure t
+	:if (eq system-type 'gnu/linux)
+	:demand t
+	:init
+	(setq doom-themes-enable-bold t)
+	;; NOTE: currently, treemacs is unused
+	;;(setq doom-themes-treemacs-theme "doom-one")
+	;; treemacs integration requires icons
+	;;(doom-themes-treemacs-config)
+	:config
+	(doom-themes-org-config)
+	(load-theme
+	 (if window-system
+			 'doom-tokyo-night
+		 'doom-city-lights)
+	 t))
 
 ;; theme for windows
-;; alt alect-themes
-(when (eq system-type 'windows-nt)
-	(use-package doric-themes
-		:ensure t
-		:demand t
-		:config
-		(doric-themes-select 'doric-siren)
-		))
-;;	(use-package ef-themes
-;;		:ensure t
-;;		:demand t
-;;		:config
-;;		;;(load-theme 'ef-maris-light t)
-;;		(load-theme 'ef-winter t)
-;;		(my/hl-todo)))
+;; MEMO: alt alect-themes
+(use-package doric-themes
+	:ensure t
+	:if (eq system-type 'windows-nt)
+	:demand t
+	:config
+	(doric-themes-select 'doric-siren))
+
+(use-package ef-themes
+	:disabled
+	:ensure t
+	:demand t
+	:config
+	;;(load-theme 'ef-maris-light t)
+	(load-theme 'ef-winter t)
+	(my/hl-todo))
 
 
 ;;; load customizations
