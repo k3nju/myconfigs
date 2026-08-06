@@ -1596,7 +1596,7 @@
 												 ;; mozc doesn't work well, fallback
 												 (setq-local default-input-method "japanese")))
 	:bind-keymap
-	("C-q C-c" . claude-code-command-map)
+	("C-q c" . claude-code-command-map)
 	:init
 	(setq claude-code-terminal-backend 'vterm)
 	:config
