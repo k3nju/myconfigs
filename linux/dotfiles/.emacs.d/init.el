@@ -272,7 +272,7 @@
 	;;; basic key bindings
 	:bind
 	((:map global-map
-				 ;; disable quoted-insert
+				 ;; disable quoted-insert. TODO: revive C-q?
 				 ("C-q" . nil)
 				 ;; disable suspend-frame
 				 ("C-z" . nil)
@@ -298,7 +298,7 @@
 				 ("C-M-n" . next-buffer)
 
 				 ;; personals
-				 ("C-q C-x r" . (lambda () (interactive) (load-file "~/.emacs.d/init.el"))))
+				 ("C-c x r" . (lambda () (interactive) (load-file "~/.emacs.d/init.el"))))
 	 (:map isearch-mode-map
 				 ;; in isearch-mode, japanese-mozc doesn't work well.
 				 ;; set "japanese" to default-input-method as a fallback.
@@ -426,8 +426,8 @@
 (use-package winner
 	:disabled
 	:bind
-	(("C-q w u" . winner-undo)
-	 ("C-q w r" . winner-redo))
+	(("C-c x w 0" . winner-undo)
+	 ("C-c x w 1" . winner-redo))
 	:init
 	(setq winner-dont-bind-my-keys t)
 	:config
@@ -439,6 +439,18 @@
 	:demand t
 	:config
 	(window-number-meta-mode t))
+
+;; rotate windows.
+(use-package rotate
+	:ensure t
+	:demand t
+	:preface
+	(defun my/rotate-window ()
+		(interactive) (rotate-window))
+	:bind
+	(("C-c w" . my/rotate-window)
+	 :repeat-map my/window-rotate-repeat-map
+	 ("w" . my/rotate-window)))
 
 ;; simple-modeline. modeline customization
 (use-package simple-modeline
@@ -516,23 +528,22 @@
 	:ensure t
 	:demand t
 	:bind
-	(("C-q s" . symbol-overlay-put);; orig. tab-to-tab-stop
+	(("C-c s" . symbol-overlay-put)
 	 :map symbol-overlay-map
-	 ("q" . symbol-overlay-remove-all)
 	 ("C-g" . symbol-overlay-remove-all)))
 
 ;; iedit. multi-cursor editing
 (use-package iedit
 	:ensure t
 	:bind
-	(("C-q i" . iedit-mode)))
+	(("C-c i" . iedit-mode)))
 
 ;; goto-chg. back to where edited in the past
 (use-package goto-chg
 	:ensure t
 	:bind
-	(("C-q g p" . goto-last-change)
-	 ("C-q g n" . goto-last-change-reverse)
+	(("C-c g p" . goto-last-change)
+	 ("C-c g n" . goto-last-change-reverse)
 	 :repeat-map my/goto-chg-repeat-map
 	 ("p" . goto-last-change)
 	 ("n" . goto-last-change-reverse)))
@@ -935,7 +946,7 @@
 	:bind
 	(("C-." . embark-act)
 	 ("C-," . embark-dwim)
-	 ("C-q C-e C-b" . embark-bindings))
+	 ("C-c h b" . embark-bindings))
 	:init
 	(setq prefix-help-command #'embark-prefix-help-command)
 	:config
@@ -1154,7 +1165,7 @@
 (use-package ggtags
 	:ensure t
 	:bind
-	("C-q C-g" . 'ggtags-mode))
+	("C-c g g" . 'ggtags-mode))
 
 ;; dumb-jump. ensuring navigating codes work
 ;; NOTE: dumb-jump is registered as a xref implementation.
@@ -1189,11 +1200,14 @@
 ;; flymake(builtin). flymake can use eglot as a backend.
 (use-package flymake
 	:bind
-	(:map flymake-mode-map
-				("C-q f p" . flymake-goto-prev-error)
-				("C-q f n" . flymake-goto-next-error)
-				("C-c f b" . flymake-show-buffer-diagnostics)
-				("C-c f p" . flymake-show-project-diagnostics))
+	((:map flymake-mode-map
+				 ("C-c f p" . flymake-goto-prev-error)
+				 ("C-c f n" . flymake-goto-next-error)
+				 ("C-c f d" . flymake-show-buffer-diagnostics)
+				 ("C-c f D" . flymake-show-project-diagnostics))
+	 (:repeat-map my/flymake-repat-map
+				 ("p" .	flymake-goto-prev-error)
+				 ("n" . flymake-goto-next-error)))
 	:hook
 	(prog-mode . flymake-mode)
 	:init
@@ -1390,8 +1404,8 @@
 	:disabled
 	:ensure t
 	:bind
-	(("C-q C-f C-b" . clang-format-buffer)
-	 ("C-q C-f C-r" . clang-format-region))
+	(("C-c f b" . clang-format-buffer)
+	 ("C-c f r" . clang-format-region))
 	:hook
 	(c-mode-common . (lambda ()
 										 (my/add-before-save-hook 'clang-format-buffer)))
@@ -1596,25 +1610,13 @@
 												 ;; mozc doesn't work well, fallback
 												 (setq-local default-input-method "japanese")))
 	:bind-keymap
-	("C-q c" . claude-code-command-map)
+	("C-c x e c" . claude-code-command-map)
 	:init
 	(setq claude-code-terminal-backend 'vterm)
 	:config
 	(claude-code-mode))
 
-;; rotate
-(use-package rotate
-	:ensure t
-	:demand t
-	:preface
-	(defun my/rotate-window ()
-		(interactive) (rotate-window))
-	:bind
-	(("C-q C-w" . my/rotate-window)
-	 :repeat-map my/window-rotate-repeat-map
-	 ("w" . my/rotate-window)))
-
-
+     
 ;;; themes
 
 ;; theme for linux
