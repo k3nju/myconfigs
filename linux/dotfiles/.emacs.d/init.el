@@ -982,7 +982,7 @@
 	 ("C-c p" . org-priority)
 	 ("C-c f" . org-metaright)
 	 ("C-c b" . org-metaleft)
-	 :repeat-map my/org-repat-map
+	 :repeat-map my/org-repeat-map
 	 ("f" . org-metaright)
 	 ("b" . org-metaleft))
 	:custom-face
@@ -1205,7 +1205,7 @@
 				 ("C-c f n" . flymake-goto-next-error)
 				 ("C-c f d" . flymake-show-buffer-diagnostics)
 				 ("C-c f D" . flymake-show-project-diagnostics))
-	 (:repeat-map my/flymake-repat-map
+	 (:repeat-map my/flymake-repeat-map
 				 ("p" .	flymake-goto-prev-error)
 				 ("n" . flymake-goto-next-error)))
 	:hook
