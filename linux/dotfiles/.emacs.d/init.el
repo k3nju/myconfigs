@@ -1172,6 +1172,8 @@
 ;;			 when lsp is not activated, M-. will use dumb-jump via xref interface.
 (use-package dumb-jump
 	:ensure t
+	:bind
+	("C-M-." . dumb-jump-go) ;; orig. xref-find-apropos
 	:init
 	(setq xref-show-definitions-function #'xref-show-definitions-completing-read)
 	;; replace xref I/F.
@@ -1584,11 +1586,9 @@
 	:bind
 	(:map agent-shell-mode-map
 				("RET" . newline)
-				("M-RET" . comint-send-input)
 				("M-n" . my/next-window)
 				("M-p" . my/previous-window)
-				("M-S-n" . comint-next-input)
-				("M-S-p" . comint-previous-input)))
+				("C-c RET" . agent-shell-submit)))
 
 ;; claude-code-ide.el
 (use-package claude-code-ide
