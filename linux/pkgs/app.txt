@@ -1,4 +1,5 @@
 libreoffice-fresh
+keepassxc
 keepass
 ghex
 wireshark-qt
