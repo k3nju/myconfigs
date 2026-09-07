@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;;;; init.el, from hell
 ;; TODO: use embark more
 ;; TODO: consider create personal keymap
@@ -48,7 +50,13 @@
 
 ;;; package initialization
 (when (require 'package nil t)
-	(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+	;; gnu,nongnu are builtin.
+	(add-to-list 'package-archives
+							 '("melpa" . "https://melpa.org/packages/"))
+	(setq package-archive-priorities
+				'(("melpa" . 10)
+					("gnu" . 5)
+					("nongnu" . 1)))
 	(setq package-install-upgrade-built-in t)
 	(setq package-native-compile t)
 	(package-initialize)
@@ -351,7 +359,9 @@
 	(setq dired-recursive-deletes 'top) ;; ask
 	(setq dired-create-destination-dirs 'always)
 	;; XXX: unworking?
-	(setq dired-kill-when-opening-new-dired-buffer t))
+	(setq dired-kill-when-opening-new-dired-buffer t)
+	:hook
+	(dired-mode . (lambda () (display-line-numbers-mode -1))))
 
 ;; ediff(builtin). emacs differ
 (use-package ediff
@@ -571,6 +581,7 @@
 	:demand t ;; must be loaded before remapping vterm-mode-map in vterm-toggle 
 	:hook
 	(vterm-mode . (lambda ()
+									(display-line-numbers-mode -1)
 									(setq-local global-hl-line-mode nil)
 									;; mozc doesn't work well, fallback
 									(setq-local default-input-method "japanese")))
@@ -593,7 +604,9 @@
 ;; eat. pure elisp terminal
 (use-package eat
 	:ensure t
-	:if (eq system-type 'gnu/linux))
+	:if (eq system-type 'gnu/linux)
+	:hook
+	(eat-mode . (lambda () (display-line-numbers-mode -1))))
 
 
 ;;; jp env packages
@@ -837,7 +850,8 @@
 				("RET" . vertico-directory-enter)
 				("C-j" . vertico-directory-enter)
 				("DEL" . vertico-directory-delete-char)
-				("M-DEL" . vertico-directory-delete-word))
+				("M-DEL" . vertico-directory-delete-word)
+				("C-M-j". vertico-exit-input))
 	:hook
 	(rfn-eshadow-update-overlay . vertico-directory-tidy))
 
