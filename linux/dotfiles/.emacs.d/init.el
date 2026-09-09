@@ -1393,13 +1393,16 @@
 ;; lisp-interaction mode(builtin) for scratch buffer
 (use-package lisp-interaction
 	:ensure nil ;; builtin
+	:preface
+	(defun my/lisp-eval-print-last-sexp ()
+		(interactive)
+		(eval-print-last-sexp)
+		(newline))
 	:bind
 	(:map lisp-interaction-mode-map
 				("C-j" . newline)
-				("M-RET" . (lambda ()
-										 (interactive)
-										 (eval-print-last-sexp)
-										 (newline)))))
+				("M-RET" . my/lisp-eval-print-last-sexp)
+				("C-c RET" . my/lisp-eval-print-last-sexp)))
 
 ;; cc-mode(builtin)
 (use-package cc-mode
@@ -1602,6 +1605,7 @@
 				("RET" . newline)
 				("M-n" . my/next-window)
 				("M-p" . my/previous-window)
+				("M-RET" . agent-shell-submit)
 				("C-c RET" . agent-shell-submit)))
 
 ;; claude-code-ide.el
