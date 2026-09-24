@@ -491,9 +491,9 @@
 	:ensure t
 	:demand t
 	:config
-	;; HACK: when loading ef-themes using load-theme, hl-todo is reloaded and settings are lost.
-	;;       to reapply hl-todo settings, separated settings into a function.
-	(defun my/hl-todo ()
+	;; HACK: modus/ef-themes have their own hl-todo-keyword-faces. 
+	;;       to reapply hl-todo settings, separated configurations into a function.
+	(defun my/hl-todo (&rest _)
 		(setq hl-todo-keyword-faces
 				'(("NOTE" . "skyblue")
 					("XXX" . "firebrick")
@@ -502,6 +502,7 @@
 					("FIXME" . "firebrick")
 					("TODO" . "firebrick")
 					("WORKAROUND" . "orangered")
+					("SIDE-EFFECT" . "orangered")
 					("EXPERIMENT" . "goldenrod")
 					("DONE" . "steelblue")
 					("DONT" . "darkorange")
@@ -510,7 +511,8 @@
 		(setq hl-todo-highlight-punctuation ":")
 		(setq hl-todo-require-punctuation t)
 		(global-hl-todo-mode t))
-	(my/hl-todo))
+	;; enable-theme-functions is abnormal hook. 'hook:' cannot register functions.
+	(add-hook 'enable-theme-functions #'my/hl-todo))
 
 ;; NOTE: disabled. not used much
 ;; anzu. display current matchs and total matchs
@@ -1112,7 +1114,7 @@
 												(org-agenda-todo-keyword-format "")))
 						(tags-todo "*"
 											 ((org-agenda-overriding-header "Unprioritized")
-												(org-agenda-skip-function '(org-agenda-skip-entry-if 'regexp "\\[#[1-4]\\]"))
+												(org-agenda-skip-function #'(org-agenda-skip-entry-if 'regexp "\\[#[1-4]\\]"))
 												(org-agenda-block-separator ?-)
 												(org-agenda-todo-keyword-format "")))))
 					))
@@ -1136,9 +1138,11 @@
 	(setq org-enforce-todo-checkbox-dependencies t)
 
 	;; org priority
-	(setq org-highest-priority 1)
-	(setq org-lowest-priority 4)
-	(setq org-default-priority 1)
+	(setq org-priority-highest 1)
+	(setq org-priority-lowest 4)
+	;; HACK: to keep unprioritized entries out of the eisenhower matrix.
+	;; SIDE-EFFECT: first S-up/down on an entry is refused.
+	(setq org-priority-default 5)
 
 	;; view config
 	(setq org-startup-folded nil)
@@ -1679,8 +1683,7 @@
 	:demand t
 	:config
 	;;(load-theme 'ef-maris-light t)
-	(load-theme 'ef-winter t)
-	(my/hl-todo))
+	(load-theme 'ef-winter t))
 
 
 ;;; load customizations
