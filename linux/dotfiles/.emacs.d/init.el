@@ -426,9 +426,9 @@
 					("\\*\\(?:vterm\\|eat\\)\\*"
 					 (display-buffer-reuse-window display-buffer-below-selected))
 					("\\*Org Agenda\\*"
-					 ;; EXPERIMENT: using side window instead of display-buffer-in-direction
-					 (display-buffer-reuse-window display-buffer-in-side-window)
-					 (side . right)
+					 ;; NOTE: reverted from display-buffer-in-side-window to display-buffer-in-direction. difficult to use side-window.
+					 (display-buffer-reuse-window display-buffer-in-direction)
+					 (direction . right)
 					 (window-width . fit-window-to-buffer)))))
 
 ;; NOTE: disabled. not used much
