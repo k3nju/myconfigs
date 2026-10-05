@@ -1132,7 +1132,7 @@
 
 	;; org todo
 	(setq org-todo-keywords
-				'((sequence "TODO(t)" "|" "DONE(d)" "CANCELED(c)")))
+				'((sequence "TODO(t)" "WIP(w!)" "|" "DONE(d!)" "CANCELED(c@)")))
 	(setq org-log-done 'time)
 	(setq org-enforce-todo-dependencies t)
 	(setq org-enforce-todo-checkbox-dependencies t)
