@@ -495,19 +495,19 @@
 	;;       to reapply hl-todo settings, separated configurations into a function.
 	(defun my/hl-todo (&rest _)
 		(setq hl-todo-keyword-faces
-				'(("NOTE" . "skyblue")
-					("XXX" . "firebrick")
-					("WIP" . "orangered")
-					("HACK" . "darkviolet")
-					("FIXME" . "firebrick")
-					("TODO" . "firebrick")
-					("WORKAROUND" . "orangered")
-					("SIDE-EFFECT" . "orangered")
+				'(("NOTE" . "firebrick")
+					("XXX" . "magenta")
+					("WIP" . "dodgerblue")
+					("HACK" . "magenta")
+					("FIXME" . "orangered")
+					("TODO" . "orangered")
+					("WORKAROUND" . "firebrick")
+					("SIDE-EFFECT" . "firebrick")
 					("EXPERIMENT" . "goldenrod")
-					("DONE" . "steelblue")
+					("DONE" . "limegreen")
 					("DONT" . "darkorange")
 					("DECIDED" . "mediumseagreen")
-					("UNDECIDED" . "orangered")))
+					("UNDECIDED" . "firebrick")))
 		(setq hl-todo-highlight-punctuation ":")
 		(setq hl-todo-require-punctuation t)
 		(global-hl-todo-mode t))
@@ -1133,6 +1133,8 @@
 	;; org todo
 	(setq org-todo-keywords
 				'((sequence "TODO(t)" "WIP(w!)" "|" "DONE(d!)" "CANCELED(c@)")))
+	(setq org-todo-keyword-faces
+				'(("WIP"  . (:foreground "dodgerblue" :weight bold))))
 	(setq org-log-done 'time)
 	(setq org-enforce-todo-dependencies t)
 	(setq org-enforce-todo-checkbox-dependencies t)
