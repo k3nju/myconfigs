@@ -1135,6 +1135,7 @@
 				'((sequence "TODO(t)" "WIP(w!)" "|" "DONE(d!)" "CANCELED(c@)")))
 	(setq org-todo-keyword-faces
 				'(("WIP"  . (:foreground "dodgerblue" :weight bold))))
+	(setq org-log-into-drawer t)
 	(setq org-log-done 'time)
 	(setq org-enforce-todo-dependencies t)
 	(setq org-enforce-todo-checkbox-dependencies t)
